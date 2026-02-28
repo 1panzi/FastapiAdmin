@@ -58,6 +58,34 @@ async def get_current_user(
     返回:
     - AuthSchema: 认证信息模型
     """
+    # 免认证模式：如果token为None且启用了免认证功能，返回访客用户
+    if not token and settings.OPTIONAL_AUTH_ENABLE:
+        # 关闭数据权限过滤，避免当前用户查询被拦截
+        auth = AuthSchema(db=db, check_data_scope=False)
+        # 获取访客用户信息
+        user = await UserCRUD(auth).get_by_username_crud(
+            username="guest",
+            preload=[
+                "dept",
+                selectinload(UserModel.roles),
+                "positions",
+                "created_by",
+            ],
+        )
+        if not user:
+            raise CustomException(msg="访客用户不存在", code=10401, status_code=401)
+        if user.status == "1":
+            raise CustomException(msg="访客用户已被停用", code=10401, status_code=401)
+
+        # 过滤可用的角色和职位
+        if hasattr(user, "roles"):
+            user.roles = [role for role in user.roles if role and role.status]
+        if hasattr(user, "positions"):
+            user.positions = [pos for pos in user.positions if pos and pos.status]
+
+        auth.user = user
+        return auth
+
     if not token:
         raise CustomException(msg="认证已失效", code=10401, status_code=401)
 

@@ -52,6 +52,11 @@ class CustomOAuth2PasswordBearer(OAuth2PasswordBearer):
             if path == excluded_path or path.startswith(excluded_path + "/"):
                 return None
 
+        # 检查是否启用免认证功能
+        if settings.OPTIONAL_AUTH_ENABLE and not authorization:
+            # 免登录模式下，如果没有提供token，直接返回None
+            return None
+
         # 正常认证流程
         scheme, token = get_authorization_scheme_param(authorization)
 
