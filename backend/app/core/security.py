@@ -41,7 +41,7 @@ class CustomOAuth2PasswordBearer(OAuth2PasswordBearer):
         - CustomException: 认证失败时抛出,状态码为401。
         """
         authorization = request.headers.get("Authorization")
-        
+
         # 检查当前路径是否在白名单中
         path = request.url.path
         # 标准化路径，移除可能的前缀
