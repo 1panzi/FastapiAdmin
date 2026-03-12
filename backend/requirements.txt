@@ -37,8 +37,6 @@ asyncpg==0.30.0                         # postgresql 异步操作数据库基于
 psycopg-binary==3.3.2                   # postgresql 异步操作数据库基于 psycopg2：asyncpg 是 psycopg2 的异步版本，psycopg2 是一个 pure-Python PostgreSQL 数据库适配器。
 psycopg==3.3.2                          # postgresql 同步操作数据库基于 psycopg是psycopg2升级版：psycopg2 是一个 pure-Python PostgreSQL 适配器。
 aiosqlite==0.17.0                       # sqlite 异步操作数据库,同步是python自带sqlite无需额外库
-langchain==1.2.0                        # 大模型
-langchain-openai==1.1.6                 # 大模型 openai 适配器
-langchain-chroma==1.1.0                 # 向量数据库
+agno==2.5.8                             # 大模型开发框架
 ruff==0.14.13                           # 代码格式化
 pytest==9.0.2                           # 测试框架

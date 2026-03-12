@@ -119,11 +119,11 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, watch } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, watch, ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { useSettingsStore } from "@/store";
-import McpAPI from "@/api/module_application/mcp";
+import { AiChatAPI, ChatSession, ChatSessionDetail } from "@/api/module_ai/chat";
 
 type ToolFunctionCall = {
   name: string;
@@ -164,6 +164,12 @@ const dialogVisible = ref(false);
 const command = ref("");
 const loading = ref(false);
 const response = ref<AiResponse | null>(null);
+
+// 会话管理
+const sessions = ref<ChatSession[]>([]);
+const currentSessionId = ref<string | null>(null);
+const currentSession = ref<ChatSessionDetail | null>(null);
+const sessionLoading = ref(false);
 
 const fabCollapsed = useStorage<boolean>("vea:ui:ai_assistant_fab_collapsed", false);
 
@@ -300,11 +306,46 @@ const examples = [
   "获取姓名为张三的用户信息",
 ];
 
+// 加载会话列表
+const loadSessions = async () => {
+  try {
+    sessionLoading.value = true;
+    const response = await AiChatAPI.getSessionList({ page_no: 1, page_size: 100 });
+    if (response.data?.success) {
+      sessions.value = response.data.data?.items || [];
+    }
+  } catch (error) {
+    console.error("加载会话列表失败:", error);
+  } finally {
+    sessionLoading.value = false;
+  }
+};
+
+// 加载会话详情
+const loadSessionDetail = async (sessionId: string) => {
+  try {
+    sessionLoading.value = true;
+    const response = await AiChatAPI.getSessionDetail(sessionId);
+    if (response.data?.success) {
+      currentSessionId.value = sessionId;
+      currentSession.value = response.data.data;
+    } else {
+      ElMessage.error("获取会话详情失败");
+    }
+  } catch (error) {
+    console.error("获取会话详情失败:", error);
+    ElMessage.error("获取会话详情失败");
+  } finally {
+    sessionLoading.value = false;
+  }
+};
+
 // 打开对话框
 const handleOpen = () => {
   dialogVisible.value = true;
   command.value = "";
   response.value = null;
+  loadSessions();
 };
 
 // 关闭对话框
@@ -334,8 +375,9 @@ const handleExecute = async () => {
 
   try {
     // 调用 AI API 解析命令
-    const result = await McpAPI.chatMcp({
+    const result = await AiChatAPI.chat({
       message: rawCommand,
+      session_id: currentSessionId.value || undefined,
     });
 
     if (!result.data.success) {
@@ -343,10 +385,18 @@ const handleExecute = async () => {
       return;
     }
 
+    // 更新会话ID
+    if (result.data.data?.session_id) {
+      currentSessionId.value = result.data.data.session_id;
+      // 重新加载会话列表和详情
+      await loadSessions();
+      await loadSessionDetail(result.data.data.session_id);
+    }
+
     // 解析 AI 返回的操作类型
-    const action = parseAction(result.data, rawCommand);
+    const action = parseAction(result.data.data, rawCommand);
     response.value = {
-      explanation: result.data.msg ?? "命令解析成功，准备执行操作",
+      explanation: result.data.data?.response ?? "命令解析成功，准备执行操作",
       action,
     };
 
@@ -475,7 +525,9 @@ const tryDirectNavigate = (rawCommand: string): AiResponse | null => {
 // 解析 AI 返回的操作类型
 const parseAction = (result: any, rawCommand: string): AiAction | null => {
   const cmd = normalizeText(rawCommand);
-  const primaryCall = result.functionCalls?.[0];
+  // 后端返回的是 function_calls（下划线命名）
+  const functionCalls = result.function_calls || result.functionCalls;
+  const primaryCall = functionCalls?.[0];
   const functionName = primaryCall?.name;
 
   // 优先从函数名推断路由，其次从命令文本匹配

@@ -1,4 +1,4 @@
-<!-- AI智能助手消息列表 -->
+<!-- AI智能助手会话列表 -->
 <template>
   <div class="app-container">
     <!-- 内容区域 -->
@@ -6,8 +6,8 @@
       <template #header>
         <div class="card-header">
           <span>
-            对话消息列表
-            <el-tooltip content="对话消息列表">
+            会话记忆
+            <el-tooltip content="对话会话列表">
               <QuestionFilled class="w-4 h-4 mx-1" />
             </el-tooltip>
           </span>
@@ -21,27 +21,19 @@
             :inline="true"
             @submit.prevent="handleQuery"
           >
-            <el-form-item prop="session_id" label="会话ID">
-              <el-input v-model="queryFormData.session_id" placeholder="请输入会话ID" clearable />
-            </el-form-item>
-            <el-form-item prop="type" label="类型">
-              <el-select
-                v-model="queryFormData.type"
-                placeholder="请选择类型"
-                style="width: 170px"
-                clearable
-              >
-                <el-option value="user" label="用户" />
-                <el-option value="assistant" label="助手" />
-              </el-select>
-            </el-form-item>
-            <el-form-item prop="content" label="内容">
-              <el-input v-model="queryFormData.content" placeholder="请输入内容" clearable />
+            <el-form-item prop="title" label="标题">
+              <el-input v-model="queryFormData.title" placeholder="请输入标题" clearable />
             </el-form-item>
             <el-form-item v-if="isExpand" prop="created_time" label="创建时间">
               <DatePicker
                 v-model="createdDateRange"
                 @update:model-value="handleCreatedDateRangeChange"
+              />
+            </el-form-item>
+            <el-form-item v-if="isExpand" prop="updated_time" label="更新时间">
+              <DatePicker
+                v-model="updatedDateRange"
+                @update:model-value="handleUpdatedDateRangeChange"
               />
             </el-form-item>
             <!-- 查询、重置、展开/收起按钮 -->
@@ -91,7 +83,7 @@
           <el-row :gutter="10">
             <el-col :span="1.5">
               <el-button
-                v-hasPerm="['module_ai:chat_message:create']"
+                v-hasPerm="['module_ai:chat:create']"
                 type="success"
                 icon="plus"
                 @click="handleOpenDialog('create')"
@@ -101,7 +93,7 @@
             </el-col>
             <el-col :span="1.5">
               <el-button
-                v-hasPerm="['module_ai:chat_message:delete']"
+                v-hasPerm="['module_ai:chat:delete']"
                 type="danger"
                 icon="delete"
                 :disabled="selectIds.length === 0"
@@ -128,7 +120,7 @@
             <el-col :span="1.5">
               <el-tooltip content="刷新">
                 <el-button
-                  v-hasPerm="['module_ai:chat_message:query']"
+                  v-hasPerm="['module_ai:chat:query']"
                   type="primary"
                   icon="refresh"
                   circle
@@ -176,36 +168,68 @@
           v-if="tableColumns.find((col) => col.prop === 'session_id')?.show"
           label="会话ID"
           prop="session_id"
+          min-width="180"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          v-if="tableColumns.find((col) => col.prop === 'title')?.show"
+          label="标题"
+          prop="title"
+          min-width="200"
+        >
+          <template #default="scope">
+            <el-input
+              v-if="editingRowId === scope.row.id"
+              ref="titleInputRef"
+              v-model="editingTitle"
+              size="small"
+              @blur="handleSaveTitle(scope.row)"
+              @keyup.enter="handleSaveTitle(scope.row)"
+            />
+            <span v-else class="editable-cell" title="点击编辑" @click="handleEditTitle(scope.row)">
+              {{ scope.row.title || "未命名会话" }}
+              <el-icon class="edit-icon"><Edit /></el-icon>
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          v-if="tableColumns.find((col) => col.prop === 'user_id')?.show"
+          label="用户ID"
+          prop="user_id"
           min-width="120"
         />
         <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'type')?.show"
-          label="类型"
-          prop="type"
-          min-width="100"
-        >
-          <template #default="scope">
-            <el-tag :type="scope.row.type === 'user' ? 'primary' : 'success'">
-              {{ scope.row.type === "user" ? "用户" : "助手" }}
-            </el-tag>
-          </template>
-        </el-table-column>
+          v-if="tableColumns.find((col) => col.prop === 'team_id')?.show"
+          label="团队ID"
+          prop="team_id"
+          min-width="120"
+        />
         <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'content')?.show"
-          label="内容"
-          prop="content"
+          v-if="tableColumns.find((col) => col.prop === 'team_name')?.show"
+          label="部门名称"
+          prop="team_name"
+          min-width="120"
+        />
+        <el-table-column
+          v-if="tableColumns.find((col) => col.prop === 'agent_id')?.show"
+          label="Agent ID"
+          prop="agent_id"
+          min-width="120"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          v-if="tableColumns.find((col) => col.prop === 'summary')?.show"
+          label="会话摘要"
+          prop="summary"
           min-width="200"
           show-overflow-tooltip
-        >
-          <template #default="scope">
-            <MarkdownRenderer :content="scope.row.content" :max-length="100" />
-          </template>
-        </el-table-column>
+        />
         <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'timestamp')?.show"
-          label="时间戳"
-          prop="timestamp"
-          min-width="180"
+          v-if="tableColumns.find((col) => col.prop === 'message_count')?.show"
+          label="消息数量"
+          prop="message_count"
+          min-width="100"
+          align="center"
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
@@ -224,11 +248,11 @@
           fixed="right"
           label="操作"
           align="center"
-          min-width="180"
+          min-width="120"
         >
           <template #default="scope">
             <el-button
-              v-hasPerm="['module_example:demo:detail']"
+              v-hasPerm="['module_ai:chat:detail']"
               type="info"
               size="small"
               link
@@ -238,17 +262,7 @@
               详情
             </el-button>
             <el-button
-              v-hasPerm="['module_example:demo:update']"
-              type="primary"
-              size="small"
-              link
-              icon="edit"
-              @click="handleOpenDialog('update', scope.row.id)"
-            >
-              编辑
-            </el-button>
-            <el-button
-              v-hasPerm="['module_example:demo:delete']"
+              v-hasPerm="['module_ai:chat:delete']"
               type="danger"
               size="small"
               link
@@ -276,37 +290,75 @@
     <el-dialog
       v-model="dialogVisible.visible"
       :title="dialogVisible.title"
+      class="session-detail-dialog"
       @close="handleCloseDialog"
     >
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
-        <el-descriptions :column="4" border>
+        <el-descriptions :column="2" border>
           <el-descriptions-item label="会话ID" :span="2">
             {{ detailFormData.session_id }}
           </el-descriptions-item>
-          <el-descriptions-item label="类型" :span="2">
-            <el-tag :type="detailFormData.type === 'user' ? 'primary' : 'success'">
-              {{ detailFormData.type === "user" ? "用户" : "助手" }}
-            </el-tag>
+          <el-descriptions-item label="标题" :span="2">
+            {{ detailFormData.title }}
           </el-descriptions-item>
-          <el-descriptions-item label="内容" :span="4">
-            <div v-if="detailFormData.content">
-              <MarkdownRenderer :content="detailFormData.content" />
-            </div>
-            <div v-else class="empty-content">暂无内容</div>
+          <el-descriptions-item label="用户ID" :span="1">
+            {{ detailFormData.user_id }}
           </el-descriptions-item>
-          <el-descriptions-item label="时间戳" :span="2">
-            {{ detailFormData.timestamp }}
+          <el-descriptions-item label="团队ID" :span="1">
+            {{ detailFormData.team_id }}
           </el-descriptions-item>
-          <el-descriptions-item label="创建时间" :span="2">
+          <el-descriptions-item label="部门名称" :span="1">
+            {{ detailFormData.team_name || "未知部门" }}
+          </el-descriptions-item>
+          <el-descriptions-item label="Agent ID" :span="1">
+            {{ detailFormData.agent_id }}
+          </el-descriptions-item>
+          <el-descriptions-item label="创建时间" :span="1">
             {{ detailFormData.created_time }}
           </el-descriptions-item>
-          <el-descriptions-item label="更新时间" :span="2">
+          <el-descriptions-item label="更新时间" :span="1">
             {{ detailFormData.updated_time }}
           </el-descriptions-item>
+          <el-descriptions-item label="消息数量" :span="1">
+            {{ detailFormData.message_count }}
+          </el-descriptions-item>
+          <el-descriptions-item label="会话摘要" :span="2">
+            {{ detailFormData.summary || "无" }}
+          </el-descriptions-item>
+          <el-descriptions-item label="元数据" :span="2">
+            <pre v-if="detailFormData.metadata">{{
+              JSON.stringify(detailFormData.metadata, null, 2)
+            }}</pre>
+            <span v-else>无</span>
+          </el-descriptions-item>
         </el-descriptions>
+
+        <!-- 消息列表 -->
+        <el-divider content-position="left">消息记录</el-divider>
+        <el-timeline v-if="detailFormData.messages && detailFormData.messages.length > 0">
+          <el-timeline-item
+            v-for="(msg, index) in detailFormData.messages"
+            :key="index"
+            :type="msg.role === 'user' ? 'primary' : 'success'"
+            :icon="msg.role === 'user' ? 'User' : 'ChatDotRound'"
+          >
+            <div class="message-item">
+              <div class="message-header">
+                <el-tag size="small" :type="msg.role === 'user' ? 'primary' : 'success'">
+                  {{ msg.role === "user" ? "用户" : "助手" }}
+                </el-tag>
+                <span v-if="msg.created_at" class="message-time">
+                  {{ formatTime(msg.created_at) }}
+                </span>
+              </div>
+              <div class="message-content">{{ msg.content }}</div>
+            </div>
+          </el-timeline-item>
+        </el-timeline>
+        <el-empty v-else description="暂无消息记录" :image-size="60" />
       </template>
-      <!-- 新增、编辑表单 -->
+      <!-- 新增表单 -->
       <template v-else>
         <el-form
           ref="dataFormRef"
@@ -317,20 +369,8 @@
           label-position="right"
           inline
         >
-          <el-form-item label="会话ID" prop="session_id">
-            <el-input-number v-model="formData.session_id" placeholder="请输入会话ID" />
-          </el-form-item>
-          <el-form-item label="类型" prop="type">
-            <el-radio-group v-model="formData.type">
-              <el-radio value="user">用户</el-radio>
-              <el-radio value="assistant">助手</el-radio>
-            </el-radio-group>
-          </el-form-item>
-          <el-form-item label="内容" prop="content">
-            <WangEditor v-model="formData.content" height="200px" />
-          </el-form-item>
-          <el-form-item label="时间戳" prop="timestamp">
-            <el-input-number v-model="formData.timestamp" placeholder="请输入时间戳" />
+          <el-form-item label="标题" prop="title">
+            <el-input v-model="formData.title" placeholder="请输入标题" :maxlength="100" />
           </el-form-item>
         </el-form>
       </template>
@@ -351,101 +391,133 @@
 
 <script setup lang="ts">
 defineOptions({
-  name: "ChatMessage",
+  name: "ChatSession",
   inheritAttrs: false,
 });
 
-import { ref, reactive, onMounted } from "vue";
-import { ElMessageBox } from "element-plus";
-import AiChatMessageAPI, {
-  MessageTable,
-  MessageForm,
-  MessagePageQuery,
-} from "@/api/module_ai/chat_message";
-import { QuestionFilled, ArrowUp, ArrowDown } from "@element-plus/icons-vue";
+import { ref, reactive, onMounted, nextTick } from "vue";
+import { ElMessage, ElMessageBox } from "element-plus";
+import AiChatAPI, { ChatSession } from "@/api/module_ai/chat";
+import DatePicker from "@/components/DatePicker/index.vue";
+import { QuestionFilled, ArrowUp, ArrowDown, Edit } from "@element-plus/icons-vue";
 import { formatToDateTime } from "@/utils/dateUtil";
-import MarkdownRenderer from "@/components/MarkdownRenderer/index.vue";
-import WangEditor from "@/components/WangEditor/index.vue";
 
 const visible = ref(true);
 const queryFormRef = ref();
 const dataFormRef = ref();
+const titleInputRef = ref();
 const total = ref(0);
-const selectIds = ref<number[]>([]);
-const selectionRows = ref<MessageTable[]>([]);
+const selectIds = ref<string[]>([]);
+const selectionRows = ref<ChatSession[]>([]);
 const loading = ref(false);
 const isExpand = ref(false);
 const isExpandable = ref(true);
 
-// 日期范围临时变量
-const createdDateRange = ref<[Date, Date] | []>([]);
-
-// 处理创建时间范围变化
-function handleCreatedDateRangeChange(range: [Date, Date]) {
-  createdDateRange.value = range;
-  if (range && range.length === 2) {
-    queryFormData.created_time = [formatToDateTime(range[0]), formatToDateTime(range[1])];
-  } else {
-    queryFormData.created_time = undefined;
-  }
-}
+// 编辑标题相关
+const editingRowId = ref<string | null>(null);
+const editingTitle = ref("");
 
 // 分页表单
-const pageTableData = ref<MessageTable[]>([]);
+const pageTableData = ref<ChatSession[]>([]);
 
 // 表格列配置
 const tableColumns = ref([
   { prop: "selection", label: "选择框", show: true },
   { prop: "index", label: "序号", show: true },
   { prop: "session_id", label: "会话ID", show: true },
-  { prop: "type", label: "类型", show: true },
-  { prop: "content", label: "内容", show: true },
-  { prop: "timestamp", label: "时间戳", show: true },
+  { prop: "title", label: "标题", show: true },
+  { prop: "user_id", label: "用户ID", show: false },
+  { prop: "team_id", label: "团队ID", show: false },
+  { prop: "team_name", label: "部门名称", show: true },
+  { prop: "agent_id", label: "Agent ID", show: false },
+  { prop: "summary", label: "会话摘要", show: false },
+  { prop: "message_count", label: "消息数量", show: true },
   { prop: "created_time", label: "创建时间", show: true },
   { prop: "updated_time", label: "更新时间", show: true },
   { prop: "operation", label: "操作", show: true },
 ]);
 
 // 详情表单
-const detailFormData = ref<MessageTable>({
-  session_id: 0,
-  type: "user",
-  content: "",
-  timestamp: 0,
+const detailFormData = ref<ChatSession>({
+  session_id: "",
+  agent_id: null,
+  team_id: null,
+  team_name: null,
+  workflow_id: null,
+  user_id: null,
+  session_data: null,
+  agent_data: null,
+  team_data: null,
+  workflow_data: null,
+  metadata: null,
+  runs: null,
+  summary: null,
+  created_at: null,
+  updated_at: null,
+  id: "",
+  title: null,
+  created_time: null,
+  updated_time: null,
+  message_count: 0,
+  messages: [],
 });
+// 日期范围临时变量
+const createdDateRange = ref<[Date, Date] | []>([]);
+// 更新时间范围临时变量
+const updatedDateRange = ref<[Date, Date] | []>([]);
+
+// 处理创建时间范围变化
+function handleCreatedDateRangeChange(range: [Date, Date]) {
+  createdDateRange.value = range;
+  if (range && range.length === 2) {
+    queryFormData.created_at = [formatToDateTime(range[0]), formatToDateTime(range[1])];
+  } else {
+    queryFormData.created_at = undefined;
+  }
+}
+
+// 处理更新时间范围变化
+function handleUpdatedDateRangeChange(range: [Date, Date]) {
+  updatedDateRange.value = range;
+  if (range && range.length === 2) {
+    queryFormData.updated_at = [formatToDateTime(range[0]), formatToDateTime(range[1])];
+  } else {
+    queryFormData.updated_at = undefined;
+  }
+}
 
 // 分页查询参数
-const queryFormData = reactive<MessagePageQuery>({
+const queryFormData = reactive({
   page_no: 1,
   page_size: 10,
-  session_id: undefined,
-  type: undefined,
-  content: undefined,
-  created_time: undefined,
+  title: undefined,
+  created_at: undefined as string[] | undefined,
+  updated_at: undefined as string[] | undefined,
 });
 
 // 编辑表单
-const formData = reactive<MessageForm>({
-  id: undefined,
-  session_id: undefined,
-  type: "user",
-  content: "",
-  timestamp: undefined,
+const formData = reactive({
+  id: undefined as string | undefined,
+  title: "",
 });
 
 // 弹窗状态
 const dialogVisible = reactive({
   title: "",
   visible: false,
-  type: "create" as "create" | "update" | "detail",
+  type: "create" as "create" | "detail",
 });
 
 // 表单验证规则
 const rules = reactive({
-  session_id: [{ required: true, message: "请输入会话ID", trigger: "blur" }],
-  type: [{ required: true, message: "请选择类型", trigger: "change" }],
-  content: [{ required: true, message: "请输入内容", trigger: "blur" }],
+  title: [{ required: true, message: "请输入标题", trigger: "blur" }],
 });
+
+// 格式化时间
+function formatTime(timestamp: number | null): string {
+  if (!timestamp) return "";
+  return formatToDateTime(new Date(timestamp * 1000));
+}
 
 // 列表刷新
 async function handleRefresh() {
@@ -456,9 +528,11 @@ async function handleRefresh() {
 async function loadingData() {
   loading.value = true;
   try {
-    const response = await AiChatMessageAPI.listMessage(queryFormData);
-    pageTableData.value = response.data.data.items;
-    total.value = response.data.data.total;
+    const response = await AiChatAPI.getSessionList(queryFormData);
+    const items = response.data.data?.items;
+    const validItems = Array.isArray(items) ? items : [];
+    pageTableData.value = validItems;
+    total.value = response.data.data?.total || 0;
   } catch (error: any) {
     console.error(error);
   } finally {
@@ -476,16 +550,18 @@ async function handleQuery() {
 async function handleResetQuery() {
   queryFormRef.value.resetFields();
   queryFormData.page_no = 1;
+  // 重置日期范围选择器
+  createdDateRange.value = [];
+  updatedDateRange.value = [];
+  queryFormData.created_at = undefined;
+  queryFormData.updated_at = undefined;
   loadingData();
 }
 
 // 定义初始表单数据常量
-const initialFormData: MessageForm = {
-  id: undefined,
-  session_id: undefined,
-  type: "user",
-  content: "",
-  timestamp: undefined,
+const initialFormData = {
+  id: undefined as string | undefined,
+  title: "",
 };
 
 // 重置表单
@@ -511,25 +587,59 @@ async function handleCloseDialog() {
 }
 
 // 打开弹窗
-async function handleOpenDialog(type: "create" | "update" | "detail", id?: number) {
+async function handleOpenDialog(type: "create" | "detail", id?: string) {
   resetForm();
   dialogVisible.type = type;
   if (id) {
-    const response = await AiChatMessageAPI.detailMessage(id);
-    console.log("详情数据:", response.data.data);
+    const response = await AiChatAPI.getSessionDetail(id);
     if (type === "detail") {
       dialogVisible.title = "详情";
-      detailFormData.value = { ...response.data.data };
-      console.log("detailFormData.value:", detailFormData.value);
-    } else if (type === "update") {
-      dialogVisible.title = "修改";
-      Object.assign(formData, response.data.data);
+      const sessionData = response.data.data || {};
+      Object.assign(detailFormData.value, sessionData);
     }
   } else {
-    dialogVisible.title = "新增消息";
+    dialogVisible.title = "新增会话";
     formData.id = undefined;
   }
   dialogVisible.visible = true;
+}
+
+// 处理编辑标题
+function handleEditTitle(row: ChatSession) {
+  editingRowId.value = row.id;
+  editingTitle.value = row.title || "";
+  nextTick(() => {
+    titleInputRef.value?.focus();
+  });
+}
+
+// 处理保存标题
+async function handleSaveTitle(row: ChatSession) {
+  if (editingRowId.value !== row.id) return;
+
+  const newTitle = editingTitle.value.trim();
+  if (!newTitle) {
+    ElMessage.warning("标题不能为空");
+    return;
+  }
+
+  if (newTitle === row.title) {
+    editingRowId.value = null;
+    return;
+  }
+
+  try {
+    loading.value = true;
+    await AiChatAPI.updateSession(row.id, { title: newTitle });
+    ElMessage.success("更新成功");
+    row.title = newTitle;
+    editingRowId.value = null;
+  } catch (error: any) {
+    console.error(error);
+    ElMessage.error("更新失败");
+  } finally {
+    loading.value = false;
+  }
 }
 
 // 提交表单（防抖）
@@ -538,38 +648,23 @@ async function handleSubmit() {
     if (valid) {
       loading.value = true;
       const submitData = { ...formData };
-      const id = formData.id;
-      if (id) {
-        try {
-          await AiChatMessageAPI.updateMessage(id, { id, ...submitData });
-          dialogVisible.visible = false;
-          resetForm();
-          handleCloseDialog();
-          handleResetQuery();
-        } catch (error: any) {
-          console.error(error);
-        } finally {
-          loading.value = false;
-        }
-      } else {
-        try {
-          await AiChatMessageAPI.createMessage(submitData);
-          dialogVisible.visible = false;
-          resetForm();
-          handleCloseDialog();
-          handleResetQuery();
-        } catch (error: any) {
-          console.error(error);
-        } finally {
-          loading.value = false;
-        }
+      try {
+        await AiChatAPI.createSession({ title: submitData.title });
+        dialogVisible.visible = false;
+        resetForm();
+        handleCloseDialog();
+        handleResetQuery();
+      } catch (error: any) {
+        console.error(error);
+      } finally {
+        loading.value = false;
       }
     }
   });
 }
 
 // 删除、批量删除
-async function handleDelete(ids: number[]) {
+async function handleDelete(ids: string[]) {
   ElMessageBox.confirm("确认删除该项数据?", "警告", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
@@ -578,7 +673,7 @@ async function handleDelete(ids: number[]) {
     .then(async () => {
       try {
         loading.value = true;
-        await AiChatMessageAPI.deleteMessage(ids);
+        await AiChatAPI.deleteSession(ids);
         handleResetQuery();
       } catch (error: any) {
         console.error(error);
@@ -597,8 +692,63 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.empty-content {
-  font-size: 14px;
-  color: var(--el-text-color-secondary);
+.edit-icon {
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.editable-cell {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--el-color-primary);
+
+    .edit-icon {
+      opacity: 1;
+    }
+  }
+}
+
+.message-item {
+  .message-header {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .message-time {
+    font-size: 12px;
+    color: var(--el-text-color-secondary);
+  }
+
+  .message-content {
+    padding: 8px 12px;
+    word-break: break-all;
+    white-space: pre-wrap;
+    background: var(--el-fill-color-light);
+    border-radius: 4px;
+  }
+}
+
+pre {
+  max-height: 200px;
+  padding: 8px;
+  margin: 0;
+  overflow: auto;
+  font-size: 12px;
+  background: var(--el-fill-color-light);
+  border-radius: 4px;
+}
+
+// 弹窗样式 - 滚动条在弹窗内
+:deep(.session-detail-dialog .el-dialog__body) {
+  max-height: 60vh;
+  padding: 20px;
+  overflow-y: auto;
 }
 </style>

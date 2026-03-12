@@ -10,7 +10,7 @@ services:
       MYSQL_ROOT_PASSWORD: "FastApi123abc"
       MYSQL_DATABASE: "fastapiadmin"
       MYSQL_PASSWORD: "FastApi123abc"
-      MYSQL_USER: "root"
+      MYSQL_USER: "fastapiadmin"
       MYSQL_TZINFO_TO_SYS_TABLES: 1 # 初始化MySQL时区表，解决时差问题
     ports:
       - "3306:3306"

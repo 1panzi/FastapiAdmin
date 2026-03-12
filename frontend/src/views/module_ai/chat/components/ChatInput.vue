@@ -60,7 +60,7 @@
 import { ref, computed } from "vue";
 import { Promotion, Paperclip, Document, Close } from "@element-plus/icons-vue";
 import type { UploadFile } from "element-plus";
-import type { UploadedFile } from "@/api/module_ai/chat_message";
+import type { UploadedFile } from "@/views/module_ai/chat/types";
 
 interface Props {
   disabled?: boolean;

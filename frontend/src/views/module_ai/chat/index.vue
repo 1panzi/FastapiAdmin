@@ -27,7 +27,7 @@
             ref="chatMessagesRef"
             :messages="messages"
             :error="error"
-            @prompt-click="handlePromptClick"
+            @prompt-click="handleSendMessage"
             @error-close="error = ''"
           />
         </el-main>
@@ -49,75 +49,69 @@ defineOptions({
   name: "Chat",
   inheritAttrs: false,
 });
+
 import { ref, onMounted, onUnmounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import ChatNavbar from "./components/ChatNavbar.vue";
 import ChatMessages from "./components/ChatMessages.vue";
 import ChatInput from "./components/ChatInput.vue";
 import Sidebar from "./components/Sidebar.vue";
-import AiChatSessionAPI, { ChatSession } from "@/api/module_ai/chat_session";
-import AiChatMessageAPI, { ChatMessage, UploadedFile } from "@/api/module_ai/chat_message";
+import AiChatAPI, { ChatSession } from "@/api/module_ai/chat";
 import { Auth } from "@/utils/auth";
+import type { ChatMessage, UploadedFile } from "./types";
 
+// 状态
 const messages = ref<ChatMessage[]>([]);
 const sending = ref(false);
 const isConnected = ref(false);
 const connectionStatus = ref<"connected" | "connecting" | "disconnected">("disconnected");
-const error = ref<string>("");
-const chatMessagesRef = ref<{ scrollToBottom: () => void }>();
-const sidebarRef = ref<{ loadSessions: () => void }>();
-const currentSessionId = ref<number | null>(null);
+const error = ref("");
+const currentSessionId = ref<string | null>(null);
 const isSidebarCollapsed = ref(false);
 
+// Refs
+const chatMessagesRef = ref<{ scrollToBottom: () => void }>();
+const sidebarRef = ref<{ loadSessions: () => void }>();
+
+// WebSocket
 let ws: WebSocket | null = null;
 const WS_URL = import.meta.env.VITE_APP_WS_ENDPOINT;
 
+// ============ WebSocket 操作 ============
 const connectWebSocket = () => {
-  if (ws?.readyState === WebSocket.OPEN) {
-    return;
-  }
+  if (ws?.readyState === WebSocket.OPEN) return;
 
   connectionStatus.value = "connecting";
   error.value = "";
 
   try {
-    // WebSocket连接不支持直接设置请求头
-    // 这里使用URL参数传递token，后端需要相应处理
     const url = new URL("/api/v1/ai/chat/ws", WS_URL);
     const token = Auth.getAccessToken();
-    if (token) {
-      url.searchParams.append("token", token);
-    }
+    if (token) url.searchParams.append("token", token);
 
     ws = new WebSocket(url.toString());
 
     ws.onopen = () => {
-      console.log("WebSocket 连接已建立");
       isConnected.value = true;
       connectionStatus.value = "connected";
       ElMessage.success("连接成功");
     };
 
-    ws.onmessage = (event) => {
-      handleWebSocketMessage({ content: event.data });
-    };
+    ws.onmessage = (event) => handleWebSocketMessage(event.data);
 
-    ws.onclose = (event) => {
-      console.log("WebSocket 连接已关闭", event.code, event.reason);
+    ws.onclose = () => {
       isConnected.value = false;
       connectionStatus.value = "disconnected";
       finishLoadingMessages();
     };
 
-    ws.onerror = (err) => {
-      console.error("WebSocket 错误:", err);
+    ws.onerror = () => {
       isConnected.value = false;
       connectionStatus.value = "disconnected";
       ElMessage.error("连接失败，请检查服务器状态");
       finishLoadingMessages();
     };
-  } catch (err) {
-    console.error("创建 WebSocket 连接失败:", err);
+  } catch {
     connectionStatus.value = "disconnected";
     error.value = "无法创建连接";
   }
@@ -142,78 +136,85 @@ const toggleConnection = () => {
   }
 };
 
-const handleWebSocketMessage = (data: any) => {
+// ============ 消息处理 ============
+const handleWebSocketMessage = (data: string) => {
   const lastMessage = messages.value[messages.value.length - 1];
+  const content = data || "";
 
-  if (lastMessage && lastMessage.type === "assistant" && lastMessage.loading) {
-    lastMessage.content += data.content || data.message || "";
+  if (lastMessage?.type === "assistant" && lastMessage.loading) {
+    lastMessage.content += content;
   } else {
-    addMessage("assistant", data.content || data.message || "收到回复");
+    addMessage("assistant", content);
   }
 
   chatMessagesRef.value?.scrollToBottom();
 };
 
-const handleSendMessage = async (message: string, files?: UploadedFile[]) => {
-  if ((!message && !files) || !isConnected.value || sending.value) {
-    return;
-  }
+const addMessage = (type: "user" | "assistant", content: string, files?: UploadedFile[]) => {
+  messages.value.push({
+    id: generateId(),
+    type,
+    content,
+    timestamp: Date.now(),
+    collapsed: content.length > 200,
+    files,
+  });
+};
 
-  const lastMessage = messages.value[messages.value.length - 1];
-  if (lastMessage && lastMessage.type === "assistant" && lastMessage.loading) {
-    lastMessage.loading = false;
-  }
-
-  // 如果没有当前会话，先创建会话
-  if (!currentSessionId.value) {
-    try {
-      // 使用第一条消息的前20个字符作为会话标题
-      const title = message.substring(0, 20) + (message.length > 20 ? "..." : "");
-      const res = await AiChatSessionAPI.createSession({ title });
-      if (res.data?.code === 0 || res.data?.success === true) {
-        currentSessionId.value = res.data.data.id ?? null;
-        sidebarRef.value?.loadSessions();
-      } else {
-        throw new Error("创建会话失败");
-      }
-    } catch (err) {
-      console.error("创建会话失败:", err);
-      ElMessage.error("创建会话失败，请重试");
-      return;
+const finishLoadingMessages = () => {
+  messages.value.forEach((msg) => {
+    if (msg.type === "assistant" && msg.loading) {
+      msg.loading = false;
+      msg.collapsed = msg.content.length > 200;
     }
+  });
+};
+
+const generateId = () => {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+};
+
+// ============ 发送消息 ============
+const handleSendMessage = async (message: string, files?: UploadedFile[]) => {
+  if ((!message && !files) || !isConnected.value || sending.value) return;
+
+  // 结束上一个加载中的消息
+  finishLoadingMessages();
+
+  // 创建新会话（如果没有）
+  if (!currentSessionId.value) {
+    const success = await createNewSession(message);
+    if (!success) return;
   }
 
+  // 添加用户消息
   addMessage("user", message, files);
 
-  const loadingMessage: ChatMessage = {
+  // 添加加载中的助手消息
+  messages.value.push({
     id: generateId(),
     type: "assistant",
     content: "",
     timestamp: Date.now(),
     loading: true,
-  };
-  messages.value.push(loadingMessage);
+  });
 
   sending.value = true;
   chatMessagesRef.value?.scrollToBottom();
 
   try {
     if (ws?.readyState === WebSocket.OPEN) {
-      const payload = {
-        message,
-        session_id: currentSessionId.value,
-        files: files?.map((f) => ({
-          name: f.name,
-          type: f.type,
-          size: f.size,
-        })),
-      };
-      ws.send(JSON.stringify(payload));
+      ws.send(
+        JSON.stringify({
+          message,
+          session_id: currentSessionId.value,
+          files: files?.map((f) => ({ name: f.name, type: f.type, size: f.size })),
+        })
+      );
     } else {
       throw new Error("WebSocket 连接未建立");
     }
-  } catch (err) {
-    console.error("发送消息失败:", err);
+  } catch {
     messages.value.pop();
     error.value = "发送消息失败，请检查连接状态";
     ElMessage.error("发送失败");
@@ -222,16 +223,57 @@ const handleSendMessage = async (message: string, files?: UploadedFile[]) => {
   }
 };
 
-const addMessage = (type: "user" | "assistant", content: string, files?: UploadedFile[]) => {
-  const message: ChatMessage = {
-    id: generateId(),
-    type,
-    content,
-    timestamp: Date.now(),
-    collapsed: content.length > 200,
-    files,
-  };
-  messages.value.push(message);
+const createNewSession = async (firstMessage: string): Promise<boolean> => {
+  try {
+    const title = firstMessage.slice(0, 20) + (firstMessage.length > 20 ? "..." : "");
+    const res = await AiChatAPI.createSession({ title });
+
+    if (res.data?.code === 0 || res.data?.success) {
+      currentSessionId.value = res.data.data?.id ?? null;
+      sidebarRef.value?.loadSessions();
+      return true;
+    }
+    throw new Error("创建会话失败");
+  } catch {
+    ElMessage.error("创建会话失败，请重试");
+    return false;
+  }
+};
+
+// ============ 会话操作 ============
+const handleSelectSession = async (session: ChatSession) => {
+  currentSessionId.value = session.id;
+  messages.value = [];
+
+  try {
+    const response = await AiChatAPI.getSessionDetail(session.id);
+    if (response.data?.code !== 0) {
+      ElMessage.error("获取会话详情失败");
+      return;
+    }
+
+    const sessionData = response.data.data || {};
+    const runs = sessionData.runs || [];
+
+    runs.forEach((run: any) => {
+      const runMessages = run.messages || [];
+      runMessages.forEach((msg: any) => {
+        if (msg.role === "user" || msg.role === "assistant") {
+          addMessage(msg.role, msg.content);
+        }
+      });
+    });
+
+    ElMessage.success(`已切换到会话：${session.title}`);
+  } catch {
+    ElMessage.error("获取会话详情失败");
+  }
+};
+
+const handleNewSession = () => {
+  currentSessionId.value = null;
+  messages.value = [];
+  ElMessage.success("已开启新对话");
 };
 
 const handleClearChat = async () => {
@@ -248,74 +290,13 @@ const handleClearChat = async () => {
   }
 };
 
-const handlePromptClick = (prompt: string) => {
-  handleSendMessage(prompt);
-};
-
-const finishLoadingMessages = () => {
-  messages.value.forEach((message) => {
-    if (message.type === "assistant" && message.loading) {
-      message.loading = false;
-      message.collapsed = message.content.length > 200;
-    }
-  });
-};
-
-const generateId = () => {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
-};
-
-const handleSelectSession = async (session: ChatSession) => {
-  currentSessionId.value = session.id;
-  messages.value = [];
-  await loadMessages(session.id);
-  ElMessage.success(`已切换到会话：${session.title}`);
-};
-
-const handleNewSession = async () => {
-  currentSessionId.value = null;
-  messages.value = [];
-  ElMessage.success("已开启新对话");
-};
-
-const loadMessages = async (sessionId: number) => {
-  try {
-    const res = await AiChatMessageAPI.getMessagesBySession(sessionId, {
-      page_no: 1,
-      page_size: 100,
-    });
-    if (res.data?.code === 0 || res.data?.success === true) {
-      const apiMessages = res.data.data?.items || [];
-      messages.value = apiMessages.map((msg: any) => ({
-        id: msg.id.toString(),
-        type: msg.type as "user" | "assistant",
-        content: msg.content,
-        timestamp: msg.timestamp,
-        collapsed: msg.content.length > 200,
-        files: msg.files?.map((f: any) => ({
-          id: generateId(),
-          name: f.name || "",
-          size: f.size || 0,
-          type: f.type || "",
-        })),
-      }));
-    }
-  } catch (error) {
-    console.error("加载消息失败:", error);
-  }
-};
-
 const toggleSidebar = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
 };
 
-onMounted(() => {
-  connectWebSocket();
-});
-
-onUnmounted(() => {
-  disconnectWebSocket();
-});
+// ============ 生命周期 ============
+onMounted(connectWebSocket);
+onUnmounted(disconnectWebSocket);
 </script>
 
 <style lang="scss" scoped>

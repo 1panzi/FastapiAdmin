@@ -46,7 +46,9 @@
                   @click="handleSelectSession(session)"
                 >
                   <el-icon class="session-icon"><ChatLineRound /></el-icon>
-                  <span class="session-title">{{ session.title }}</span>
+                  <span class="session-title">
+                    {{ session.title || session.session_data?.session_name || "未命名会话" }}
+                  </span>
                   <el-dropdown
                     trigger="click"
                     @command="(cmd) => handleSessionCommand(cmd, session)"
@@ -122,10 +124,11 @@ import {
   ArrowDown,
 } from "@element-plus/icons-vue";
 import { useUserStoreHook } from "@/store";
-import AiAPI, { ChatSession, SessionGroup, UserInfo } from "@/api/module_ai/chat_session";
+import { ChatSession, SessionGroup, UserInfo } from "@/api/module_ai/chat";
+import AiChatAPI from "@/api/module_ai/chat";
 
 interface Props {
-  currentSessionId?: number | null;
+  currentSessionId?: string | null;
   isCollapsed?: boolean;
 }
 
@@ -157,7 +160,9 @@ const filteredSessions = computed<ChatSession[]>(() => {
     return sessions.value;
   }
   const query = searchQuery.value.toLowerCase();
-  return sessions.value.filter((session) => session.title.toLowerCase().includes(query));
+  return sessions.value.filter((session: ChatSession) =>
+    (session.title || "").toLowerCase().includes(query)
+  );
 });
 
 const groupedSessions = computed<SessionGroup[]>(() => {
@@ -173,7 +178,9 @@ const groupedSessions = computed<SessionGroup[]>(() => {
   const earlierSessions: ChatSession[] = [];
 
   filteredSessions.value.forEach((session) => {
-    const updatedTime = new Date(session.updated_time).getTime();
+    if (!session.updated_at) return;
+    // Unix 时间戳（秒）转换为毫秒
+    const updatedTime = session.updated_at * 1000;
 
     if (updatedTime >= todayStart) {
       todaySessions.push(session);
@@ -189,19 +196,19 @@ const groupedSessions = computed<SessionGroup[]>(() => {
   const groups: SessionGroup[] = [];
 
   if (todaySessions.length > 0) {
-    groups.push({ title: "今天", sessions: todaySessions });
+    groups.push({ id: "today", title: "今天", sessions: todaySessions });
   }
 
   if (yesterdaySessions.length > 0) {
-    groups.push({ title: "昨天", sessions: yesterdaySessions });
+    groups.push({ id: "yesterday", title: "昨天", sessions: yesterdaySessions });
   }
 
   if (weekSessions.length > 0) {
-    groups.push({ title: "本周", sessions: weekSessions });
+    groups.push({ id: "week", title: "本周", sessions: weekSessions });
   }
 
   if (earlierSessions.length > 0) {
-    groups.push({ title: "更早", sessions: earlierSessions });
+    groups.push({ id: "earlier", title: "更早", sessions: earlierSessions });
   }
 
   return groups;
@@ -236,7 +243,7 @@ const handleSessionCommand = async (command: string, session: ChatSession) => {
         inputPattern: /.+/,
         inputErrorMessage: "会话名称不能为空",
       });
-      await AiAPI.updateSession(session.id, { title: value });
+      await AiChatAPI.updateSession(session.id, { title: value });
       session.title = value;
       ElMessage.success("重命名成功");
     } catch (error) {
@@ -253,8 +260,8 @@ const handleSessionCommand = async (command: string, session: ChatSession) => {
         cancelButtonText: "取消",
         type: "warning",
       });
-      await AiAPI.deleteSession([session.id]);
-      const index = sessions.value.findIndex((s) => s.id === session.id);
+      await AiChatAPI.deleteSession([session.id]);
+      const index = sessions.value.findIndex((s: ChatSession) => s.id === session.id);
       if (index > -1) {
         sessions.value.splice(index, 1);
       }
@@ -282,16 +289,36 @@ const handleUserCommand = (command: string) => {
 
 const loadSessions = async () => {
   try {
-    const res = await AiAPI.listSession({ page_no: 1, page_size: 100 });
-    if (res.data?.code === 0 || res.data?.success === true) {
-      sessions.value = (res.data.data?.items || [])
-        .filter((item: any) => item.id !== undefined)
+    const res = await AiChatAPI.getSessionList({ page_no: 1, page_size: 100 });
+    const responseData = res.data;
+    const data = responseData?.data;
+
+    if (data?.items && Array.isArray(data.items)) {
+      sessions.value = data.items
+        .filter((item: any) => item.session_id !== undefined)
         .map((item: any) => ({
-          id: item.id,
-          title: item.title,
-          created_time: item.created_time,
-          updated_time: item.updated_time,
-          message_count: 0,
+          id: item.session_id,
+          title: item.session_data?.session_name || item.session_id?.slice(0, 8) || "新会话",
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          message_count: item.runs?.length || 0,
+          session_id: item.session_id,
+          session_type: item.session_type,
+          agent_id: item.agent_id,
+          user_id: item.user_id,
+          team_id: item.team_id,
+          team_name: item.team_name,
+          workflow_id: item.workflow_id,
+          summary: item.summary,
+          metadata: item.metadata,
+          runs: item.runs,
+          session_data: item.session_data,
+          agent_data: item.agent_data,
+          team_data: item.team_data,
+          workflow_data: item.workflow_data,
+          created_time: item.created_at ? new Date(item.created_at * 1000).toISOString() : null,
+          updated_time: item.updated_at ? new Date(item.updated_at * 1000).toISOString() : null,
+          messages: item.runs?.flatMap((run: any) => run.messages || []) || [],
         }));
     }
   } catch (error) {

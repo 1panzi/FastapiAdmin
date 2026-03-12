@@ -5,6 +5,7 @@ description = "fastapiadmin后端工程"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "agno==2.5.8",
     "aiofiles==24.1.0",                         # 文件操作
     "aiosqlite==0.17.0",                        # sqlite 异步操作数据库
     "alembic==1.15.1",                          # 数据库迁移

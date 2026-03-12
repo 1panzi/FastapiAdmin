@@ -77,7 +77,7 @@ import hljs from "highlight.js";
 import DOMPurify from "dompurify";
 import "highlight.js/styles/atom-one-light.css";
 import { useUserStoreHook } from "@/store";
-import type { ChatMessage } from "@/api/module_ai/chat_message";
+import type { ChatMessage } from "@/views/module_ai/chat/types";
 
 interface Props {
   message: ChatMessage;

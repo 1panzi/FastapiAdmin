@@ -640,7 +640,7 @@ class SchedulerUtil:
     def _task_wrapper(cls, job_id: str | int, code_block: str | None, *args, **kwargs):
         """
         任务执行包装器，执行自定义代码块（同步版本，用于 ThreadPoolExecutor）
-        
+
         支持完整的 Python 语法，包括 import 语句
         """
         import types
@@ -648,14 +648,14 @@ class SchedulerUtil:
         def run_sync_handler():
             if not code_block:
                 return None
-            
+
             # 创建一个新的模块作为执行环境
             module = types.ModuleType(f"node_task_{job_id}")
             module.__dict__["__builtins__"] = __builtins__
-            
+
             # 在模块环境中执行代码
             exec(code_block, module.__dict__)
-            
+
             # 获取 handler 函数
             handler = module.__dict__.get("handler")
             if handler and callable(handler):

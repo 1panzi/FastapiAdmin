@@ -19,7 +19,7 @@
 import { ref, nextTick, watch } from "vue";
 import WelcomeScreen from "./WelcomeScreen.vue";
 import MessageItem from "./MessageItem.vue";
-import type { ChatMessage } from "@/api/module_ai/chat_message";
+import type { ChatMessage } from "@/views/module_ai/chat/types";
 
 interface Props {
   messages: ChatMessage[];
