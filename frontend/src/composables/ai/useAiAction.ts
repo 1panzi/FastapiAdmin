@@ -1,7 +1,7 @@
 import { useRoute } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { onMounted, onBeforeUnmount, nextTick } from "vue";
-import McpAPI from "@/api/module_application/mcp";
+import AiChatAPI from "@/api/module_ai/chat";
 
 /**
  * AI 操作处理器（简化版）
@@ -105,7 +105,7 @@ export function useAiAction(options: UseAiActionOptions = {}) {
         // 2. 执行阶段
         if (config.callBackendApi) {
           // 自动调用后端 API
-          await McpAPI.chatMcp({
+          await AiChatAPI.chat({
             message: fnCall.arguments,
           });
         } else {
@@ -168,7 +168,7 @@ export function useAiAction(options: UseAiActionOptions = {}) {
     }
 
     try {
-      await McpAPI.chatMcp({
+      await AiChatAPI.chat({
         message: originalCommand,
       });
 
