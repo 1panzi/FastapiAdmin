@@ -1,6 +1,6 @@
 <div align="center">
      <p align="center">
-          <img src="https://gitee.com/fastapiadmin/FastDocs/raw/master/docs/public/logo.png" width="150" height="150" alt="logo" /> 
+          <img src="backend/data/logo.png" width="150" height="150" alt="logo" /> 
      </p>
      <h1>FastApiAdmin <img src="https://img.shields.io/badge/Version-v2.0.0-blue" alt="Version"></h1>
      <h3>Modern Full-Stack Rapid Development Platform</h3>
@@ -107,15 +107,15 @@ FastapiAdmin
 
 | Module | Screenshot |
 |------------|---------------------------------|
-| Dashboard  | ![Dashboard](https://gitee.com/fastapiadmin/FastDocs/raw/master/docs/public/dashboard.png) |
-| Generator  | ![Generator](https://gitee.com/fastapiadmin/FastDocs/raw/master/docs/public/gencode.png) |
-| AI       | ![AI](https://gitee.com/fastapiadmin/FastDocs/raw/master/docs/public/ai.png) |
+| Dashboard  | ![Dashboard](backend/data/dashboard.png) |
+| Generator  | ![Generator](backend/data/gencode.png) |
+| AI       | ![AI](backend/data/ai.png) |
 
 ### Mobile
 
 | Login <div style="width:60px"/> | Home <div style="width:60px"/> | Profile <div style="width:60px"/> |
 |----------|----------|----------|
-| ![Mobile Login](https://gitee.com/fastapiadmin/FastDocs/raw/master/docs/public/app_login.png) | ![Mobile Home](https://gitee.com/fastapiadmin/FastDocs/raw/master/docs/public/app_home.png) | ![Mobile Personal Info](https://gitee.com/fastapiadmin/FastDocs/raw/master/docs/public/app_mine.png) |
+| ![Mobile Login](backend/data/app_login.png) | ![Mobile Home](backend/data/app_home.png) | ![Mobile Personal Info](backend/data/app_mine.png) |
 
 ## 🚀 Quick Start
 
@@ -511,7 +511,7 @@ Thanks to the contributions and support of the following open-source projects:
 
 | Group QR Code | WeChat Pay QR Code |
 | --- | --- |
-| ![Group QR Code](https://gitee.com/fastapiadmin/FastDocs/raw/master/docs/public/group.jpg) | ![WeChat Pay QR Code](https://gitee.com/fastapiadmin/FastDocs/raw/master/docs/public/wechatPay.jpg) |
+| ![Group QR Code](backend/data/group.jpg) | ![WeChat Pay QR Code](backend/data/wechatPay.jpg) |
 
 ## ❤️ Support the Project
 
