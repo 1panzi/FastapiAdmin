@@ -1,121 +1,6 @@
 <!-- {{ function_name }} -->
 <template>
   <div class="app-container">
-    <!-- 搜索区域 -->
-    <div v-show="visible" class="search-container">
-      <el-form
-        ref="queryFormRef"
-        :model="queryFormData"
-        label-suffix=":"
-        :inline="true"
-        @submit.prevent="handleQuery"
-      >
-        {% for column in columns %}
-        {% if column.is_query == 1 %}
-        {% set dict_type = column.dict_type %}
-        {% set column_comment = column.column_comment if column.column_comment else '' %}
-        {% set parentheseIndex = column_comment.find("（") %}
-        {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}
-        {% if column.column_name == "status" %}
-        <el-form-item prop="status" label="状态">
-          <el-select
-            v-model="queryFormData.status"
-            placeholder="请选择状态"
-            style="width: 170px"
-            clearable
-          >
-            <el-option value="0" label="启用" />
-            <el-option value="1" label="停用" />
-          </el-select>
-        </el-form-item>
-        {% elif column.column_name == "created_id"%}
-        <el-form-item v-if="isExpand" prop="created_id" label="创建人">
-          <UserTableSelect
-            v-model="queryFormData.created_id"
-            @confirm-click="handleConfirm"
-            @clear-click="handleQuery"
-          />
-        </el-form-item>
-        {% elif column.column_name == "updated_id"%}
-        <el-form-item v-if="isExpand" prop="updated_id" label="更新人">
-          <UserTableSelect
-            v-model="queryFormData.updated_id"
-            @confirm-click="handleConfirm"
-            @clear-click="handleQuery"
-          />
-        </el-form-item>
-        {% elif column.column_name == "created_time"%}
-        <el-form-item v-if="isExpand" prop="created_time" label="创建时间">
-          <DatePicker
-            v-model="createdDateRange"
-            @update:model-value="handleCreatedDateRangeChange"
-          />
-        </el-form-item>
-        {% elif column.column_name == "updated_time"%}
-        <el-form-item v-if="isExpand" prop="updated_time" label="更新时间">
-          <DatePicker
-            v-model="updatedDateRange"
-            @update:model-value="handleUpdatedDateRangeChange"
-          />
-        </el-form-item>
-        {% elif column.html_type == "input" %}
-        <el-form-item label="{{ comment }}" prop="{{ column.column_name }}">
-          <el-input v-model="queryFormData.{{ column.column_name }}" placeholder="请输入{{ comment }}" clearable />
-        </el-form-item>
-        {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type != "" %}
-        <el-form-item label="{{ comment }}" prop="{{ column.column_name }}">
-          <el-select v-model="queryFormData.{{ column.column_name }}" placeholder="请选择{{ comment }}" style="width: 180px" clearable>
-            <el-option v-for="dict in dictStore.getDictArray('{{ dict_type }}')" :key="dict.dict_value" :label="dict.dict_label" :value="dict.dict_value" />
-          </el-select>
-        </el-form-item>
-        {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type %}
-        <el-form-item label="{{ comment }}" prop="{{ column.column_name }}">
-          <el-select v-model="queryFormData.{{ column.column_name }}" placeholder="请选择{{ comment }}" clearable>
-            <el-option label="请选择字典生成" value="" />
-          </el-select>
-        </el-form-item>
-        {% elif column.html_type == "datetime" and column.query_type != "BETWEEN" %}
-        <el-form-item label="{{ comment }}" prop="{{ column.column_name }}">
-          <el-date-picker v-model="queryFormData.{{ column.column_name }}" type="date" value-format="YYYY-MM-DD" clearable placeholder="请选择{{ comment }}" />
-        </el-form-item>
-        {% endif %}
-        {% endif %}
-        {% endfor %}
-        <!-- 查询、重置、展开/收起按钮 -->
-        <el-form-item>
-          <el-button
-            v-hasPerm="['{{ module_name }}:{{ business_name }}:query']"
-            type="primary"
-            icon="search"
-            @click="handleQuery"
-          >
-            查询
-          </el-button>
-          <el-button
-            v-hasPerm="['{{ module_name }}:{{ business_name }}:query']"
-            icon="refresh"
-            @click="handleResetQuery"
-          >
-            重置
-          </el-button>
-          <!-- 展开/收起 -->
-          <template v-if="isExpandable">
-            <el-link class="ml-3" type="primary" underline="never" @click="isExpand = !isExpand">
-              {{ '{{' }} isExpand ? "收起" : "展开" {{ '}}' }}
-              <el-icon>
-                <template v-if="isExpand">
-                  <ArrowUp />
-                </template>
-                <template v-else>
-                  <ArrowDown />
-                </template>
-              </el-icon>
-            </el-link>
-          </template>
-        </el-form-item>
-      </el-form>
-    </div>
-
     <!-- 内容区域 -->
     <el-card class="data-table">
       <template #header>
@@ -126,6 +11,126 @@
               <QuestionFilled class="w-4 h-4 mx-1" />
             </el-tooltip>
           </span>
+        </div>
+
+        <!-- 搜索区域 -->
+        <div v-show="visible" class="search-container">
+          <el-form
+            ref="queryFormRef"
+            :model="queryFormData"
+            label-suffix=":"
+            :inline="true"
+            @submit.prevent="handleQuery"
+          >
+            {% for column in columns %}
+            {% if column.is_query == 1 %}
+            {% set dict_type = column.dict_type %}
+            {% set column_comment = column.column_comment if column.column_comment else '' %}
+            {% set parentheseIndex = column_comment.find("（") %}
+            {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}
+            {% if column.column_name == "status" %}
+            <el-form-item prop="status" label="状态">
+              <el-select
+                v-model="queryFormData.status"
+                placeholder="请选择状态"
+                style="width: 170px"
+                clearable
+              >
+                <el-option value="0" label="启用" />
+                <el-option value="1" label="停用" />
+              </el-select>
+            </el-form-item>
+            {% elif column.column_name == "created_id"%}
+            <el-form-item v-if="isExpand" prop="created_id" label="创建人">
+              <UserTableSelect
+                v-model="queryFormData.created_id"
+                @confirm-click="handleConfirm"
+                @clear-click="handleQuery"
+              />
+            </el-form-item>
+            {% elif column.column_name == "updated_id"%}
+            <el-form-item v-if="isExpand" prop="updated_id" label="更新人">
+              <UserTableSelect
+                v-model="queryFormData.updated_id"
+                @confirm-click="handleConfirm"
+                @clear-click="handleQuery"
+              />
+            </el-form-item>
+            {% elif column.column_name == "created_time"%}
+            <el-form-item v-if="isExpand" prop="created_time" label="创建时间">
+              <DatePicker
+                v-model="createdDateRange"
+                @update:model-value="handleCreatedDateRangeChange"
+              />
+            </el-form-item>
+            {% elif column.column_name == "updated_time"%}
+            <el-form-item v-if="isExpand" prop="updated_time" label="更新时间">
+              <DatePicker
+                v-model="updatedDateRange"
+                @update:model-value="handleUpdatedDateRangeChange"
+              />
+            </el-form-item>
+            {% elif column.html_type == "input" %}
+            <el-form-item label="{{ comment }}" prop="{{ column.column_name }}">
+              <el-input v-model="queryFormData.{{ column.column_name }}" placeholder="请输入{{ comment }}" clearable />
+            </el-form-item>
+            {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type != "" %}
+            <el-form-item label="{{ comment }}" prop="{{ column.column_name }}">
+              <el-select v-model="queryFormData.{{ column.column_name }}" placeholder="请选择{{ comment }}" style="width: 180px" clearable>
+                <el-option v-for="dict in dictStore.getDictArray('{{ dict_type }}')" :key="dict.dict_value" :label="dict.dict_label" :value="dict.dict_value" />
+              </el-select>
+            </el-form-item>
+            {% elif (column.html_type == "select" or column.html_type == "radio") and dict_type %}
+            <el-form-item label="{{ comment }}" prop="{{ column.column_name }}">
+              <el-select v-model="queryFormData.{{ column.column_name }}" placeholder="请选择{{ comment }}" clearable>
+                <el-option label="请选择字典生成" value="" />
+              </el-select>
+            </el-form-item>
+            {% elif column.html_type == "datetime" and column.query_type != "BETWEEN" %}
+            <el-form-item label="{{ comment }}" prop="{{ column.column_name }}">
+              <el-date-picker v-model="queryFormData.{{ column.column_name }}" type="date" value-format="YYYY-MM-DD" clearable placeholder="请选择{{ comment }}" />
+            </el-form-item>
+            {% endif %}
+            {% endif %}
+            {% endfor %}
+            <!-- 查询、重置、展开/收起按钮 -->
+            <el-form-item>
+              <el-button
+                v-hasPerm="['{{ module_name }}:{{ business_name }}:query']"
+                type="primary"
+                icon="search"
+                @click="handleQuery"
+              >
+                查询
+              </el-button>
+              <el-button
+                v-hasPerm="['{{ module_name }}:{{ business_name }}:query']"
+                icon="refresh"
+                @click="handleResetQuery"
+              >
+                重置
+              </el-button>
+              <!-- 展开/收起 -->
+              <template v-if="isExpandable">
+                <el-link 
+                  class="ml-3"
+                  type="primary"
+                  underline="never"
+                  @click="isExpand = !isExpand"
+                >
+                  {{ '{{' }} isExpand ? "收起" : "展开" {{ '}}' }}
+                  <el-icon>
+                    <template v-if="isExpand">
+                      <ArrowUp />
+                    </template>
+                    <template v-else>
+                      <ArrowDown />
+                    </template>
+                  </el-icon>
+                </el-link>
+              </template>
+            </el-form-item>
+          </el-form>
         </div>
       </template>
 
@@ -242,7 +247,6 @@
         :data="pageTableData"
         highlight-current-row
         class="data-table__content"
-        :height="450"
         border
         stripe
         @selection-change="handleSelectionChange"
@@ -277,6 +281,7 @@
           label="{{ comment }}"
           prop="{{ python_field }}"
           min-width="140"
+          show-overflow-tooltip
         />
         {% if python_field in ['status', 'created_id', 'updated_id'] %}
         <el-table-column
@@ -284,6 +289,7 @@
           label="{{ comment }}"
           prop="{{ python_field }}"
           min-width="140"
+          show-overflow-tooltip
         >
           {% if python_field == "status" %}
           <template #default="scope">
@@ -488,6 +494,7 @@
     <ImportModal
       v-model="importDialogVisible"
       :content-config="curdContentConfig"
+      :loading="uploadLoading"
       @upload="handleUpload"
     />
 
@@ -525,24 +532,14 @@ import {{ class_name }}API, {
 } from "@/api/{{ module_name }}/{{ business_name }}";
 
 const visible = ref(true);
-const isExpand = ref(false);
-const isExpandable = ref(true);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
 const selectIds = ref<number[]>([]);
 const selectionRows = ref<{{ class_name }}Table[]>([]);
 const loading = ref(false);
-
-// 字典仓库与需要加载的字典类型
-const dictStore = useDictStore();
-const dictTypes: any = [
-  {% for column in columns %}
-  {% if column.dict_type %}
-  "{{ column.dict_type }}",
-  {% endif %}
-  {% endfor %}
-];
+const isExpand = ref(false);
+const isExpandable = ref(true);
 
 // 分页表单
 const pageTableData = ref<{{ class_name }}Table[]>([]);
@@ -640,6 +637,16 @@ const formData = reactive<{{ class_name }}Form>({
   {% endfor %}
 });
 
+// 字典仓库与需要加载的字典类型
+const dictStore = useDictStore();
+const dictTypes: any = [
+  {% for column in columns %}
+  {% if column.dict_type %}
+  "{{ column.dict_type }}",
+  {% endif %}
+  {% endfor %}
+];
+
 // 弹窗状态
 const dialogVisible = reactive({
   title: "",
@@ -659,6 +666,7 @@ const rules = reactive({
 
 // 导入弹窗显示状态
 const importDialogVisible = ref(false);
+const uploadLoading = ref(false);
 
 // 导出弹窗显示状态
 const exportsDialogVisible = ref(false);
@@ -780,10 +788,11 @@ async function handleSubmit() {
     if (valid) {
       loading.value = true;
       // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
+      const submitData = { ...formData };
       const id = formData.id;
       if (id) {
         try {
-          await {{ class_name }}API.update{{ class_name }}(id, { id, ...formData });
+          await {{ class_name }}API.update{{ class_name }}(id, { id, ...submitData });
           dialogVisible.visible = false;
           resetForm();
           handleCloseDialog();
@@ -795,7 +804,7 @@ async function handleSubmit() {
         }
       } else {
         try {
-          await {{ class_name }}API.create{{ class_name }}(formData);
+          await {{ class_name }}API.create{{ class_name }}(submitData);
           dialogVisible.visible = false;
           resetForm();
           handleCloseDialog();
@@ -861,6 +870,7 @@ async function handleMoreClick(status: string) {
 // 处理上传
 const handleUpload = async (formData: FormData) => {
   try {
+    uploadLoading.value = true;
     const response = await {{ class_name }}API.import{{ class_name }}(formData);
     if (response.data.code === ResultEnum.SUCCESS) {
       ElMessage.success(`${response.data.msg}，${response.data.data}`);
@@ -869,6 +879,8 @@ const handleUpload = async (formData: FormData) => {
     }
   } catch (error: any) {
     console.error(error);
+  } finally {
+    uploadLoading.value = false;
   }
 };
 

@@ -246,18 +246,21 @@
           label="名称"
           prop="name"
           min-width="140"
+          show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'uuid')?.show"
           label="UUID"
           prop="uuid"
           min-width="180"
+          show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
           label="状态"
           prop="status"
           min-width="120"
+          show-overflow-tooltip
         >
           <template #default="scope">
             <el-tag :type="scope.row.status ? 'success' : 'info'">
@@ -270,24 +273,28 @@
           label="整数"
           prop="a"
           min-width="100"
+          show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'b')?.show"
           label="大整数"
           prop="b"
           min-width="120"
+          show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'c')?.show"
           label="浮点数"
           prop="c"
           min-width="100"
+          show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'd')?.show"
           label="布尔值"
           prop="d"
           min-width="100"
+          show-overflow-tooltip
         >
           <template #default="scope">
             <el-tag :type="scope.row.d ? 'success' : 'danger'">
@@ -300,58 +307,56 @@
           label="日期"
           prop="e"
           min-width="120"
+          show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'f')?.show"
           label="时间"
           prop="f"
           min-width="120"
+          show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'g')?.show"
           label="日期时间"
           prop="g"
           min-width="180"
+          show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'h')?.show"
           label="长文本"
           prop="h"
           min-width="140"
+          show-overflow-tooltip
         />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'i')?.show"
-          label="元数据"
-          prop="i"
-          min-width="140"
-        >
-          <template #default="scope">
-            <JsonPretty :value="scope.row.i" height="100px" />
-          </template>
-        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'description')?.show"
           label="描述"
           prop="description"
           min-width="140"
+          show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
           label="创建时间"
           prop="created_time"
           min-width="180"
+          show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
           label="更新时间"
           prop="updated_time"
           min-width="180"
+          show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
           label="创建人"
           prop="created_id"
           min-width="120"
+          show-overflow-tooltip
         >
           <template #default="scope">
             <el-tag>{{ scope.row.created_by?.name }}</el-tag>
@@ -362,6 +367,7 @@
           label="更新人"
           prop="updated_id"
           min-width="120"
+          show-overflow-tooltip
         >
           <template #default="scope">
             <el-tag>{{ scope.row.updated_by?.name }}</el-tag>
@@ -372,7 +378,7 @@
           fixed="right"
           label="操作"
           align="center"
-          min-width="180"
+          min-width="200"
         >
           <template #default="scope">
             <el-button
@@ -436,8 +442,8 @@
             {{ detailFormData.uuid }}
           </el-descriptions-item>
           <el-descriptions-item label="状态" :span="2">
-            <el-tag :type="detailFormData.status ? 'success' : 'danger'">
-              {{ detailFormData.status ? "启用" : "停用" }}
+            <el-tag :type="detailFormData.status == '0' ? 'success' : 'danger'">
+              {{ detailFormData.status == "0" ? "启用" : "停用" }}
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="整数" :span="2">
@@ -871,8 +877,6 @@ async function handleCloseDialog() {
 
 // 打开弹窗
 async function handleOpenDialog(type: "create" | "update" | "detail", id?: number) {
-  // 每次打开弹窗前先重置表单
-  resetForm();
   dialogVisible.type = type;
   if (id) {
     const response = await DemoAPI.getDemoDetail(id);

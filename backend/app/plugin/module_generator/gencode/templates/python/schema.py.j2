@@ -11,6 +11,7 @@ from fastapi import Query
 {% if table.created_time %}
 from app.core.validator import DateTimeStr
 {% endif %}
+from app.common.enums import QueueEnum
 from app.core.base_schema import BaseSchema, UserBySchema
 
 class {{ class_name }}CreateSchema(BaseModel):
@@ -69,18 +70,28 @@ class {{ class_name }}QueryParam:
         {% for column in columns %}
         {% if column.query_type == 'LIKE' %}
         # 模糊查询字段
-        self.{{ column.column_name }} = ("like", {{ column.column_name }})
+        self.{{ column.column_name }} = (QueueEnum.like.value, {{ column.column_name }})
         {% elif column.query_type == 'EQ' and column.column_name not in ['created_time', 'updated_time'] %}
         # 精确查询字段
-        self.{{ column.column_name }} = {{ column.column_name }}
+        if {{ column.column_name }}:
+            self.{{ column.column_name }} = (QueueEnum.eq.value, {{ column.column_name }})
         {% endif %}
         {% endfor %}
         {% if table.created_time %}
         # 时间范围查询
         if created_time and len(created_time) == 2:
-            self.created_time = ("between", (created_time[0], created_time[1]))
+            self.created_time = (QueueEnum.between.value, (created_time[0], created_time[1]))
         {% endif %}
         {% if table.updated_time %}
         if updated_time and len(updated_time) == 2:
-            self.updated_time = ("between", (updated_time[0], updated_time[1]))
+            self.updated_time = (QueueEnum.between.value, (updated_time[0], updated_time[1]))
+        {% endif %}
+        {% if table.created_id %}
+        # 关联查询字段
+        if created_id:
+            self.created_id = (QueueEnum.eq.value, created_id)
+        {% endif %}
+        {% if table.updated_id %}
+        if updated_id:
+            self.updated_id = (QueueEnum.eq.value, updated_id)
         {% endif %}

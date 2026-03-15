@@ -98,6 +98,9 @@ html.sidebar-color-blue .layout-mix .layout__sidebar--left .el-menu {
 
 // 表格区域样式
 .data-table {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   margin-bottom: 4px;
 
   // 表格工具栏区域
@@ -115,6 +118,9 @@ html.sidebar-color-blue .layout-mix .layout__sidebar--left .el-menu {
 
   // 表格内容区域
   &__content {
+    flex: 1;
+    height: auto !important;
+    max-height: none !important;
     margin: 0px 0; // 表格内容区域添加内边距
   }
 
