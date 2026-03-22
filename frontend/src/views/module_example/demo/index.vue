@@ -559,15 +559,6 @@
           <el-form-item label="长文本" prop="h">
             <el-input v-model="formData.h" :rows="4" type="textarea" placeholder="请输入长文本" />
           </el-form-item>
-          <el-form-item label="元数据" prop="i">
-            <el-input
-              :model-value="JSON.stringify(formData.i)"
-              :rows="4"
-              type="textarea"
-              placeholder="请输入JSON格式的元数据"
-              @update:model-value="(val) => (formData.i = val ? JSON.parse(val) : undefined)"
-            />
-          </el-form-item>
           <el-form-item label="描述" prop="description">
             <el-input
               v-model="formData.description"
@@ -577,6 +568,38 @@
               type="textarea"
               placeholder="请输入描述"
             />
+          </el-form-item>
+          <el-form-item label="元数据" prop="i">
+            <div class="flex flex-col gap-2">
+              <div
+                v-for="(item, index) in metadataList"
+                :key="index"
+                class="flex items-center gap-2"
+              >
+                <el-input v-model="item.key" placeholder="键" />
+                <el-input v-model="item.value" placeholder="值" />
+                <el-button
+                  type="primary"
+                  icon="Plus"
+                  circle
+                  @click="metadataList.push({ key: '', value: '' })"
+                />
+                <el-button
+                  type="danger"
+                  icon="Delete"
+                  circle
+                  @click="metadataList.splice(index, 1)"
+                />
+              </div>
+              <el-button
+                v-if="metadataList.length === 0"
+                type="primary"
+                icon="Plus"
+                @click="metadataList.push({ key: '', value: '' })"
+              >
+                添加元数据
+              </el-button>
+            </div>
           </el-form-item>
         </el-form>
       </template>
@@ -638,6 +661,7 @@ const selectionRows = ref<DemoTable[]>([]);
 const loading = ref(false);
 const isExpand = ref(false);
 const isExpandable = ref(true);
+const metadataList = ref<{ key: string; value: string }[]>([]);
 
 // 分页表单
 const pageTableData = ref<DemoTable[]>([]);
@@ -862,6 +886,7 @@ async function resetForm() {
   }
   // 完全重置 formData 为初始状态
   Object.assign(formData, initialFormData);
+  metadataList.value = [];
 }
 
 // 行复选框选中项变化
@@ -887,10 +912,19 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     } else if (type === "update") {
       dialogVisible.title = "修改";
       Object.assign(formData, response.data.data);
+      if (formData.i && typeof formData.i === "object") {
+        metadataList.value = Object.entries(formData.i).map(([key, value]) => ({
+          key,
+          value: String(value),
+        }));
+      } else {
+        metadataList.value = [];
+      }
     }
   } else {
     dialogVisible.title = "新增示例";
     formData.id = undefined;
+    metadataList.value = [];
   }
   dialogVisible.visible = true;
 }
@@ -902,6 +936,17 @@ async function handleSubmit() {
     if (valid) {
       loading.value = true;
       const submitData = { ...formData };
+      if (metadataList.value.length > 0) {
+        const metadataObj: Record<string, string> = {};
+        metadataList.value.forEach((item) => {
+          if (item.key.trim()) {
+            metadataObj[item.key.trim()] = item.value;
+          }
+        });
+        submitData.i = Object.keys(metadataObj).length > 0 ? metadataObj : undefined;
+      } else {
+        submitData.i = undefined;
+      }
       const id = formData.id;
       if (id) {
         try {
