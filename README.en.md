@@ -38,10 +38,11 @@ English | [简体中文](./README.md)
 
 | I want to… | Go to |
 |------------|--------|
-| **Run the project locally ASAP** | Section **Quick Start** → **“First-time local setup (in order)”** (env files, migrations, backend + frontend) |
+| **Run the project locally ASAP** | **Quick Start** → **“First-time local setup (in order)”** (env, deps, run; **first backend start auto-inits DB schema & seed data**) |
+| **Architecture diagram & default ports (5180 / 8001, …)** | **“Local Architecture & Default Ports”** (matches `.env*.example`) |
 | **See what the project offers** | **Built-in Functional Modules**, **Demo Environment** (credentials) |
 | **Extend / plugin development** | **Secondary Development Tutorial**; backend layout and CLI: [**backend/README.md**](backend/README.md) |
-| **API docs** | After the backend is up: `http://<backend-host>/docs` (Swagger) or `/redoc` |
+| **API docs** | With template env: **`http://127.0.0.1:8001/docs`** (see `SERVER_PORT`) |
 
 ## 🎯 Core Advantages
 
@@ -82,6 +83,42 @@ FastapiAdmin
 |─ README.en.md          # English documentation
 └─ README.md             # Chinese documentation
 ```
+
+## 🏗️ Local Architecture & Default Ports
+
+Aligned with **`backend/env/.env.dev.example`** and **`frontend/.env.development.example`**; if you changed `.env.dev` / `.env.development`, use your local values.
+
+```mermaid
+flowchart LR
+  subgraph client[Browser]
+    U[User]
+  end
+  subgraph fe[frontend dev]
+    V[Vue3 + Vite]
+  end
+  subgraph be[backend]
+    A[FastAPI / Uvicorn]
+  end
+  subgraph data[Data]
+    DB[(Database)]
+    R[(Redis)]
+  end
+  U --> V
+  V -->|REST via VITE_API_BASE_URL| A
+  A --> DB
+  A --> R
+```
+
+| Component | Config key | Example default (dev template) |
+|-------------|------------|--------------------------------|
+| Web UI | `frontend/.env.development` → `VITE_APP_PORT` | **5180** → **`http://127.0.0.1:5180`** |
+| Backend HTTP | `backend/env/.env.dev` → `SERVER_HOST` / `SERVER_PORT` | **`0.0.0.0:8001`** → **`http://127.0.0.1:8001`** |
+| API base URL | `VITE_API_BASE_URL` | **`http://127.0.0.1:8001`** |
+| API prefix | `ROOT_PATH` + `VITE_APP_BASE_API` | **`/api/v1`** on both sides |
+| Swagger / Redoc | — | **`http://127.0.0.1:8001/docs`**, `/redoc` |
+| WebSocket (optional) | `VITE_APP_WS_ENDPOINT` | e.g. **`ws://127.0.0.1:8001`** |
+| DB port | `DATABASE_PORT` | Template uses MySQL **`3306`**; PostgreSQL often **`5432`** |
+| Redis | `REDIS_HOST` / `REDIS_PORT` | Example **`localhost:6379`** |
 
 ## 🛠️ Technology Stack Overview
 
@@ -137,10 +174,12 @@ With **Pydantic v2** and **PostgreSQL (asyncpg)**, ORM writes expect native Pyth
 1. **Install runtimes**: Python ≥ 3.10, Node.js ≥ 20, [pnpm](https://pnpm.io/), local **MySQL or PostgreSQL** (or SQLite if configured in `backend/env/.env.dev`), and **Redis** matching your `.env.dev`.
 2. **Clone the repo**: see “Get the Code” below.
 3. **Env files**: copy `backend/env/.env.dev.example` → `backend/env/.env.dev`, and `frontend/.env.development.example` → `frontend/.env.development`; fill in **DB, Redis, JWT secret**, etc. Create an empty database first.
-4. **Backend deps + migrations**: `cd backend`, run **`uv sync`** (recommended), then **`uv run main.py upgrade --env=dev`** to **apply the schema** (required on first run).
-5. **Start backend**: `uv run main.py run --env=dev`.
+4. **Backend dependencies**: `cd backend`, run **`uv sync`** (recommended) or `pip install -r requirements.txt`.
+5. **Start backend**: `uv run main.py run --env=dev`. **The first start automatically initializes tables and seed data**—you usually **do not** need to run `upgrade` first.
 6. **Frontend**: `cd frontend`, `pnpm install`, `pnpm run dev`.
-7. **Browser**: use the URL printed by Vite (port from `VITE_APP_PORT` in `frontend/.env.development`); log in with the admin account (same as [Demo Environment](#-demo-environment) unless you changed seed data).
+7. **Browser**: with the template env, open **`http://127.0.0.1:5180`** (`VITE_APP_PORT=5180`); log in with the admin account (same as [Demo Environment](#-demo-environment) unless you changed seed data).
+
+> Use **`revision` / `upgrade`** only when you change ORM models and manage migrations with Alembic (see FAQ below).
 
 ### Environment Requirements
 
@@ -173,12 +212,12 @@ git clone https://github.com/fastapiadmin/FastapiAdmin.git
 ```bash
 cd backend
 uv sync
-uv run main.py upgrade --env=dev
+# First start auto-inits schema & data; no need to run upgrade beforehand
 uv run main.py run --env=dev
 # uv run main.py run --env=prod
 ```
 
-> Without `uv`: `pip install -r requirements.txt`, then `python main.py upgrade --env=dev` and `python main.py run --env=dev`.
+> Without `uv`: `pip install -r requirements.txt`, then `python main.py run --env=dev`. Use `upgrade` when you need Alembic after model changes.
 
 #### Using pip / venv
 
@@ -188,7 +227,6 @@ python -m venv .venv
 # Windows: .venv\Scripts\activate
 # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-python main.py upgrade --env=dev
 python main.py run --env=dev
 ```
 
@@ -203,11 +241,14 @@ pnpm run build
 
 ### After startup
 
-| Service | Notes |
-|---------|--------|
-| Backend API | Default often `http://127.0.0.1:8000` (check logs and `backend/env/.env.dev`) |
-| Swagger | `http://<backend-host>/docs` |
-| Web UI | URL printed by Vite (`VITE_APP_PORT` in `frontend/.env.development`) |
+When using **`.env.dev.example` / `.env.development.example`** as-is:
+
+| Service | URL (example) |
+|---------|----------------|
+| Web UI (Vite) | `http://127.0.0.1:5180` |
+| Backend base | `http://127.0.0.1:8001` |
+| Swagger | `http://127.0.0.1:8001/docs` |
+| API prefix | `http://127.0.0.1:8001/api/v1` (matches `ROOT_PATH`) |
 
 ### 🐳 Docker Deployment
 
@@ -458,7 +499,7 @@ async def get_detail(
 
 - **Code Generator**: Automatically generate front-end and back-end CRUD code
 - **API Documentation**: Automatically generate Swagger/Redoc API documentation
-- **Database Migration**: Support for Alembic database migration
+- **Database**: Auto schema & seed on first start; Alembic supported for schema evolution
 - **Log System**: Built-in log recording and query functions
 - **Monitoring System**: Built-in server monitoring and cache monitoring functions
 
@@ -496,10 +537,13 @@ A: Configure Redis connection information in `backend/env/.env.dev` or `backend/
 A: Use the command `python main.py revision --env=dev` to generate migration files.
 
 #### Q: How to apply database migrations?
-A: Use the command `python main.py upgrade --env=dev` to apply migrations.
+A: Run `python main.py upgrade --env=dev` (or `uv run ...`) when you **need Alembic migrations**. **First start usually does not require this**—the app initializes automatically.
 
 #### Q: How to start the development server?
-A: From `backend`, run `uv run main.py run --env=dev` (or `python main.py run --env=dev`). On **first run**, install dependencies and run `upgrade` migrations first—see **“First-time local setup”** above.
+A: From `backend`, run `uv run main.py run --env=dev` (or `python main.py run --env=dev`). **First start auto-initializes the database and seed data**; no manual `upgrade` is required beforehand.
+
+#### Q: Do I need to run migrations before the first start?
+A: **Usually no.** The first backend start initializes schema and data. Use `revision` / `upgrade` only when you change models and use Alembic.
 
 #### Q: How to build the frontend production version?
 A: Use the command `pnpm run build` to build the frontend production version.
