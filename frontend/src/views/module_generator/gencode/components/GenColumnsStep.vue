@@ -16,7 +16,25 @@
       show-icon
       :title="info.master_sub_hint"
     />
-    <div class="mb-2 flex items-center gap-2">
+    <p class="gencode-columns-tip">
+      菜单与路由、接口路径的对应见「基础配置」第一步中的折叠「对照」表。
+    </p>
+    <el-alert
+      v-if="columnKeyword.trim() && displayColumns.length === 0 && (info.columns?.length ?? 0) > 0"
+      class="mb-2"
+      type="warning"
+      :closable="false"
+      show-icon
+      title="无匹配列，请调整筛选词或清空筛选框"
+    />
+    <div class="mb-2 flex flex-wrap items-center gap-2">
+      <el-input
+        v-model="columnKeyword"
+        clearable
+        placeholder="筛选列名或注释"
+        class="gencode-column-filter"
+        :prefix-icon="Search"
+      />
       <el-tag size="small" type="info">批量设置</el-tag>
       <el-space size="small">
         <el-dropdown>
@@ -61,10 +79,10 @@
       <el-table
         ref="dragTable"
         v-loading="loading"
-        :data="info.columns"
+        :data="displayColumns"
         row-key="id"
-        max-height="680"
-        highlight--currentrow
+        max-height="520"
+        highlight-current-row
         border
         stripe
       >
@@ -217,15 +235,44 @@
 </template>
 
 <script setup lang="ts">
+import { computed, ref } from "vue";
+import { Search } from "@element-plus/icons-vue";
 import type { GenTableSchema } from "@/api/module_generator/gencode";
 import type { DictTable } from "@/api/module_system/dict";
 
 defineOptions({ name: "GenColumnsStep" });
 
-defineProps<{
+const props = defineProps<{
   info: GenTableSchema;
   dictOptions: DictTable[];
   loading: boolean;
   bulkSet: (field: string | string[], value: unknown) => void;
 }>();
+
+const columnKeyword = ref("");
+
+const displayColumns = computed(() => {
+  const cols = props.info.columns || [];
+  const q = columnKeyword.value.trim().toLowerCase();
+  if (!q) return cols;
+  return cols.filter((c) => {
+    const name = String(c.column_name ?? "").toLowerCase();
+    const comment = String(c.column_comment ?? "").toLowerCase();
+    return name.includes(q) || comment.includes(q);
+  });
+});
 </script>
+
+<style scoped lang="scss">
+.gencode-columns-tip {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--el-text-color-secondary);
+}
+
+.gencode-column-filter {
+  width: 200px;
+  max-width: 100%;
+}
+</style>

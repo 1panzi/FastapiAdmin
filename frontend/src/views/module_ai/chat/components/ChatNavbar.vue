@@ -99,13 +99,17 @@ const toggleSidebar = () => {
       height: 32px;
       padding: 0;
       cursor: pointer;
+      color: var(--el-text-color-regular);
       background: transparent;
       border: none;
       border-radius: 4px;
-      transition: background-color 0.2s;
+      transition:
+        background-color 0.2s,
+        color 0.2s;
 
       &:hover {
-        background: var(--el-fill-color-light);
+        color: var(--el-color-primary);
+        background: var(--el-color-primary-light-9);
       }
 
       &:focus-visible {
@@ -113,10 +117,15 @@ const toggleSidebar = () => {
         outline-offset: 2px;
       }
 
+      /* UnoCSS 图标 SVG 多随 currentColor */
+      & > div {
+        color: inherit;
+      }
+
       .collapse-icon {
         width: 20px;
         height: 20px;
-        color: var(--el-text-color-regular);
+        color: inherit;
       }
     }
   }

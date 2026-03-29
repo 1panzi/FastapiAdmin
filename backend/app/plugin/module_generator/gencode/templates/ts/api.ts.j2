@@ -1,6 +1,12 @@
 import request from "@/utils/request";
 
+{% if is_example_style %}
+// module_example 约定：API 路径 /example/{模块}/{业务?}（与 module_example 示例一致）
+const API_PATH = "/{{ api_route_prefix }}/{{ module_name }}{% if business_name %}/{{ business_name|lower }}{% endif %}";
+{% else %}
+// 旧约定：discover 中 module_xxx → 前缀 /{{ api_route_prefix }}
 const API_PATH = "/{{ api_route_prefix }}/{{ business_name|lower }}";
+{% endif %}
 
 const {{ class_name }}API = {
   // 列表查询

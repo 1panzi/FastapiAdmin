@@ -48,6 +48,30 @@ class WorkflowService:
         return [cls._out(o) for o in obj_list]
 
     @classmethod
+    async def get_workflow_page_service(
+        cls,
+        auth: AuthSchema,
+        page_no: int,
+        page_size: int,
+        search: WorkflowQueryParam | None = None,
+        order_by: list[dict[str, str]] | None = None,
+    ) -> dict:
+        """分页查询工作流（数据库 OFFSET/LIMIT）。"""
+        offset = (page_no - 1) * page_size
+        order = order_by or [{"updated_time": "desc"}]
+        result = await WorkflowCRUD(auth).page(
+            offset=offset,
+            limit=page_size,
+            order_by=order,
+            search=search.__dict__ if search else {},
+            out_schema=WorkflowOutSchema,
+        )
+        result["items"] = [
+            WorkflowOutSchema.model_validate(item).model_dump(mode="json") for item in result["items"]
+        ]
+        return result
+
+    @classmethod
     async def create_workflow_service(cls, auth: AuthSchema, data: WorkflowCreateSchema) -> dict:
         exist = await WorkflowCRUD(auth).get(code=data.code)
         if exist:

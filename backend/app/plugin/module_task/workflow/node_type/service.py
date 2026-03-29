@@ -56,6 +56,31 @@ class WorkflowNodeTypeService:
         return [cls._out(o) for o in obj_list]
 
     @classmethod
+    async def get_page_service(
+        cls,
+        auth: AuthSchema,
+        page_no: int,
+        page_size: int,
+        search: WorkflowNodeTypeQueryParam | None = None,
+        order_by: list[dict[str, str]] | None = None,
+    ) -> dict:
+        """分页查询编排节点类型（数据库 OFFSET/LIMIT）。"""
+        offset = (page_no - 1) * page_size
+        order = order_by or [{"sort_order": "asc"}, {"id": "asc"}]
+        result = await WorkflowNodeTypeCRUD(auth).page(
+            offset=offset,
+            limit=page_size,
+            order_by=order,
+            search=search.__dict__ if search else {},
+            out_schema=WorkflowNodeTypeOutSchema,
+        )
+        result["items"] = [
+            WorkflowNodeTypeOutSchema.model_validate(item).model_dump(mode="json")
+            for item in result["items"]
+        ]
+        return result
+
+    @classmethod
     async def create_service(cls, auth: AuthSchema, data: WorkflowNodeTypeCreateSchema) -> dict:
         exist = await WorkflowNodeTypeCRUD(auth).get(code=data.code)
         if exist:

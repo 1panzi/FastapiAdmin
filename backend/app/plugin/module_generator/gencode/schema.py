@@ -85,12 +85,23 @@ class GenTableSchema(BaseModel):
     class_name: str | None = Field(default=None, description="实体类名称")
     package_name: str | None = Field(default=None, description="生成包路径")
     module_name: str | None = Field(default=None, description="生成模块名")
-    business_name: str | None = Field(default=None, description="生成业务名")
+    business_name: str | None = Field(
+        default=None,
+        description=(
+            "功能子目录/路由段；导入时默认表名；同 module_name 下多表须不同。"
+            "可含斜杠表示嵌套，参考 module_example：demo、demo/demo01、gen_demo02。"
+        ),
+    )
     function_name: str | None = Field(default=None, description="生成功能名")
     sub_table_name: str | None = Field(default=None, description="关联子表的表名")
     sub_table_fk_name: str | None = Field(default=None, description="子表关联的外键名")
     parent_menu_id: int | None = Field(
-        default=None, description="所属父级分类,生成页面时候生成菜单使用"
+        default=None,
+        description=(
+            "写入本地须选目录类型。有值：侧栏 上级/短包名/功能/按钮，页面路由 /包名/业务名。"
+            "留空：侧栏 module_包名/功能/按钮，页面路由 /module_包名/业务名（与 plugin 一致）；"
+            "后端 HTTP 接口仍为 /短名（module_xxx→/xxx）。"
+        ),
     )
     description: str | None = Field(default=None, max_length=255, description="描述")
 

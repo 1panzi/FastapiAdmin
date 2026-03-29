@@ -152,11 +152,11 @@ export interface GenTableSchema extends BaseType {
   package_name?: string;
   /** 生成模块名 */
   module_name?: string;
-  /** 生成业务名 */
+  /** 功能子目录与接口路径段；导入默认表名；同模块多表须不同；可嵌套如 demo/demo01，参见 module_example */
   business_name?: string;
   /** 生成功能名 */
   function_name?: string;
-  /** 所属父级分类 */
+  /** 写入本地：有上级→页面路由 /包名/业务名；无上级→页面路由 /module_包名/业务名；后端 API 仍为 /短名/业务 */
   parent_menu_id?: number;
   /** 表列信息 */
   columns: GenTableColumnSchema[];

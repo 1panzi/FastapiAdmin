@@ -68,6 +68,25 @@ class DictTypeService:
         return [DictTypeOutSchema.model_validate(obj).model_dump() for obj in obj_list]
 
     @classmethod
+    async def get_obj_page_service(
+        cls,
+        auth: AuthSchema,
+        page_no: int,
+        page_size: int,
+        search: DictTypeQueryParam | None = None,
+        order_by: list[dict] | None = None,
+    ) -> dict:
+        """分页查询字典类型（数据库 OFFSET/LIMIT）。"""
+        offset = (page_no - 1) * page_size
+        return await DictTypeCRUD(auth).page(
+            offset=offset,
+            limit=page_size,
+            order_by=order_by or [{"id": "asc"}],
+            search=search.__dict__ if search else {},
+            out_schema=DictTypeOutSchema,
+        )
+
+    @classmethod
     async def create_obj_service(
         cls, auth: AuthSchema, redis: Redis, data: DictTypeCreateSchema
     ) -> dict:
@@ -307,6 +326,25 @@ class DictDataService:
             search=search.__dict__, order_by=order_by
         )
         return [DictDataOutSchema.model_validate(obj).model_dump() for obj in obj_list]
+
+    @classmethod
+    async def get_obj_page_service(
+        cls,
+        auth: AuthSchema,
+        page_no: int,
+        page_size: int,
+        search: DictDataQueryParam | None = None,
+        order_by: list[dict] | None = None,
+    ) -> dict:
+        """分页查询字典数据（数据库 OFFSET/LIMIT）。"""
+        offset = (page_no - 1) * page_size
+        return await DictDataCRUD(auth).page(
+            offset=offset,
+            limit=page_size,
+            order_by=order_by or [{"id": "asc"}],
+            search=search.__dict__ if search else {},
+            out_schema=DictDataOutSchema,
+        )
 
     @classmethod
     async def init_dict_service(cls, redis: Redis) -> None:

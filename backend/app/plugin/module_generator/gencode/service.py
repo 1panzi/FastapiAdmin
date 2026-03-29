@@ -49,8 +49,166 @@ def handle_service_exception(func: Callable) -> Callable:
     return wrapper
 
 
+_MENU_TYPE_CATALOG = 1  # 与 sys_menu.type、前端 MenuTypeEnum.CATALOG 一致
+_MENU_TYPE_MENU = 2
+
+
 class GenTableService:
     """代码生成业务表服务层"""
+
+    @classmethod
+    def _is_example_style(cls, package_name: str | None, module_name: str | None) -> bool:
+        """委托 ``Jinja2TemplateUtil.is_example_style``，保证与模板/路径逻辑一致。"""
+        return Jinja2TemplateUtil.is_example_style(package_name, module_name)
+
+    @classmethod
+    async def _assert_parent_menu_is_catalog(cls, auth: AuthSchema, parent_menu_id: int | None) -> None:
+        """上级菜单仅允许目录：与前端树只展示目录一致，避免挂到菜单/按钮下。"""
+        if parent_menu_id is None:
+            return
+        from app.api.v1.module_system.menu.crud import MenuCRUD
+
+        m = await MenuCRUD(auth).get_by_id_crud(parent_menu_id)
+        if not m:
+            raise CustomException(msg="上级菜单不存在")
+        if m.type != _MENU_TYPE_CATALOG:
+            raise CustomException(msg="上级菜单须选择目录类型")
+
+    @classmethod
+    def _menu_route_first_segment(
+        cls, parent_catalog_id: int | None, package_name: str, module_name: str | None
+    ) -> str:
+        """前端页面路由首段（与菜单 ``route_path`` 第一段一致）。
+
+        - **有上级目录**：使用 ``package_name``（如 ``/gencode/业务``）。
+        - **无上级**：使用 ``module_name``（如 ``module_gencode`` → ``/module_gencode/业务``），与侧栏第一层目录一致。
+
+        说明：后端 HTTP API 仍由动态路由 ``module_xxx → /xxx`` 映射，与此前端路径可不同。
+        """
+        pn = (package_name or "").strip()
+        mn = (module_name or "").strip()
+        is_ex = cls._is_example_style(pn, mn)
+        if parent_catalog_id is not None:
+            if not pn:
+                raise CustomException(msg="包名不能为空")
+            return pn
+        # 无上级：示例模式首段为插件包目录 module_xxx；旧模式首段为 module_xxx（原 module_name 字段）
+        if is_ex:
+            if not pn:
+                raise CustomException(msg="包名不能为空")
+            return pn if pn.startswith("module_") else f"module_{pn}"
+        if mn:
+            return mn
+        if not pn:
+            raise CustomException(msg="包名或模块名至少填写一项以生成路由")
+        if pn.startswith("module_"):
+            return pn
+        return f"module_{pn}"
+
+    @classmethod
+    def _catalog_menu_dir_key(
+        cls, parent_catalog_id: int | None, package_name: str, module_name: str | None
+    ) -> str:
+        """菜单上「模块目录」节点的 name（与路由第一段 package 独立）。
+
+        - 有上级目录：``包名（不带 module_ 前缀）``，侧栏为 上级 → 短包名 → 功能菜单 → 按钮。
+        - 无上级：``module_包名``，与 ``plugin/module_xxx`` 目录一致，侧栏为 module_包名 → 功能 → 按钮。
+        """
+        pn = (package_name or "").strip()
+        mn = (module_name or "").strip()
+        is_ex = cls._is_example_style(pn, mn)
+        if parent_catalog_id is not None:
+            if not pn:
+                raise CustomException(msg="包名不能为空")
+            base = pn[len("module_") :] if pn.startswith("module_") else pn
+            # 示例模式：同一包下多模块须区分目录节点，避免 name 都为短包名导致串单
+            if is_ex and mn:
+                return f"{base}_{mn}"
+            if pn.startswith("module_"):
+                return base
+            return pn
+        if is_ex:
+            if not pn or not mn:
+                raise CustomException(msg="包名、模块名不能为空")
+            # 根侧栏：按「包+模块」唯一，避免多模块共用一个目录菜单
+            return f"{pn}_{mn}"
+        if mn:
+            return mn
+        if not pn:
+            raise CustomException(msg="包名或模块名至少填写一项以生成菜单目录")
+        if pn.startswith("module_"):
+            return pn
+        return f"module_{pn}"
+
+    @classmethod
+    async def _get_or_create_package_directory_menu(
+        cls,
+        menu_crud: Any,
+        parent_catalog_id: int | None,
+        package_name: str,
+        module_name: str | None,
+        business_name: str,
+    ) -> int:
+        """创建或复用 type=1 模块目录；固定为「目录 → 菜单 → 按钮」中的第一层目录。"""
+        from app.api.v1.module_system.menu.schema import MenuCreateSchema
+        from app.utils.common_util import CamelCaseUtil
+
+        pn = (package_name or "").strip()
+        if not pn:
+            raise CustomException(msg="包名不能为空")
+        mn = (module_name or "").strip()
+        bn = (business_name or "").strip()
+        is_ex = cls._is_example_style(pn, mn)
+        dir_key = cls._catalog_menu_dir_key(parent_catalog_id, pn, module_name)
+
+        if parent_catalog_id is not None:
+            existing = await menu_crud.get(
+                name=dir_key, type=_MENU_TYPE_CATALOG, parent_id=parent_catalog_id
+            )
+        else:
+            existing = await menu_crud.get(
+                name=dir_key, type=_MENU_TYPE_CATALOG, parent_id=("None", None)
+            )
+        if existing:
+            log.info(
+                f"代码生成：复用模块目录菜单 id={existing.id} name={dir_key!r} parent={parent_catalog_id!r}"
+            )
+            return int(existing.id)
+
+        route_first = cls._menu_route_first_segment(parent_catalog_id, pn, module_name)
+        # 示例模式：目录菜单对应「包/模块」路径；默认跳到模块根，避免多模块共用一个 redirect 指向某一业务
+        if is_ex:
+            catalog_route_path = f"/{route_first}/{mn}"
+            redirect = f"/{route_first}/{mn}"
+        else:
+            catalog_route_path = f"/{route_first}"
+            redirect = f"/{route_first}/{bn}" if bn else f"/{route_first}"
+        created = await menu_crud.create(
+            MenuCreateSchema(
+                name=dir_key,
+                type=_MENU_TYPE_CATALOG,
+                order=9999,
+                permission=None,
+                icon="menu",
+                route_name=CamelCaseUtil.snake_to_camel(route_first),
+                route_path=catalog_route_path,
+                component_path=None,
+                redirect=redirect,
+                hidden=False,
+                keep_alive=True,
+                always_show=False,
+                title=dir_key,
+                params=None,
+                affix=False,
+                parent_id=parent_catalog_id,
+                status="0",
+                description="模块目录（代码生成）",
+            )
+        )
+        log.info(
+            f"代码生成：新建模块目录菜单 id={created.id} name={dir_key!r} under_parent={parent_catalog_id!r}"
+        )
+        return int(created.id)
 
     @classmethod
     def normalize_and_validate_master_sub(cls, data: GenTableSchema) -> None:
@@ -95,6 +253,27 @@ class GenTableService:
         """
         gen_table_list_result = await GenTableCRUD(auth=auth).get_gen_table_list(search)
         return [GenTableOutSchema.model_validate(obj).model_dump() for obj in gen_table_list_result]
+
+    @classmethod
+    @handle_service_exception
+    async def get_gen_table_page_service(
+        cls,
+        auth: AuthSchema,
+        page_no: int,
+        page_size: int,
+        search: GenTableQueryParam,
+        order_by: list[dict[str, str]] | None = None,
+    ) -> dict:
+        """分页查询代码生成业务表（数据库 OFFSET/LIMIT）。"""
+        offset = (page_no - 1) * page_size
+        order = order_by or [{"created_time": "desc"}]
+        return await GenTableCRUD(auth=auth).page(
+            offset=offset,
+            limit=page_size,
+            order_by=order,
+            search=search.__dict__,
+            out_schema=GenTableOutSchema,
+        )
 
     @classmethod
     @handle_service_exception
@@ -292,6 +471,7 @@ class GenTableService:
         if gen_table_info.id:
             try:
                 cls.normalize_and_validate_master_sub(data)
+                await cls._assert_parent_menu_is_catalog(auth, data.parent_menu_id)
                 # 直接调用edit_gen_table方法，它会在内部处理排除嵌套字段的逻辑
                 result = await GenTableCRUD(auth).edit_gen_table(table_id, data)
                 if not result:
@@ -439,7 +619,11 @@ class GenTableService:
     @handle_service_exception
     async def generate_code_service(cls, auth: AuthSchema, table_name: str) -> bool:
         """生成代码至指定路径（安全写入+可跳过覆盖）。
-        - 安全：限制写入在项目根目录内；越界路径自动回退到项目根目录。
+
+        菜单固定为 **目录(type=1) + 菜单(type=2) + 按钮(type=3)**：
+        - **有上级目录**：``上级目录 / 包名(无 module_ 前缀) / 功能菜单 / 按钮``；页面路由 ``/包名/业务名``。
+        - **无上级**：``module_包名 / 功能菜单 / 按钮``；页面路由 ``/module_包名/业务名``（与侧栏第一层一致）。
+        - 后端 HTTP 接口仍为动态路由前缀 ``/短名``（``module_xxx``→``/xxx``），与前端页面路由可不同。
 
         参数:
         - auth (AuthSchema): 认证信息。
@@ -459,69 +643,79 @@ class GenTableService:
         from app.api.v1.module_system.menu.schema import MenuCreateSchema
         from app.utils.common_util import CamelCaseUtil
 
-        # 构建权限前缀
-        permission_prefix = f"{gen_table_schema.module_name}:{gen_table_schema.business_name}"
+        is_ex = cls._is_example_style(gen_table_schema.package_name, gen_table_schema.module_name)
+        if is_ex:
+            if not (gen_table_schema.module_name or "").strip():
+                raise CustomException(msg="模块名称不能为空")
+            pn = (gen_table_schema.package_name or "").strip()
+            mn = (gen_table_schema.module_name or "").strip()
+            raw_bn = (gen_table_schema.business_name or "").strip()
+            perm_segs = [pn, mn]
+            if raw_bn:
+                perm_segs.extend(s for s in raw_bn.split("/") if s)
+            permission_prefix = ":".join(perm_segs)
+            _slug_src = raw_bn or mn
+            _business_route_slug = Jinja2TemplateUtil.business_name_to_slug(_slug_src)
+        else:
+            if not gen_table_schema.business_name:
+                raise CustomException(msg="业务名称不能为空")
+            _bn_perm = (gen_table_schema.business_name or "").strip().replace("/", ":")
+            permission_prefix = f"{gen_table_schema.module_name}:{_bn_perm}"
+            _business_route_slug = Jinja2TemplateUtil.business_name_to_slug(gen_table_schema.business_name)
         # 创建菜单 CRUD 实例
         menu_crud = MenuCRUD(auth)
-        if not gen_table_schema.business_name:
-            raise CustomException(msg="业务名称不能为空")
         if not gen_table_schema.function_name:
             raise CustomException(msg="功能名称不能为空")
         if not gen_table_schema.package_name:
             raise CustomException(msg="包名不能为空")
-        # 1. 先检查并创建菜单（目录菜单、功能菜单、按钮权限）
-        # 检查是否需要创建目录菜单
-        if gen_table_schema.parent_menu_id:
-            # 如果传了上级菜单ID（菜单类型=1），则不创建目录菜单，直接使用该ID作为功能菜单的父ID
-            dir_menu_id = gen_table_schema.parent_menu_id
-        else:
-            # 如果没传上级菜单ID，则需要创建新的模块目录菜单（类型=1：目录）
-            # 与下方创建目录菜单时使用的 name（package_name）一致，避免查不到而重复建目录
-            existing_dir_menu = await menu_crud.get(name=gen_table_schema.package_name)
-            if existing_dir_menu:
-                dir_menu_id = existing_dir_menu.id
-            else:
-                dir_parent_menu = await menu_crud.create(
-                    MenuCreateSchema(
-                        name=gen_table_schema.package_name,
-                        type=1,
-                        order=9999,
-                        permission=None,
-                        icon="menu",
-                        route_name=CamelCaseUtil.snake_to_camel(gen_table_schema.package_name),
-                        route_path=f"/{gen_table_schema.package_name}",
-                        component_path=None,
-                        redirect=f"/{gen_table_schema.package_name}/{gen_table_schema.business_name}",
-                        hidden=False,
-                        keep_alive=True,
-                        always_show=False,
-                        title=gen_table_schema.package_name,
-                        params=None,
-                        affix=False,
-                        parent_id=gen_table_schema.parent_menu_id,  # 这里应该是None，因为上面已经判断过了
-                        status="0",
-                        description=f"{gen_table_schema.business_name}目录",
-                    )
-                )
-                dir_menu_id = dir_parent_menu.id
+        await cls._assert_parent_menu_is_catalog(auth, gen_table_schema.parent_menu_id)
+        # 1. 目录 + 菜单 + 按钮：先取/建模块目录（名称规则见 _catalog_menu_dir_key）
+        dir_menu_id = await cls._get_or_create_package_directory_menu(
+            menu_crud,
+            gen_table_schema.parent_menu_id,
+            gen_table_schema.package_name,
+            gen_table_schema.module_name,
+            gen_table_schema.business_name or "",
+        )
 
-        # 检查功能菜单是否已存在，如果存在则抛出错误
-        existing_func_menu = await menu_crud.get(name=gen_table_schema.function_name, type=2)
+        # 检查同一模块目录下是否已有同名功能菜单（避免与其它模块下的同名功能冲突）
+        existing_func_menu = await menu_crud.get(
+            name=gen_table_schema.function_name,
+            type=_MENU_TYPE_MENU,
+            parent_id=dir_menu_id,
+        )
         if existing_func_menu:
             raise CustomException(
-                msg=f"功能菜单名称 '{gen_table_schema.function_name}' 已存在，不能重复创建"
+                msg=f"该模块目录下功能菜单「{gen_table_schema.function_name}」已存在，不能重复创建"
             )
+        route_seg = cls._menu_route_first_segment(
+            gen_table_schema.parent_menu_id,
+            gen_table_schema.package_name or "",
+            gen_table_schema.module_name,
+        )
+        if is_ex:
+            _pn = (gen_table_schema.package_name or "").strip()
+            _mn = (gen_table_schema.module_name or "").strip()
+            _bn = (gen_table_schema.business_name or "").strip()
+            _rsegs = [route_seg, _mn]
+            if _bn:
+                _rsegs.extend(s for s in _bn.split("/") if s)
+            _route_path = "/" + "/".join(_rsegs)
+            _component_path = f"{_pn}/{_mn}" + (f"/{_bn}" if _bn else "") + "/index"
+        else:
+            _route_path = f"/{route_seg}/{gen_table_schema.business_name}"
+            _component_path = f"{gen_table_schema.module_name}/{gen_table_schema.business_name}/index"
         # 创建功能菜单（类型=2：菜单）
         parent_menu = await menu_crud.create(
             MenuCreateSchema(
                 name=gen_table_schema.function_name,
-                type=2,
+                type=_MENU_TYPE_MENU,
                 order=9999,
                 permission=f"{permission_prefix}:query",
                 icon="menu",
-                route_name=CamelCaseUtil.snake_to_camel(gen_table_schema.business_name),
-                route_path=f"/{gen_table_schema.package_name}/{gen_table_schema.business_name}",
-                component_path=f"{gen_table_schema.module_name}/{gen_table_schema.business_name}/index",
+                route_name=CamelCaseUtil.snake_to_camel(_business_route_slug),
+                route_path=_route_path,
+                component_path=_component_path,
                 redirect=None,
                 hidden=False,
                 keep_alive=True,
@@ -623,14 +817,20 @@ class GenTableService:
                         raise CustomException(msg="【代码生成】生成路径为空")
                     os.makedirs(os.path.dirname(gen_path), exist_ok=True)
                     await anyio.Path(gen_path).write_text(render_content, encoding="utf-8")
-                    module_init_path = BASE_DIR.parent.joinpath(
-                        f"backend/app/plugin/{table_schema.module_name}/__init__.py"
+                    plugin_root = (
+                        (table_schema.package_name or "").strip()
+                        if cls._is_example_style(table_schema.package_name, table_schema.module_name)
+                        else (table_schema.module_name or "").strip()
                     )
-                    if not module_init_path.exists():
-                        os.makedirs(os.path.dirname(module_init_path), exist_ok=True)
-                        await anyio.Path(module_init_path).write_text(
-                            "# -*- coding: utf-8 -*-", encoding="utf-8"
+                    if plugin_root:
+                        module_init_path = BASE_DIR.parent.joinpath(
+                            f"backend/app/plugin/{plugin_root}/__init__.py"
                         )
+                        if not module_init_path.exists():
+                            os.makedirs(os.path.dirname(module_init_path), exist_ok=True)
+                            await anyio.Path(module_init_path).write_text(
+                                "# -*- coding: utf-8 -*-", encoding="utf-8"
+                            )
                 except Exception as e:
                     raise CustomException(
                         msg=f"渲染模板失败，表名：{table_schema.table_name}，详细错误信息：{e!s}"

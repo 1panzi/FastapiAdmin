@@ -1,4 +1,4 @@
-<!-- {{ function_name }}：PageSearch + PageContent + useCrudList（与项目 CURD 规范一致） -->
+<!-- {{ function_name }}：PageSearch + PageContent + useCrudList（与项目 CURD 规范一致）；页面路由 /{{ menu_route_first_segment }}{% if is_example_style %}/{{ module_name }}{% if business_name %}/{{ business_name }}{% endif %}{% else %}/{{ business_name }}{% endif %} -->
 <template>
   <div class="app-container">
     <PageSearch
@@ -300,7 +300,7 @@ import {{ class_name }}API, {
   {{ class_name }}PageQuery,
   {{ class_name }}Table,
   {{ class_name }}Form,
-} from "@/api/{{ module_name }}/{{ business_name }}";
+} from "{% if is_example_style %}{% if business_name %}@/api/{{ package_name }}/{{ business_name }}/{{ business_name }}{% else %}@/api/{{ package_name }}/{{ module_name }}{% endif %}{% else %}@/api/{{ module_name }}/{{ business_name }}{% endif %}";
 import CrudToolbarLeft from "@/components/CURD/CrudToolbarLeft.vue";
 import CrudToolbarRight from "@/components/CURD/CrudToolbarRight.vue";
 import PageSearch from "@/components/CURD/PageSearch.vue";

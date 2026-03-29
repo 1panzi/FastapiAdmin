@@ -4,7 +4,6 @@ from fastapi import APIRouter, Body, Depends, Path
 from fastapi.responses import JSONResponse
 
 from app.api.v1.module_system.auth.schema import AuthSchema
-from app.common.request import PaginationService
 from app.common.response import ResponseSchema, SuccessResponse
 from app.core.base_params import PaginationQueryParam
 from app.core.dependencies import AuthPermission
@@ -50,13 +49,12 @@ async def get_workflow_list_controller(
     search: Annotated[WorkflowQueryParam, Depends()],
     auth: Annotated[AuthSchema, Depends(AuthPermission(["module_task:workflow:definition:query"]))],
 ) -> JSONResponse:
-    result_dict_list = await WorkflowService.get_workflow_list_service(
-        auth=auth, search=search, order_by=page.order_by
-    )
-    result_dict = await PaginationService.paginate(
-        data_list=result_dict_list,
+    result_dict = await WorkflowService.get_workflow_page_service(
+        auth=auth,
         page_no=page.page_no,
         page_size=page.page_size,
+        search=search,
+        order_by=page.order_by,
     )
     log.info("查询工作流列表成功")
     return SuccessResponse(data=result_dict, msg="查询工作流列表成功")

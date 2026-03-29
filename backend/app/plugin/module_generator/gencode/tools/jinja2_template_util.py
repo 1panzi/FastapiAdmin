@@ -92,6 +92,35 @@ class Jinja2TemplateUtil:
         return cls.get_env().get_template(template_path)
 
     @classmethod
+    def is_example_style(cls, package_name: str | None, module_name: str | None) -> bool:
+        """
+        是否为 module_example 三段式：插件包 module_* + 其下子目录模块名（非 module_* 前缀）。
+
+        与 ``GenTableService._is_example_style`` 保持一致，避免两处判断漂移。
+        """
+        pn = (package_name or "").strip()
+        mn = (module_name or "").strip()
+        return bool(pn.startswith("module_") and mn and not mn.startswith("module_"))
+
+    @classmethod
+    def business_name_to_slug(cls, business_name: str | None) -> str:
+        """
+        业务路径可含斜杠（如 ``demo/demo01``）用于目录与路由前缀；
+        Python 函数/方法名仅使用最后一段并规范为合法 snake_case 片段。
+        """
+        s = (business_name or "").strip().strip("/")
+        if not s:
+            return "entity"
+        if "/" in s:
+            s = s.split("/")[-1]
+        s = re.sub(r"[^a-zA-Z0-9_]", "_", s)
+        if not s:
+            return "entity"
+        if s[0].isdigit():
+            s = "_" + s
+        return s
+
+    @classmethod
     def prepare_context(cls, gen_table: GenTableOutSchema) -> dict[str, Any]:
         """
         准备模板变量。
@@ -106,10 +135,33 @@ class Jinja2TemplateUtil:
         # if not gen_table.options:
         #     raise ValueError('请先完善生成配置信息')
         class_name = gen_table.class_name or ""
-        module_name = gen_table.module_name or ""
-        business_name = gen_table.business_name or ""
-        package_name = gen_table.package_name or ""
+        package_name = (gen_table.package_name or "").strip()
+        module_name = (gen_table.module_name or "").strip()
+        business_name = (gen_table.business_name or "").strip()
         function_name = gen_table.function_name or ""
+
+        # 兼容两种生成模式：
+        # - 旧模式：module_name=module_xxx（插件顶层），business_name=功能目录
+        # - module_example 模式：package_name=module_example（插件顶层），module_name=demo（模块目录），business_name=demo01（业务目录，可空）
+        is_example_style = cls.is_example_style(package_name, module_name)
+        # 示例模式且无业务名时，Python 标识符用模块名（如 gen_demo02），避免空业务退化为 entity
+        business_name_slug = (
+            cls.business_name_to_slug(module_name)
+            if is_example_style and not business_name
+            else cls.business_name_to_slug(business_name)
+        )
+        if is_example_style:
+            _perm_segs = [package_name, module_name]
+            if business_name:
+                _perm_segs.extend(s for s in business_name.split("/") if s)
+            permission_prefix = ":".join(_perm_segs)
+        else:
+            permission_prefix = cls.get_permission_prefix(module_name, business_name)
+        api_route_prefix = (
+            cls.get_api_route_prefix(package_name)
+            if is_example_style
+            else cls.get_api_route_prefix(module_name)
+        )
 
         _cols = gen_table.columns or []
         table_column_names = frozenset(
@@ -137,14 +189,17 @@ class Jinja2TemplateUtil:
             "class_name": class_name,
             "module_name": module_name,
             "business_name": business_name,
+            "business_name_slug": business_name_slug,
             "base_package": cls.get_package_prefix(package_name),
             "package_name": package_name,
+            "menu_route_first_segment": cls.get_menu_route_first_segment(gen_table),
             "datetime": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "pk_column": gen_table.pk_column,
             "model_import_list": cls.get_model_import_list(gen_table),
             "schema_import_list": cls.get_schema_import_list(gen_table),
-            "permission_prefix": cls.get_permission_prefix(module_name, business_name),
-            "api_route_prefix": cls.get_api_route_prefix(module_name),
+            "permission_prefix": permission_prefix,
+            "api_route_prefix": api_route_prefix,
+            "is_example_style": is_example_style,
             "columns": gen_table.columns or [],
             "table_column_names": table_column_names,
             "table": gen_table,
@@ -170,6 +225,22 @@ class Jinja2TemplateUtil:
         }
 
         return context
+
+    @classmethod
+    def get_menu_route_first_segment(cls, gen_table: GenTableOutSchema) -> str:
+        """
+        前端页面路由首段（与写入菜单 ``route_path`` 一致）：有上级=包名，无上级=``module_name``。
+
+        懒加载 ``GenTableService`` 避免与 ``service`` 模块循环依赖。
+        """
+        from app.plugin.module_generator.gencode.service import GenTableService
+
+        pid = int(gen_table.parent_menu_id) if gen_table.parent_menu_id is not None else None
+        return GenTableService._menu_route_first_segment(
+            pid,
+            gen_table.package_name or "",
+            gen_table.module_name,
+        )
 
     @classmethod
     def prepare_sub_render_context(
@@ -229,24 +300,51 @@ class Jinja2TemplateUtil:
         异常:
         - ValueError: 当无法生成有效文件名时抛出。
         """
-        module_name = gen_table.module_name or ""
-        business_name = gen_table.business_name or ""
+        package_name = (gen_table.package_name or "").strip()
+        module_name = (gen_table.module_name or "").strip()
+        business_name = (gen_table.business_name or "").strip()
 
-        # 验证必要的参数
-        if not module_name or not business_name:
-            raise ValueError(f"无法为模板 {template} 生成文件名：模块名或业务名未设置")
+        # 两种模式：
+        # - 旧模式：module_name=module_xxx, business_name=功能目录（必填）
+        # - module_example 模式：package_name=module_example, module_name=demo（必填）, business_name=demo01（可空）
+        is_example_style = cls.is_example_style(package_name, module_name)
 
-        # 映射表方式简化
-        template_mapping = {
-            "controller.py.j2": f"{cls.BACKEND_PROJECT_PATH}/app/plugin/{module_name}/{business_name}/controller.py",
-            "service.py.j2": f"{cls.BACKEND_PROJECT_PATH}/app/plugin/{module_name}/{business_name}/service.py",
-            "crud.py.j2": f"{cls.BACKEND_PROJECT_PATH}/app/plugin/{module_name}/{business_name}/crud.py",
-            "schema.py.j2": f"{cls.BACKEND_PROJECT_PATH}/app/plugin/{module_name}/{business_name}/schema.py",
-            "model.py.j2": f"{cls.BACKEND_PROJECT_PATH}/app/plugin/{module_name}/{business_name}/model.py",
-            "__init__.py.j2": f"{cls.BACKEND_PROJECT_PATH}/app/plugin/{module_name}/{business_name}/__init__.py",
-            "api.ts.j2": f"{cls.FRONTEND_PROJECT_PATH}/src/api/{module_name}/{business_name}.ts",
-            "index.vue.j2": f"{cls.FRONTEND_PROJECT_PATH}/src/views/{module_name}/{business_name}/index.vue",
-        }
+        if is_example_style:
+            if not package_name or not module_name:
+                raise ValueError(f"无法为模板 {template} 生成文件名：包名或模块名未设置")
+            backend_base = f"{cls.BACKEND_PROJECT_PATH}/app/plugin/{package_name}/{module_name}"
+            frontend_view_base = f"{cls.FRONTEND_PROJECT_PATH}/src/views/{package_name}/{module_name}"
+            backend_dir = f"{backend_base}/{business_name}" if business_name else backend_base
+            view_dir = f"{frontend_view_base}/{business_name}" if business_name else frontend_view_base
+            # API：有业务时与示例一致放到 api/{包名}/{业务}/{业务}.ts；无业务则 api/{包名}/{模块}.ts
+            api_path = (
+                f"{cls.FRONTEND_PROJECT_PATH}/src/api/{package_name}/{business_name}/{business_name}.ts"
+                if business_name
+                else f"{cls.FRONTEND_PROJECT_PATH}/src/api/{package_name}/{module_name}.ts"
+            )
+            template_mapping = {
+                "controller.py.j2": f"{backend_dir}/controller.py",
+                "service.py.j2": f"{backend_dir}/service.py",
+                "crud.py.j2": f"{backend_dir}/crud.py",
+                "schema.py.j2": f"{backend_dir}/schema.py",
+                "model.py.j2": f"{backend_dir}/model.py",
+                "__init__.py.j2": f"{backend_dir}/__init__.py",
+                "api.ts.j2": api_path,
+                "index.vue.j2": f"{view_dir}/index.vue",
+            }
+        else:
+            if not module_name or not business_name:
+                raise ValueError(f"无法为模板 {template} 生成文件名：模块名或业务名未设置")
+            template_mapping = {
+                "controller.py.j2": f"{cls.BACKEND_PROJECT_PATH}/app/plugin/{module_name}/{business_name}/controller.py",
+                "service.py.j2": f"{cls.BACKEND_PROJECT_PATH}/app/plugin/{module_name}/{business_name}/service.py",
+                "crud.py.j2": f"{cls.BACKEND_PROJECT_PATH}/app/plugin/{module_name}/{business_name}/crud.py",
+                "schema.py.j2": f"{cls.BACKEND_PROJECT_PATH}/app/plugin/{module_name}/{business_name}/schema.py",
+                "model.py.j2": f"{cls.BACKEND_PROJECT_PATH}/app/plugin/{module_name}/{business_name}/model.py",
+                "__init__.py.j2": f"{cls.BACKEND_PROJECT_PATH}/app/plugin/{module_name}/{business_name}/__init__.py",
+                "api.ts.j2": f"{cls.FRONTEND_PROJECT_PATH}/src/api/{module_name}/{business_name}.ts",
+                "index.vue.j2": f"{cls.FRONTEND_PROJECT_PATH}/src/views/{module_name}/{business_name}/index.vue",
+            }
 
         # 查找匹配的模板路径
         for key, path in template_mapping.items():
@@ -530,7 +628,11 @@ class Jinja2TemplateUtil:
         返回:
         - str: 权限前缀字符串。
         """
-        return f"{module_name}:{business_name}"
+        mn = (module_name or "").strip()
+        bn = (business_name or "").strip().replace("/", ":")
+        if not bn:
+            return mn
+        return f"{mn}:{bn}"
 
     @classmethod
     def python_type_to_ts_type(cls, python_type: str | None) -> str:

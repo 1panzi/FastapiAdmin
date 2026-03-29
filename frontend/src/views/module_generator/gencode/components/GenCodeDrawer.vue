@@ -1,8 +1,9 @@
 <template>
   <EnhancedDrawer
     v-model="drawerVisible"
-    :title="'【代码生成】' + info.table_name"
-    size="85%"
+    :title="'【代码生成】' + (info.table_name || '')"
+    size="90%"
+    drawer-class="gencode-drawer"
     append-to-body
     @close="emit('close')"
   >
@@ -11,8 +12,9 @@
       <el-step title="字段配置" />
       <el-step title="预览代码" />
     </el-steps>
+    <p v-if="stepHintText" class="gencode-step-hint">{{ stepHintText }}</p>
 
-    <div class="mt-5">
+    <div class="gencode-drawer-step-wrap mt-4">
       <div v-show="activeStep === 0">
         <GenBasicStep
           :info="info"
@@ -57,32 +59,38 @@
         :loading="nextStepLoading"
         @click="emit('next-step')"
       >
-        下一步
+        {{ nextStepButtonLabel }}
         <el-icon class="el-icon--right"><Right /></el-icon>
       </el-button>
-      <el-button
+      <el-tooltip
         v-if="activeStep === 2"
-        type="warning"
-        :icon="Download"
-        :loading="loading"
-        @click="emit('gen-download')"
+        content="打包为 ZIP 下载到本机，不会在服务器创建菜单或文件"
+        placement="top"
       >
-        下载代码
-      </el-button>
-      <el-button
+        <el-button type="warning" :icon="Download" :loading="loading" @click="emit('gen-download')">
+          下载代码
+        </el-button>
+      </el-tooltip>
+      <el-tooltip
         v-if="activeStep === 2"
-        type="primary"
-        :icon="FolderOpened"
-        :loading="loading"
-        @click="emit('gen-write')"
+        content="在服务端项目目录生成源码，并自动创建目录/菜单/按钮（若名称未冲突）"
+        placement="top"
       >
-        写入本地
-      </el-button>
+        <el-button
+          type="primary"
+          :icon="FolderOpened"
+          :loading="loading"
+          @click="emit('gen-write')"
+        >
+          写入本地
+        </el-button>
+      </el-tooltip>
     </template>
   </EnhancedDrawer>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import type { FormRules } from "element-plus";
 import { Close, Right, FolderOpened, Back, Download } from "@element-plus/icons-vue";
 import type { EditorConfiguration } from "codemirror";
@@ -96,7 +104,14 @@ import GenPreviewStep from "./GenPreviewStep.vue";
 
 defineOptions({ name: "GenCodeDrawer" });
 
-defineProps<{
+/** 每步一行，细则在基础配置页的折叠「对照表」 */
+const STEP_HINTS = [
+  "配置包名、模块名与上级目录；点「下一步」保存并进入字段页（规则见本页折叠说明）。",
+  "批量设置可快速改列表/查询；点「下一步」保存并加载预览。",
+  "左侧点文件看代码；「下载」=ZIP；「写入本地」=服务端落盘并创建菜单。",
+] as const;
+
+const props = defineProps<{
   info: GenTableSchema;
   rules: FormRules;
   activeStep: number;
@@ -110,6 +125,11 @@ defineProps<{
   cmOptions: EditorConfiguration;
   bulkSet: (field: string | string[], value: unknown) => void;
 }>();
+
+const stepHintText = computed(() => STEP_HINTS[props.activeStep] ?? "");
+const nextStepButtonLabel = computed(() =>
+  props.activeStep === 0 ? "下一步：字段配置" : "下一步：预览代码"
+);
 
 const drawerVisible = defineModel<boolean>({ required: true });
 
@@ -131,3 +151,20 @@ const emit = defineEmits<{
   "copy-code": [];
 }>();
 </script>
+
+<style scoped lang="scss">
+/* 新版 ElDrawer 内部用 Splitter，size 需为百分比或纯数字(px)，勿用 min()，否则面板宽度可能异常 */
+.gencode-drawer-step-wrap {
+  max-height: calc(100vh - 220px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.gencode-step-hint {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--el-text-color-secondary);
+}
+</style>

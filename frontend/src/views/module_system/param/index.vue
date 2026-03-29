@@ -115,6 +115,7 @@
               prop="created_time"
               min-width="200"
               sortable
+              show-overflow-tooltip
             />
             <el-table-column
               v-if="contentCols.find((col) => col.prop === 'updated_time')?.show"
@@ -123,6 +124,7 @@
               prop="updated_time"
               min-width="200"
               sortable
+              show-overflow-tooltip
             />
             <el-table-column
               v-if="contentCols.find((col) => col.prop === 'operation')?.show"

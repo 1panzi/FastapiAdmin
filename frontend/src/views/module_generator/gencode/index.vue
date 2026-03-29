@@ -288,7 +288,7 @@ const loading = ref(false);
 const nextStepLoading = ref(false);
 const uniqueId = ref("");
 const editVisible = ref(false);
-const activeStep = ref(2);
+const activeStep = ref(0);
 
 // UI状态
 const createTableVisible = ref(false);
@@ -639,6 +639,7 @@ async function handleGenTable(targetGenType: string, row?: GenTableSchema): Prom
         return;
       }
       await GencodeAPI.genCodeToPath(tbNames[0]);
+      ElMessage.success("已写入项目目录并创建菜单（若尚未存在）");
     } else {
       // ZIP压缩包下载
       const tableNamesArray = Array.isArray(tbNames) ? tbNames : [tbNames];
@@ -661,6 +662,7 @@ async function handleGenTable(targetGenType: string, row?: GenTableSchema): Prom
       link.download = "code.zip";
       link.click();
       URL.revokeObjectURL(url);
+      ElMessage.success("已开始下载 code.zip");
     }
   } catch (error) {
     console.error("生成代码失败:", error);
@@ -687,6 +689,7 @@ async function handleSynchDb(row: GenTableSchema): Promise<void> {
 
     loading.value = true;
     await GencodeAPI.syncDb(tableName);
+    ElMessage.success("表结构已同步到代码生成配置");
     refreshList();
   } catch (error) {
     if (error !== "cancel") {
@@ -710,33 +713,47 @@ function handleImportTableSelectionChange(rows: ImportTableSelectionRow[]): void
   tables.value = rows;
 }
 
-// 修改菜单选项过滤逻辑，添加递归过滤函数
+/** 代码生成「上级菜单」仅展示目录节点，便于挂到目录下生成新菜单（不选菜单/按钮作为父级） */
 const filterMenuTypes = (nodes: MenuTable[]) => {
   return nodes
-    .filter((node) => node.type === MenuTypeEnum.CATALOG || node.type === MenuTypeEnum.MENU)
+    .filter((node) => node.type === MenuTypeEnum.CATALOG)
     .map((node: any): any => ({
       ...node,
       children: node.children ? filterMenuTypes(node.children) : [],
     }));
 };
 
-/** 表格行内修改按钮操作 */
+/** 表格行内「代码生成」：先打开抽屉再拉数据，避免接口慢时误以为点不动 */
 async function handlePreviewTable(row?: GenTableSchema): Promise<void> {
-  const selectedTableId = row?.id || ids.value[0];
-  if (selectedTableId) {
-    // 设置编辑的表ID和名称
-    info.table_name = row?.table_name || "";
-    // 加载表详情数据
-    await loadTableDetail(selectedTableId);
-    editVisible.value = true;
-
-    const menu_response = await MenuAPI.listMenu();
-    menuOptions.value = formatTree(filterMenuTypes(menu_response.data.data));
-
-    const dict_response = await DictAPI.listDictType({ page_no: 1, page_size: 100 });
-    dictOptions.value = dict_response.data.data.items;
-  } else {
+  const selectedTableId = row?.id ?? ids.value[0];
+  if (selectedTableId === undefined || selectedTableId === null) {
     ElMessage.error("请选择要修改的数据");
+    return;
+  }
+
+  info.table_name = row?.table_name || "";
+  activeStep.value = 0;
+  editVisible.value = true;
+
+  try {
+    await loadTableDetail(selectedTableId);
+  } catch (e) {
+    console.error("获取表详情失败:", e);
+    ElMessage.error("获取表详情失败，请稍后重试");
+    // 保持抽屉打开，便于重试或关闭；勿因接口失败整抽屉被关掉像「点不动」
+    return;
+  }
+
+  try {
+    const [menu_response, dict_response] = await Promise.all([
+      MenuAPI.listMenu(),
+      DictAPI.listDictType({ page_no: 1, page_size: 100 }),
+    ]);
+    menuOptions.value = formatTree(filterMenuTypes(menu_response.data.data));
+    dictOptions.value = dict_response.data.data.items;
+  } catch (e) {
+    console.error("菜单或字典加载失败:", e);
+    ElMessage.warning("菜单或字典选项加载失败，部分下拉可能为空");
   }
 }
 
@@ -950,15 +967,31 @@ function clearMasterSub() {
   });
 }
 
+/** module_example 三段式下业务名可空（如 gen_demo02）；旧模式仍必填 */
+function validateBusinessName(_rule: unknown, value: unknown, callback: (e?: Error) => void) {
+  const pkg = (info.package_name || "").trim();
+  const mod = (info.module_name || "").trim();
+  const isExampleStyle = pkg.startsWith("module_") && Boolean(mod) && !mod.startsWith("module_");
+  if (isExampleStyle) {
+    callback();
+    return;
+  }
+  if (value == null || !String(value).trim()) {
+    callback(new Error("业务名不能为空"));
+    return;
+  }
+  callback();
+}
+
 // 校验规则
 const rules = {
   table_name: [{ required: true, message: "表名称不能为空", trigger: "blur" }],
   class_name: [{ required: true, message: "实体名称不能为空", trigger: "blur" }],
   package_name: [{ required: true, message: "生成包路径不能为空", trigger: "blur" }],
   module_name: [{ required: true, message: "生成模块名不能为空", trigger: "blur" }],
-  business_name: [{ required: true, message: "生成业务名不能为空", trigger: "blur" }],
+  business_name: [{ validator: validateBusinessName, trigger: "blur" }],
   function_name: [{ required: true, message: "生成功能名不能为空", trigger: "blur" }],
-  parent_menu_id: [{ required: true, message: "所属菜单不能为空", trigger: "change" }],
+  /** 与后端一致：可选；不选时写入本地会按包名自动建目录菜单 */
   sub_table_name: [{ validator: validateMasterSubPair, trigger: "blur" }],
   sub_table_fk_name: [{ validator: validateMasterSubPair, trigger: "blur" }],
 };
@@ -1000,6 +1033,7 @@ async function submitForm(options?: { requireColumns?: boolean }) {
       if (savedColumns && savedColumns.length > 0) {
         info.columns = savedColumns;
       }
+      ElMessage.success("配置已保存");
     }
     return true;
   } catch (error) {
@@ -1107,6 +1141,7 @@ async function loadTableDetail(id: number | string) {
     }
   } catch (error) {
     console.error("获取表详情失败:", error);
+    throw error;
   } finally {
     loading.value = false;
   }

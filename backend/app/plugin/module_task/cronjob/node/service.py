@@ -88,6 +88,25 @@ class NodeService:
         return [NodeOutSchema.model_validate(obj).model_dump() for obj in obj_list]
 
     @classmethod
+    async def get_node_page_service(
+        cls,
+        auth: AuthSchema,
+        page_no: int,
+        page_size: int,
+        search: NodeQueryParam | None = None,
+        order_by: list[dict[str, str]] | None = None,
+    ) -> dict:
+        """分页查询定时任务节点（数据库 OFFSET/LIMIT）。"""
+        offset = (page_no - 1) * page_size
+        return await NodeCRUD(auth).page(
+            offset=offset,
+            limit=page_size,
+            order_by=order_by or [{"id": "asc"}],
+            search=search.__dict__ if search else {},
+            out_schema=NodeOutSchema,
+        )
+
+    @classmethod
     async def create_node_service(cls, auth: AuthSchema, data: NodeCreateSchema) -> dict:
         """
         创建节点 - 只保存到数据库，不创建调度器任务

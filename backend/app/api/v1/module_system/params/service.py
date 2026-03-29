@@ -104,6 +104,25 @@ class ParamsService:
         return [ParamsOutSchema.model_validate(obj).model_dump() for obj in obj_list]
 
     @classmethod
+    async def get_obj_page_service(
+        cls,
+        auth: AuthSchema,
+        page_no: int,
+        page_size: int,
+        search: ParamsQueryParam | None = None,
+        order_by: list[dict[str, str]] | None = None,
+    ) -> dict:
+        """分页查询参数（数据库 OFFSET/LIMIT）。"""
+        offset = (page_no - 1) * page_size
+        return await ParamsCRUD(auth).page(
+            offset=offset,
+            limit=page_size,
+            order_by=order_by or [{"id": "asc"}],
+            search=search.__dict__ if search else {},
+            out_schema=ParamsOutSchema,
+        )
+
+    @classmethod
     async def create_obj_service(
         cls, auth: AuthSchema, redis: Redis, data: ParamsCreateSchema
     ) -> dict:

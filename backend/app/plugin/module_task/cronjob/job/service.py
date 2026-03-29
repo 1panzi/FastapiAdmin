@@ -59,6 +59,26 @@ class JobService:
         return [JobOutSchema.model_validate(obj).model_dump() for obj in obj_list]
 
     @classmethod
+    async def get_job_log_page_service(
+        cls,
+        auth: AuthSchema,
+        page_no: int,
+        page_size: int,
+        search: JobQueryParam | None = None,
+        order_by: list[dict[str, str]] | None = None,
+    ) -> dict:
+        """分页查询执行日志（数据库 OFFSET/LIMIT）。"""
+        offset = (page_no - 1) * page_size
+        ob = order_by or [{"created_time": "desc"}]
+        return await JobCRUD(auth).page(
+            offset=offset,
+            limit=page_size,
+            order_by=ob,
+            search=search.__dict__ if search else {},
+            out_schema=JobOutSchema,
+        )
+
+    @classmethod
     async def create_job_log_service(
         cls,
         auth: AuthSchema,
