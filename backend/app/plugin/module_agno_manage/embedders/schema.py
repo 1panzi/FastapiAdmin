@@ -48,7 +48,7 @@ class EmbedderQueryParam:
         api_key: str | None = Query(None, description="API密钥"),
         base_url: str | None = Query(None, description="自定义端点地址"),
         dimensions: int | None = Query(None, description="向量维度"),
-        config: dict | None = Query(None, description="其他构造参数"),
+        # config: dict | None = Query(None, description="其他构造参数"),
         status: str | None = Query(None, description="是否启用"),
         created_id: int | None = Query(None, description=""),
         updated_id: int | None = Query(None, description=""),
@@ -73,8 +73,8 @@ class EmbedderQueryParam:
         if dimensions:
             self.dimensions = (QueueEnum.eq.value, dimensions)
         # 精确查询字段
-        if config:
-            self.config = (QueueEnum.eq.value, config)
+        # if config:
+        #     self.config = (QueueEnum.eq.value, config)
         # 精确查询字段
         if status:
             self.status = (QueueEnum.eq.value, status)
