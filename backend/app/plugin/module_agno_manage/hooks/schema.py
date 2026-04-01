@@ -16,8 +16,8 @@ class AgHookCreateSchema(BaseModel):
     hook_type: str = Field(default=..., description='Hook类型(pre/post/tool)')
     module_path: str = Field(default=..., description='Python模块路径')
     func_name: str = Field(default=..., description='函数名')
-    config: dict = Field(default=..., description='额外配置参数')
-    run_in_background: bool = Field(default=..., description='是否后台运行（不阻塞响应）')
+    config: dict | None = Field(default=None, description='额外配置参数')
+    run_in_background: bool | None = Field(default=None, description='是否后台运行（不阻塞响应）')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 

@@ -13,11 +13,11 @@ class AgKnowledgeBaseCreateSchema(BaseModel):
     知识库新增模型
     """
     name: str = Field(default=..., description='知识库名称')
-    vectordb_id: int = Field(default=..., description='关联向量数据库ID')
-    max_results: int = Field(default=..., description='最大检索结果数')
-    reader_type: str = Field(default=..., description='文档读取器类型(pdf/web/docx/csv/json/text)')
-    reader_config: dict = Field(default=..., description='读取器配置参数')
-    default_filters: dict = Field(default=..., description='默认搜索过滤条件')
+    vectordb_id: int | None = Field(default=None, description='关联向量数据库ID')
+    max_results: int | None = Field(default=None, description='最大检索结果数')
+    reader_type: str | None = Field(default=None, description='文档读取器类型(pdf/web/docx/csv/json/text)')
+    reader_config: dict | None = Field(default=None, description='读取器配置参数')
+    default_filters: dict | None = Field(default=None, description='默认搜索过滤条件')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 

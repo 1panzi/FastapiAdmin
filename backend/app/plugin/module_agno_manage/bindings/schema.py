@@ -16,8 +16,8 @@ class AgBindingCreateSchema(BaseModel):
     owner_id: int = Field(default=..., description='拥有者ID')
     resource_type: str = Field(default=..., description='资源类型(toolkit/skill/mcp/knowledge/hook/guardrail)')
     resource_id: int = Field(default=..., description='资源ID')
-    priority: int = Field(default=..., description='优先级（数字小优先）')
-    config_override: dict = Field(default=..., description='覆盖资源默认配置（如特定Agent使用不同API Key）')
+    priority: int | None = Field(default=None, description='优先级（数字小优先）')
+    config_override: dict | None = Field(default=None, description='覆盖资源默认配置（如特定Agent使用不同API Key）')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 

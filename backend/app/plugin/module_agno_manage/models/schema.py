@@ -15,9 +15,9 @@ class AgModelCreateSchema(BaseModel):
     name: str = Field(default=..., description='模型名称')
     model_id: str = Field(default=..., description='模型标识符（传给Agno Model的id参数）')
     provider: str = Field(default=..., description='模型提供商(openai/anthropic/google/ollama/deepseek)')
-    api_key: str = Field(default=..., description='API密钥（明文存储）')
-    base_url: str = Field(default=..., description='自定义API地址（用于ollama/vllm/lmstudio）')
-    config: dict = Field(default=..., description='模型配置参数（temperature/max_tokens/top_p等）')
+    api_key: str | None = Field(default=None, description='API密钥（明文存储）')
+    base_url: str | None = Field(default=None, description='自定义API地址（用于ollama/vllm/lmstudio）')
+    config: dict | None = Field(default=None, description='模型配置参数（temperature/max_tokens/top_p等）')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 

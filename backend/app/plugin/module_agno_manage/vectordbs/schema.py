@@ -14,8 +14,8 @@ class AgVectordbCreateSchema(BaseModel):
     """
     name: str = Field(default=..., description='向量库名称')
     provider: str = Field(default=..., description='向量库类型')
-    embedder_id: int = Field(default=..., description='关联嵌入模型ID')
-    config: dict = Field(default=..., description='连接配置')
+    embedder_id: int | None = Field(default=None, description='关联嵌入模型ID')
+    config: dict | None = Field(default=None, description='连接配置')
     status: str = Field(default="0", description='是否启用')
     description: str | None = Field(default=None, max_length=255, description='')
 

@@ -13,14 +13,14 @@ class AgCultureConfigCreateSchema(BaseModel):
     文化配置新增模型
     """
     name: str = Field(default=..., description='文化配置名称')
-    model_id: int = Field(default=..., description='关联模型ID')
-    add_knowledge: bool = Field(default=..., description='是否允许新增知识')
-    update_knowledge: bool = Field(default=..., description='是否允许更新知识')
-    delete_knowledge: bool = Field(default=..., description='是否允许删除知识')
-    clear_knowledge: bool = Field(default=..., description='是否允许清空知识')
-    culture_capture_instructions: str = Field(default=..., description='文化捕获指令')
-    additional_instructions: str = Field(default=..., description='附加指令')
-    debug_mode: bool = Field(default=..., description='是否开启调试模式')
+    model_id: int | None = Field(default=None, description='关联模型ID')
+    add_knowledge: bool | None = Field(default=None, description='是否允许新增知识')
+    update_knowledge: bool | None = Field(default=None, description='是否允许更新知识')
+    delete_knowledge: bool | None = Field(default=None, description='是否允许删除知识')
+    clear_knowledge: bool | None = Field(default=None, description='是否允许清空知识')
+    culture_capture_instructions: str | None = Field(default=None, description='文化捕获指令')
+    additional_instructions: str | None = Field(default=None, description='附加指令')
+    debug_mode: bool | None = Field(default=None, description='是否开启调试模式')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 

@@ -235,3 +235,28 @@ async def export_toolkits_template_controller() -> StreamingResponse:
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         headers={'Content-Disposition': 'attachment; filename=ag_toolkits_template.xlsx'}
     )
+
+@AgToolkitRouter.get(
+    "/agno/catalog",
+    summary="获取 Agno 内置工具目录",
+    description="返回所有可用的 Agno 内置工具列表，供创建 toolkit 时选择 module_path + class_name"
+)
+async def get_agno_catalog_controller(
+    category: str | None = Query(None, description="按分类过滤（如 搜索、数据库）"),
+    keyword: str | None = Query(None, description="关键词搜索"),
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:toolkits:query"]))
+) -> JSONResponse:
+    result = AgToolkitService.list_agno_catalog_service(category=category, keyword=keyword)
+    return SuccessResponse(data=result, msg="获取 Agno 工具目录成功")
+
+
+@AgToolkitRouter.get(
+    "/agno/categories",
+    summary="获取 Agno 工具分类列表",
+    description="返回所有工具分类"
+)
+async def get_agno_categories_controller(
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:toolkits:query"]))
+) -> JSONResponse:
+    result = AgToolkitService.list_agno_categories_service()
+    return SuccessResponse(data=result, msg="获取工具分类成功")

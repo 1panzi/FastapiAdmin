@@ -13,12 +13,12 @@ class AgReasoningConfigCreateSchema(BaseModel):
     推理配置新增模型
     """
     name: str = Field(default=..., description='推理配置名称')
-    model_id: int = Field(default=..., description='关联推理模型ID')
-    min_steps: int = Field(default=..., description='最少推理步数')
-    max_steps: int = Field(default=..., description='最多推理步数')
-    use_json_mode: bool = Field(default=..., description='是否使用JSON模式')
-    tool_call_limit: int = Field(default=..., description='工具调用次数上限')
-    debug_mode: bool = Field(default=..., description='是否开启调试模式')
+    model_id: int | None = Field(default=None, description='关联推理模型ID')
+    min_steps: int | None = Field(default=None, description='最少推理步数')
+    max_steps: int | None = Field(default=None, description='最多推理步数')
+    use_json_mode: bool | None = Field(default=None, description='是否使用JSON模式')
+    tool_call_limit: int | None = Field(default=None, description='工具调用次数上限')
+    debug_mode: bool | None = Field(default=None, description='是否开启调试模式')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 

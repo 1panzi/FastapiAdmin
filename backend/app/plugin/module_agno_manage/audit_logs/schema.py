@@ -12,12 +12,12 @@ class AgAuditLogCreateSchema(BaseModel):
     """
     审计日志新增模型
     """
-    actor_id: str = Field(default=..., description='操作人ID')
-    action: str = Field(default=..., description='操作类型(CREATE/UPDATE/DELETE/RUN)')
-    resource_type: str = Field(default=..., description='资源类型')
-    resource_id: int = Field(default=..., description='资源ID')
-    diff: dict = Field(default=..., description='变更前后数据对比（JSON）')
-    ip: str = Field(default=..., description='操作来源IP')
+    actor_id: str | None = Field(default=None, description='操作人ID')
+    action: str | None = Field(default=None, description='操作类型(CREATE/UPDATE/DELETE/RUN)')
+    resource_type: str | None = Field(default=None, description='资源类型')
+    resource_id: int | None = Field(default=None, description='资源ID')
+    diff: dict | None = Field(default=None, description='变更前后数据对比（JSON）')
+    ip: str | None = Field(default=None, description='操作来源IP')
 
 
 class AgAuditLogUpdateSchema(AgAuditLogCreateSchema):

@@ -13,14 +13,14 @@ class AgScheduleCreateSchema(BaseModel):
     定时任务管理新增模型
     """
     name: str = Field(default=..., description='定时任务名称')
-    agent_id: int = Field(default=..., description='触发目标AgentID')
-    team_id: int = Field(default=..., description='触发目标TeamID')
-    payload: dict = Field(default=..., description='触发时传入的消息/参数')
-    cron_expr: str = Field(default=..., description='Cron表达式（如0 9 * * 1-5）')
-    timezone: str = Field(default=..., description='时区（如Asia/Shanghai）')
-    timeout_seconds: int = Field(default=..., description='任务超时秒数')
-    max_retries: int = Field(default=..., description='失败最大重试次数')
-    retry_delay_seconds: int = Field(default=..., description='重试间隔秒数')
+    agent_id: int | None = Field(default=None, description='触发目标AgentID')
+    team_id: int | None = Field(default=None, description='触发目标TeamID')
+    payload: dict | None = Field(default=None, description='触发时传入的消息/参数')
+    cron_expr: str | None = Field(default=None, description='Cron表达式（如0 9 * * 1-5）')
+    timezone: str | None = Field(default=None, description='时区（如Asia/Shanghai）')
+    timeout_seconds: int | None = Field(default=None, description='任务超时秒数')
+    max_retries: int | None = Field(default=None, description='失败最大重试次数')
+    retry_delay_seconds: int | None = Field(default=None, description='重试间隔秒数')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 

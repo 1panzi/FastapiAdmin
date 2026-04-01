@@ -13,14 +13,14 @@ class AgLearningConfigCreateSchema(BaseModel):
     学习管理新增模型
     """
     name: str = Field(default=..., description='学习机配置名称')
-    model_id: int = Field(default=..., description='关联模型ID')
-    namespace: str = Field(default=..., description='命名空间（用于隔离不同租户/场景的学习数据）')
-    user_profile: dict = Field(default=..., description='用户画像配置（UserProfileConfig JSON）')
-    user_memory: dict = Field(default=..., description='用户记忆配置（UserMemoryConfig JSON）')
-    session_context: dict = Field(default=..., description='会话上下文配置（SessionContextConfig JSON）')
-    entity_memory: dict = Field(default=..., description='实体记忆配置（EntityMemoryConfig JSON）')
-    learned_knowledge: dict = Field(default=..., description='学习知识配置（LearnedKnowledgeConfig JSON）')
-    decision_log: dict = Field(default=..., description='决策日志配置（DecisionLogConfig JSON）')
+    model_id: int | None = Field(default=None, description='关联模型ID')
+    namespace: str | None = Field(default=None, description='命名空间（用于隔离不同租户/场景的学习数据）')
+    user_profile: dict | None = Field(default=None, description='用户画像配置（UserProfileConfig JSON）')
+    user_memory: dict | None = Field(default=None, description='用户记忆配置（UserMemoryConfig JSON）')
+    session_context: dict | None = Field(default=None, description='会话上下文配置（SessionContextConfig JSON）')
+    entity_memory: dict | None = Field(default=None, description='实体记忆配置（EntityMemoryConfig JSON）')
+    learned_knowledge: dict | None = Field(default=None, description='学习知识配置（LearnedKnowledgeConfig JSON）')
+    decision_log: dict | None = Field(default=None, description='决策日志配置（DecisionLogConfig JSON）')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 

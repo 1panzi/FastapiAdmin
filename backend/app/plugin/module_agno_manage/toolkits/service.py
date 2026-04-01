@@ -10,6 +10,7 @@ from app.core.exceptions import CustomException
 from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
 
+from app.plugin.module_agno_manage.core.registry import get_registry
 from .crud import AgToolkitCRUD
 from .schema import (
     AgToolkitCreateSchema,
@@ -17,6 +18,7 @@ from .schema import (
     AgToolkitOutSchema,
     AgToolkitQueryParam
 )
+from .agno_catalog import list_agno_tools, get_categories, AgnoToolInfo
 
 
 class AgToolkitService:
@@ -97,6 +99,11 @@ class AgToolkitService:
         - dict - 创建结果
         """
         obj = await AgToolkitCRUD(auth).create_toolkits_crud(data=data)
+        if obj and obj.status == "0":
+            try:
+                get_registry().register_toolkit(str(obj.id), obj)
+            except Exception as e:
+                log.warning(f"[Toolkits] registry register failed for id={obj.id}: {e}")
         return AgToolkitOutSchema.model_validate(obj).model_dump()
     
     @classmethod
@@ -120,6 +127,14 @@ class AgToolkitService:
         # 检查唯一性约束
             
         obj = await AgToolkitCRUD(auth).update_toolkits_crud(id=id, data=data)
+        if obj:
+            try:
+                if obj.status == "0":
+                    get_registry().register_toolkit(str(obj.id), obj)
+                else:
+                    get_registry().unregister_toolkit(str(obj.id))
+            except Exception as e:
+                log.warning(f"[Toolkits] registry update failed for id={obj.id}: {e}")
         return AgToolkitOutSchema.model_validate(obj).model_dump()
     
     @classmethod
@@ -136,11 +151,15 @@ class AgToolkitService:
         """
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
+        ids_to_remove = []
         for id in ids:
             obj = await AgToolkitCRUD(auth).get_by_id_toolkits_crud(id=id)
             if not obj:
                 raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
+            ids_to_remove.append(str(obj.id))
         await AgToolkitCRUD(auth).delete_toolkits_crud(ids=ids)
+        for tid in ids_to_remove:
+            get_registry().unregister_toolkit(tid)
     
     @classmethod
     async def set_available_toolkits_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
@@ -154,7 +173,20 @@ class AgToolkitService:
         返回:
         - None
         """
+        obj_list = []
+        for id in data.ids:
+            obj = await AgToolkitCRUD(auth).get_by_id_toolkits_crud(id=id)
+            if obj:
+                obj_list.append(obj)
         await AgToolkitCRUD(auth).set_available_toolkits_crud(ids=data.ids, status=data.status)
+        for obj in obj_list:
+            try:
+                if data.status == "0":
+                    get_registry().register_toolkit(str(obj.id), obj)
+                else:
+                    get_registry().unregister_toolkit(str(obj.id))
+            except Exception as e:
+                log.warning(f"[Toolkits] registry set_available failed for id={obj.id}: {e}")
     
     @classmethod
     async def batch_export_toolkits_service(cls, obj_list: list[dict]) -> bytes:
@@ -350,3 +382,22 @@ class AgToolkitService:
             selector_header_list=selector_header_list,
             option_list=option_list
         )
+
+    @classmethod
+    def list_agno_catalog_service(cls, category: str | None = None, keyword: str | None = None) -> list[AgnoToolInfo]:
+        """
+        返回 Agno 内置工具目录，供前端选择 module_path + class_name。
+
+        参数:
+        - category: str | None - 按分类过滤（如 "搜索"、"数据库"）
+        - keyword: str | None - 关键词模糊搜索
+
+        返回:
+        - list[AgnoToolInfo] - 工具信息列表
+        """
+        return list_agno_tools(category=category, keyword=keyword)
+
+    @classmethod
+    def list_agno_categories_service(cls) -> list[str]:
+        """返回所有工具分类。"""
+        return get_categories()

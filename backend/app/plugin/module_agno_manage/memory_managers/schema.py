@@ -13,13 +13,13 @@ class AgMemoryManagerCreateSchema(BaseModel):
     记忆管理新增模型
     """
     name: str = Field(default=..., description='记忆管理器名称')
-    model_id: int = Field(default=..., description='关联模型ID（用于记忆处理）')
-    delete_memories: bool = Field(default=..., description='是否允许删除记忆')
-    update_memories: bool = Field(default=..., description='是否允许更新记忆')
-    add_memories: bool = Field(default=..., description='是否允许新增记忆')
-    clear_memories: bool = Field(default=..., description='是否允许清空记忆')
-    memory_capture_instructions: str = Field(default=..., description='记忆捕获指令')
-    additional_instructions: str = Field(default=..., description='附加指令')
+    model_id: int | None = Field(default=None, description='关联模型ID（用于记忆处理）')
+    delete_memories: bool | None = Field(default=None, description='是否允许删除记忆')
+    update_memories: bool | None = Field(default=None, description='是否允许更新记忆')
+    add_memories: bool | None = Field(default=None, description='是否允许新增记忆')
+    clear_memories: bool | None = Field(default=None, description='是否允许清空记忆')
+    memory_capture_instructions: str | None = Field(default=None, description='记忆捕获指令')
+    additional_instructions: str | None = Field(default=None, description='附加指令')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 

@@ -15,9 +15,9 @@ class AgGuardrailCreateSchema(BaseModel):
     name: str = Field(default=..., description='护栏名称')
     type: str = Field(default=..., description='护栏类型(openai_moderation/pii/prompt_injection/custom)')
     hook_type: str = Field(default=..., description='作用阶段(pre/post)')
-    config: dict = Field(default=..., description='护栏配置参数')
-    module_path: str = Field(default=..., description='自定义护栏模块路径（type=custom时使用）')
-    class_name: str = Field(default=..., description='自定义护栏类名（type=custom时使用）')
+    config: dict | None = Field(default=None, description='护栏配置参数')
+    module_path: str | None = Field(default=None, description='自定义护栏模块路径（type=custom时使用）')
+    class_name: str | None = Field(default=None, description='自定义护栏类名（type=custom时使用）')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 

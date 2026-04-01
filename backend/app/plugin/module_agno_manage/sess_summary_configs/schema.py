@@ -13,9 +13,9 @@ class AgSessSummaryConfigCreateSchema(BaseModel):
     会话摘要配置新增模型
     """
     name: str = Field(default=..., description='会话摘要配置名称')
-    model_id: int = Field(default=..., description='关联摘要模型ID')
-    session_summary_prompt: str = Field(default=..., description='摘要生成提示词')
-    summary_request_message: str = Field(default=..., description='摘要请求消息')
+    model_id: int | None = Field(default=None, description='关联摘要模型ID')
+    session_summary_prompt: str | None = Field(default=None, description='摘要生成提示词')
+    summary_request_message: str | None = Field(default=None, description='摘要请求消息')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 

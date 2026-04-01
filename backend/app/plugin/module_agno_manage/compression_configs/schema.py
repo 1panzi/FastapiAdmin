@@ -13,10 +13,10 @@ class AgCompressionConfigCreateSchema(BaseModel):
     压缩管理器新增模型
     """
     name: str = Field(default=..., description='压缩配置名称')
-    model_id: int = Field(default=..., description='关联压缩模型ID')
-    compress_tool_results_limit: int = Field(default=..., description='触发工具结果压缩的条数阈值')
-    compress_token_limit: int = Field(default=..., description='触发压缩的Token数阈值')
-    compress_tool_call_instructions: str = Field(default=..., description='工具调用压缩指令')
+    model_id: int | None = Field(default=None, description='关联压缩模型ID')
+    compress_tool_results_limit: int | None = Field(default=None, description='触发工具结果压缩的条数阈值')
+    compress_token_limit: int | None = Field(default=None, description='触发压缩的Token数阈值')
+    compress_tool_call_instructions: str | None = Field(default=None, description='工具调用压缩指令')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 

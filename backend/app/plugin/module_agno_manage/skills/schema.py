@@ -13,12 +13,12 @@ class AgSkillCreateSchema(BaseModel):
     技能管理新增模型
     """
     name: str = Field(default=..., description='技能名称')
-    instructions: str = Field(default=..., description='注入Agent system prompt的技能指令')
-    source_path: str = Field(default=..., description='本地磁盘路径（可选）')
-    scripts: dict = Field(default=..., description='脚本文件名列表')
-    references: dict = Field(default=..., description='参考文件名列表')
-    allowed_tools: dict = Field(default=..., description='允许使用的工具列表')
-    metadata_config: dict = Field(default=..., description='元数据')
+    instructions: str | None = Field(default=None, description='注入Agent system prompt的技能指令')
+    source_path: str | None = Field(default=None, description='本地磁盘路径（可选）')
+    scripts: dict | None = Field(default=None, description='脚本文件名列表')
+    references: dict | None = Field(default=None, description='参考文件名列表')
+    allowed_tools: dict | None = Field(default=None, description='允许使用的工具列表')
+    metadata_config: dict | None = Field(default=None, description='元数据')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 

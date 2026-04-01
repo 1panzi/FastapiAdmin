@@ -9,6 +9,7 @@ from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
 from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
+from app.plugin.module_agno_manage.core.registry import get_registry
 
 from .crud import AgModelCRUD
 from .schema import (
@@ -88,15 +89,21 @@ class AgModelService:
     async def create_models_service(cls, auth: AuthSchema, data: AgModelCreateSchema) -> dict:
         """
         创建
-        
+
         参数:
         - auth: AuthSchema - 认证信息
         - data: AgModelCreateSchema - 创建数据
-        
+
         返回:
         - dict - 创建结果
         """
         obj = await AgModelCRUD(auth).create_models_crud(data=data)
+        # 注册到 RuntimeRegistry（仅启用状态）
+        if obj and obj.status == "0":
+            try:
+                get_registry().register_model(str(obj.id), obj)
+            except Exception as e:
+                log.warning(f"[Models] registry register failed for uuid={obj.uuid}: {e}")
         return AgModelOutSchema.model_validate(obj).model_dump()
     
     @classmethod
@@ -116,10 +123,19 @@ class AgModelService:
         obj = await AgModelCRUD(auth).get_by_id_models_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
-        
+
         # 检查唯一性约束
-            
+
         obj = await AgModelCRUD(auth).update_models_crud(id=id, data=data)
+        # 更新 RuntimeRegistry：启用则重建实例，禁用则移除
+        if obj:
+            try:
+                if obj.status == "0":
+                    get_registry().register_model(str(obj.id), obj)
+                else:
+                    get_registry().unregister_model(str(obj.id))
+            except Exception as e:
+                log.warning(f"[Models] registry update failed for uuid={obj.uuid}: {e}")
         return AgModelOutSchema.model_validate(obj).model_dump()
     
     @classmethod
@@ -136,11 +152,16 @@ class AgModelService:
         """
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
+        ids_to_remove = []
         for id in ids:
             obj = await AgModelCRUD(auth).get_by_id_models_crud(id=id)
             if not obj:
                 raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
+            ids_to_remove.append(str(obj.id))
         await AgModelCRUD(auth).delete_models_crud(ids=ids)
+        # 从 RuntimeRegistry 中移除
+        for mid in ids_to_remove:
+            get_registry().unregister_model(mid)
     
     @classmethod
     async def set_available_models_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
@@ -154,7 +175,22 @@ class AgModelService:
         返回:
         - None
         """
+        # 更新前先获取对象（需要 uuid），再做 DB 更新，最后同步 registry
+        obj_list = []
+        for id in data.ids:
+            obj = await AgModelCRUD(auth).get_by_id_models_crud(id=id)
+            if obj:
+                obj_list.append(obj)
         await AgModelCRUD(auth).set_available_models_crud(ids=data.ids, status=data.status)
+        # 同步 RuntimeRegistry
+        for obj in obj_list:
+            try:
+                if data.status == "0":
+                    get_registry().register_model(str(obj.id), obj)
+                else:
+                    get_registry().unregister_model(str(obj.id))
+            except Exception as e:
+                log.warning(f"[Models] registry set_available failed for uuid={obj.uuid}: {e}")
     
     @classmethod
     async def batch_export_models_service(cls, obj_list: list[dict]) -> bytes:

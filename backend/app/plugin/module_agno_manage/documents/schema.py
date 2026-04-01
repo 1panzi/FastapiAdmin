@@ -14,11 +14,11 @@ class AgDocumentCreateSchema(BaseModel):
     """
     kb_id: int = Field(default=..., description='所属知识库ID')
     name: str = Field(default=..., description='文档名称')
-    storage_type: str = Field(default=..., description='存储类型(local/s3/gcs/url)')
-    storage_path: str = Field(default=..., description='存储路径或URL')
-    doc_status: str = Field(default=..., description='处理状态(pending/processing/indexed/failed)')
-    error_msg: str = Field(default=..., description='处理失败错误信息')
-    metadata_config: dict = Field(default=..., description='文档元数据')
+    storage_type: str | None = Field(default=None, description='存储类型(local/s3/gcs/url)')
+    storage_path: str | None = Field(default=None, description='存储路径或URL')
+    doc_status: str | None = Field(default=None, description='处理状态(pending/processing/indexed/failed)')
+    error_msg: str | None = Field(default=None, description='处理失败错误信息')
+    metadata_config: dict | None = Field(default=None, description='文档元数据')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 
