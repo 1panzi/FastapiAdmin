@@ -18,7 +18,7 @@ class AgSkillCreateSchema(BaseModel):
     scripts: dict = Field(default=..., description='脚本文件名列表')
     references: dict = Field(default=..., description='参考文件名列表')
     allowed_tools: dict = Field(default=..., description='允许使用的工具列表')
-    skill_metadata: dict = Field(default=..., description='元数据')
+    metadata_config: dict = Field(default=..., description='元数据')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 
@@ -48,7 +48,7 @@ class AgSkillQueryParam:
         # scripts: dict | None = Query(None, description="脚本文件名列表"),
         # references: dict | None = Query(None, description="参考文件名列表"),
         # allowed_tools: dict | None = Query(None, description="允许使用的工具列表"),
-        # skill_metadata: dict | None = Query(None, description="元数据"),
+        # metadata_config: dict | None = Query(None, description="元数据"),
         status: str | None = Query(None, description=""),
         created_id: int | None = Query(None, description=""),
         updated_id: int | None = Query(None, description=""),
@@ -73,8 +73,8 @@ class AgSkillQueryParam:
         # if allowed_tools:
         #     self.allowed_tools = (QueueEnum.eq.value, allowed_tools)
         # # 精确查询字段
-        # if skill_metadata:
-        #     self.skill_metadata = (QueueEnum.eq.value, skill_metadata)
+        # if metadata_config:
+        #     self.metadata_config = (QueueEnum.eq.value, metadata_config)
         # 精确查询字段
         if status:
             self.status = (QueueEnum.eq.value, status)

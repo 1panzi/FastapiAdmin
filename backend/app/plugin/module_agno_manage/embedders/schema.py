@@ -2,13 +2,12 @@
 
 from pydantic import BaseModel, ConfigDict, Field
 from fastapi import Query
-from app.core.validator import DateTimeStr
 from datetime import datetime
 from app.core.validator import DateTimeStr
 from app.common.enums import QueueEnum
 from app.core.base_schema import BaseSchema, UserBySchema
 
-class EmbedderCreateSchema(BaseModel):
+class AgEmbedderCreateSchema(BaseModel):
     """
     嵌入模型新增模型
     """
@@ -23,21 +22,21 @@ class EmbedderCreateSchema(BaseModel):
     description: str | None = Field(default=None, max_length=255, description='备注/描述')
 
 
-class EmbedderUpdateSchema(EmbedderCreateSchema):
+class AgEmbedderUpdateSchema(AgEmbedderCreateSchema):
     """
     嵌入模型更新模型
     """
     ...
 
 
-class EmbedderOutSchema(EmbedderCreateSchema, BaseSchema, UserBySchema):
+class AgEmbedderOutSchema(AgEmbedderCreateSchema, BaseSchema, UserBySchema):
     """
     嵌入模型响应模型
     """
     model_config = ConfigDict(from_attributes=True)
 
 
-class EmbedderQueryParam:
+class AgEmbedderQueryParam:
     """嵌入模型查询参数"""
 
     def __init__(

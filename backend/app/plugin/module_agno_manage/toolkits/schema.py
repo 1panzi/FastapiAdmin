@@ -2,7 +2,6 @@
 
 from pydantic import BaseModel, ConfigDict, Field
 from fastapi import Query
-from app.core.validator import DateTimeStr
 from datetime import datetime
 from app.core.validator import DateTimeStr
 from app.common.enums import QueueEnum

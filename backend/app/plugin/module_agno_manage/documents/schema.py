@@ -18,7 +18,7 @@ class AgDocumentCreateSchema(BaseModel):
     storage_path: str = Field(default=..., description='存储路径或URL')
     doc_status: str = Field(default=..., description='处理状态(pending/processing/indexed/failed)')
     error_msg: str = Field(default=..., description='处理失败错误信息')
-    metadata: dict = Field(default=..., description='文档元数据')
+    metadata_config: dict = Field(default=..., description='文档元数据')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 
@@ -48,7 +48,7 @@ class AgDocumentQueryParam:
         storage_path: str | None = Query(None, description="存储路径或URL"),
         doc_status: str | None = Query(None, description="处理状态(pending/processing/indexed/failed)"),
         error_msg: str | None = Query(None, description="处理失败错误信息"),
-        metadata: dict | None = Query(None, description="文档元数据"),
+        # metadata_config: dict | None = Query(None, description="文档元数据"),
         status: str | None = Query(None, description=""),
         created_id: int | None = Query(None, description=""),
         updated_id: int | None = Query(None, description=""),
@@ -73,8 +73,8 @@ class AgDocumentQueryParam:
         if error_msg:
             self.error_msg = (QueueEnum.eq.value, error_msg)
         # 精确查询字段
-        if metadata:
-            self.metadata = (QueueEnum.eq.value, metadata)
+        # if metadata_config:
+            # self.metadata_config = (QueueEnum.eq.value, metadata_config)
         # 精确查询字段
         if status:
             self.status = (QueueEnum.eq.value, status)

@@ -562,7 +562,7 @@
 
 <script setup lang="ts">
 defineOptions({
-  name: "AgHooks",
+  name: "AgHook",
   inheritAttrs: false,
 });
 
@@ -576,10 +576,10 @@ import DatePicker from "@/components/DatePicker/index.vue";
 import type { IContentConfig } from "@/components/CURD/types";
 import ImportModal from "@/components/CURD/ImportModal.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
-import AgHooksAPI, {
-  AgHooksPageQuery,
-  AgHooksTable,
-  AgHooksForm,
+import AgHookAPI, {
+  AgHookPageQuery,
+  AgHookTable,
+  AgHookForm,
 } from "@/api/module_agno_manage/hooks";
 
 const visible = ref(true);
@@ -587,13 +587,13 @@ const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
 const selectIds = ref<number[]>([]);
-const selectionRows = ref<AgHooksTable[]>([]);
+const selectionRows = ref<AgHookTable[]>([]);
 const loading = ref(false);
 const isExpand = ref(false);
 const isExpandable = ref(true);
 
 // 分页表单
-const pageTableData = ref<AgHooksTable[]>([]);
+const pageTableData = ref<AgHookTable[]>([]);
 
 // 表格列配置
 const tableColumns = ref([
@@ -634,7 +634,7 @@ const exportColumns = [
 const curdContentConfig = {
   permPrefix: "module_agno_manage:hooks",
   cols: exportColumns as any,
-  importTemplate: () => AgHooksAPI.downloadTemplateAgHooks(),
+  importTemplate: () => AgHookAPI.downloadTemplateAgHook(),
   exportsAction: async (params: any) => {
     const query: any = { ...params };
     query.status = "0";
@@ -642,7 +642,7 @@ const curdContentConfig = {
     query.page_size = 9999;
     const all: any[] = [];
     while (true) {
-      const res = await AgHooksAPI.listAgHooks(query);
+      const res = await AgHookAPI.listAgHook(query);
       const items = res.data?.data?.items || [];
       const total = res.data?.data?.total || 0;
       all.push(...items);
@@ -654,7 +654,7 @@ const curdContentConfig = {
 } as unknown as IContentConfig;
 
 // 详情表单
-const detailFormData = ref<AgHooksTable>({});
+const detailFormData = ref<AgHookTable>({});
 // 日期范围临时变量
 const createdDateRange = ref<[Date, Date] | []>([]);
 // 更新时间范围临时变量
@@ -681,7 +681,7 @@ function handleUpdatedDateRangeChange(range: [Date, Date]) {
 }
 
 // 分页查询参数
-const queryFormData = reactive<AgHooksPageQuery>({
+const queryFormData = reactive<AgHookPageQuery>({
   page_no: 1,
   page_size: 10,
   name: undefined,
@@ -698,7 +698,7 @@ const queryFormData = reactive<AgHooksPageQuery>({
 });
 
 // 编辑表单
-const formData = reactive<AgHooksForm>({
+const formData = reactive<AgHookForm>({
   id: undefined,
   name: undefined,
   hook_type: undefined,
@@ -766,7 +766,7 @@ async function handleRefresh() {
 async function loadingData() {
   loading.value = true;
   try {
-    const response = await AgHooksAPI.listAgHooks(queryFormData);
+    const response = await AgHookAPI.listAgHook(queryFormData);
     pageTableData.value = response.data.data.items;
     total.value = response.data.data.total;
   } catch (error: any) {
@@ -800,7 +800,7 @@ async function handleResetQuery() {
 }
 
 // 定义初始表单数据常量
-const initialFormData: AgHooksForm = {
+const initialFormData: AgHookForm = {
   id: undefined,
   name: undefined,
   hook_type: undefined,
@@ -838,7 +838,7 @@ async function handleCloseDialog() {
 async function handleOpenDialog(type: "create" | "update" | "detail", id?: number) {
   dialogVisible.type = type;
   if (id) {
-    const response = await AgHooksAPI.detailAgHooks(id);
+    const response = await AgHookAPI.detailAgHook(id);
     if (type === "detail") {
       dialogVisible.title = "详情";
       Object.assign(detailFormData.value, response.data.data);
@@ -847,7 +847,7 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
       Object.assign(formData, response.data.data);
     }
   } else {
-    dialogVisible.title = "新增AgHooks";
+    dialogVisible.title = "新增AgHook";
     formData.id = undefined;
     formData.name = undefined;
     formData.hook_type = undefined;
@@ -872,7 +872,7 @@ async function handleSubmit() {
       const id = formData.id;
       if (id) {
         try {
-          await AgHooksAPI.updateAgHooks(id, { id, ...submitData });
+          await AgHookAPI.updateAgHook(id, { id, ...submitData });
           dialogVisible.visible = false;
           resetForm();
           handleCloseDialog();
@@ -884,7 +884,7 @@ async function handleSubmit() {
         }
       } else {
         try {
-          await AgHooksAPI.createAgHooks(submitData);
+          await AgHookAPI.createAgHook(submitData);
           dialogVisible.visible = false;
           resetForm();
           handleCloseDialog();
@@ -909,7 +909,7 @@ async function handleDelete(ids: number[]) {
     .then(async () => {
       try {
         loading.value = true;
-        await AgHooksAPI.deleteAgHooks(ids);
+        await AgHookAPI.deleteAgHook(ids);
         handleResetQuery();
       } catch (error: any) {
         console.error(error);
@@ -933,7 +933,7 @@ async function handleMoreClick(status: string) {
       .then(async () => {
         try {
           loading.value = true;
-          await AgHooksAPI.batchAgHooks({ ids: selectIds.value, status });
+          await AgHookAPI.batchAgHook({ ids: selectIds.value, status });
           handleResetQuery();
         } catch (error: any) {
           console.error(error);
@@ -951,7 +951,7 @@ async function handleMoreClick(status: string) {
 const handleUpload = async (formData: FormData) => {
   try {
     uploadLoading.value = true;
-    const response = await AgHooksAPI.importAgHooks(formData);
+    const response = await AgHookAPI.importAgHook(formData);
     if (response.data.code === ResultEnum.SUCCESS) {
       ElMessage.success(`${response.data.msg}，${response.data.data}`);
       importDialogVisible.value = false;

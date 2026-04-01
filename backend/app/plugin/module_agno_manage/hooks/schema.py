@@ -8,7 +8,7 @@ from app.core.validator import DateTimeStr
 from app.common.enums import QueueEnum
 from app.core.base_schema import BaseSchema, UserBySchema
 
-class AgHooksCreateSchema(BaseModel):
+class AgHookCreateSchema(BaseModel):
     """
     hook新增模型
     """
@@ -22,21 +22,21 @@ class AgHooksCreateSchema(BaseModel):
     description: str | None = Field(default=None, max_length=255, description='')
 
 
-class AgHooksUpdateSchema(AgHooksCreateSchema):
+class AgHookUpdateSchema(AgHookCreateSchema):
     """
     hook更新模型
     """
     ...
 
 
-class AgHooksOutSchema(AgHooksCreateSchema, BaseSchema, UserBySchema):
+class AgHookOutSchema(AgHookCreateSchema, BaseSchema, UserBySchema):
     """
     hook响应模型
     """
     model_config = ConfigDict(from_attributes=True)
 
 
-class AgHooksQueryParam:
+class AgHookQueryParam:
     """hook查询参数"""
 
     def __init__(
@@ -45,7 +45,7 @@ class AgHooksQueryParam:
         func_name: str | None = Query(None, description="函数名"),
         hook_type: str | None = Query(None, description="Hook类型(pre/post/tool)"),
         module_path: str | None = Query(None, description="Python模块路径"),
-        config: dict | None = Query(None, description="额外配置参数"),
+        # config: dict | None = Query(None, description="额外配置参数"),
         run_in_background: bool | None = Query(None, description="是否后台运行（不阻塞响应）"),
         status: str | None = Query(None, description=""),
         created_id: int | None = Query(None, description=""),
@@ -64,8 +64,8 @@ class AgHooksQueryParam:
         # 模糊查询字段
         self.func_name = (QueueEnum.like.value, func_name)
         # 精确查询字段
-        if config:
-            self.config = (QueueEnum.eq.value, config)
+        # if config:
+        #     self.config = (QueueEnum.eq.value, config)
         # 精确查询字段
         if run_in_background:
             self.run_in_background = (QueueEnum.eq.value, run_in_background)

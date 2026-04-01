@@ -4,11 +4,11 @@ from typing import Sequence
 
 from app.core.base_crud import CRUDBase
 from app.api.v1.module_system.auth.schema import AuthSchema
-from .model import AgKnowledgeBasesModel
-from .schema import AgKnowledgeBasesCreateSchema, AgKnowledgeBasesUpdateSchema, AgKnowledgeBasesOutSchema
+from .model import AgKnowledgeBaseModel
+from .schema import AgKnowledgeBaseCreateSchema, AgKnowledgeBaseUpdateSchema, AgKnowledgeBaseOutSchema
 
 
-class AgKnowledgeBasesCRUD(CRUDBase[AgKnowledgeBasesModel, AgKnowledgeBasesCreateSchema, AgKnowledgeBasesUpdateSchema]):
+class AgKnowledgeBaseCRUD(CRUDBase[AgKnowledgeBaseModel, AgKnowledgeBaseCreateSchema, AgKnowledgeBaseUpdateSchema]):
     """知识库数据层"""
 
     def __init__(self, auth: AuthSchema) -> None:
@@ -18,9 +18,9 @@ class AgKnowledgeBasesCRUD(CRUDBase[AgKnowledgeBasesModel, AgKnowledgeBasesCreat
         参数:
         - auth (AuthSchema): 认证信息模型
         """
-        super().__init__(model=AgKnowledgeBasesModel, auth=auth)
+        super().__init__(model=AgKnowledgeBaseModel, auth=auth)
 
-    async def get_by_id_knowledge_bases_crud(self, id: int, preload: list | None = None) -> AgKnowledgeBasesModel | None:
+    async def get_by_id_knowledge_bases_crud(self, id: int, preload: list | None = None) -> AgKnowledgeBaseModel | None:
         """
         详情
         
@@ -29,11 +29,11 @@ class AgKnowledgeBasesCRUD(CRUDBase[AgKnowledgeBasesModel, AgKnowledgeBasesCreat
         - preload (list | None): 预加载关系，未提供时使用模型默认项
         
         返回:
-        - AgKnowledgeBasesModel | None: 模型实例或None
+        - AgKnowledgeBaseModel | None: 模型实例或None
         """
         return await self.get(id=id, preload=preload)
     
-    async def list_knowledge_bases_crud(self, search: dict | None = None, order_by: list[dict] | None = None, preload: list | None = None) -> Sequence[AgKnowledgeBasesModel]:
+    async def list_knowledge_bases_crud(self, search: dict | None = None, order_by: list[dict] | None = None, preload: list | None = None) -> Sequence[AgKnowledgeBaseModel]:
         """
         列表查询
         
@@ -43,32 +43,32 @@ class AgKnowledgeBasesCRUD(CRUDBase[AgKnowledgeBasesModel, AgKnowledgeBasesCreat
         - preload (list | None): 预加载关系，未提供时使用模型默认项
         
         返回:
-        - Sequence[AgKnowledgeBasesModel]: 模型实例序列
+        - Sequence[AgKnowledgeBaseModel]: 模型实例序列
         """
         return await self.list(search=search, order_by=order_by, preload=preload)
     
-    async def create_knowledge_bases_crud(self, data: AgKnowledgeBasesCreateSchema) -> AgKnowledgeBasesModel | None:
+    async def create_knowledge_bases_crud(self, data: AgKnowledgeBaseCreateSchema) -> AgKnowledgeBaseModel | None:
         """
         创建
         
         参数:
-        - data (AgKnowledgeBasesCreateSchema): 创建模型
+        - data (AgKnowledgeBaseCreateSchema): 创建模型
         
         返回:
-        - AgKnowledgeBasesModel | None: 模型实例或None
+        - AgKnowledgeBaseModel | None: 模型实例或None
         """
         return await self.create(data=data)
     
-    async def update_knowledge_bases_crud(self, id: int, data: AgKnowledgeBasesUpdateSchema) -> AgKnowledgeBasesModel | None:
+    async def update_knowledge_bases_crud(self, id: int, data: AgKnowledgeBaseUpdateSchema) -> AgKnowledgeBaseModel | None:
         """
         更新
         
         参数:
         - id (int): 对象ID
-        - data (AgKnowledgeBasesUpdateSchema): 更新模型
+        - data (AgKnowledgeBaseUpdateSchema): 更新模型
         
         返回:
-        - AgKnowledgeBasesModel | None: 模型实例或None
+        - AgKnowledgeBaseModel | None: 模型实例或None
         """
         return await self.update(id=id, data=data)
     
@@ -118,6 +118,6 @@ class AgKnowledgeBasesCRUD(CRUDBase[AgKnowledgeBasesModel, AgKnowledgeBasesCreat
             limit=limit,
             order_by=order_by_list,
             search=search_dict,
-            out_schema=AgKnowledgeBasesOutSchema,
+            out_schema=AgKnowledgeBaseOutSchema,
             preload=preload
         )

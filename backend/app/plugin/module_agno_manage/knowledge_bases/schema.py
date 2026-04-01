@@ -8,7 +8,7 @@ from app.core.validator import DateTimeStr
 from app.common.enums import QueueEnum
 from app.core.base_schema import BaseSchema, UserBySchema
 
-class AgKnowledgeBasesCreateSchema(BaseModel):
+class AgKnowledgeBaseCreateSchema(BaseModel):
     """
     知识库新增模型
     """
@@ -22,21 +22,21 @@ class AgKnowledgeBasesCreateSchema(BaseModel):
     description: str | None = Field(default=None, max_length=255, description='')
 
 
-class AgKnowledgeBasesUpdateSchema(AgKnowledgeBasesCreateSchema):
+class AgKnowledgeBaseUpdateSchema(AgKnowledgeBaseCreateSchema):
     """
     知识库更新模型
     """
     ...
 
 
-class AgKnowledgeBasesOutSchema(AgKnowledgeBasesCreateSchema, BaseSchema, UserBySchema):
+class AgKnowledgeBaseOutSchema(AgKnowledgeBaseCreateSchema, BaseSchema, UserBySchema):
     """
     知识库响应模型
     """
     model_config = ConfigDict(from_attributes=True)
 
 
-class AgKnowledgeBasesQueryParam:
+class AgKnowledgeBaseQueryParam:
     """知识库查询参数"""
 
     def __init__(

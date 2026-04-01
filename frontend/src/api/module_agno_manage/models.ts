@@ -2,10 +2,10 @@ import request from "@/utils/request";
 
 const API_PATH = "/agno_manage/models";
 
-const ModelAPI = {
+const AgModelAPI = {
   // 列表查询
-  listModel(query: ModelPageQuery) {
-    return request<ApiResponse<PageResult<ModelTable[]>>>({
+  listAgModel(query: AgModelPageQuery) {
+    return request<ApiResponse<PageResult<AgModelTable[]>>>({
       url: `${API_PATH}/list`,
       method: "get",
       params: query,
@@ -13,15 +13,15 @@ const ModelAPI = {
   },
 
   // 详情查询
-  detailModel(id: number) {
-    return request<ApiResponse<ModelTable>>({
+  detailAgModel(id: number) {
+    return request<ApiResponse<AgModelTable>>({
       url: `${API_PATH}/detail/${id}`,
       method: "get",
     });
   },
 
   // 新增
-  createModel(body: ModelForm) {
+  createAgModel(body: AgModelForm) {
     return request<ApiResponse>({
       url: `${API_PATH}/create`,
       method: "post",
@@ -30,7 +30,7 @@ const ModelAPI = {
   },
 
   // 修改（带主键）
-  updateModel(id: number, body: ModelForm) {
+  updateAgModel(id: number, body: AgModelForm) {
     return request<ApiResponse>({
       url: `${API_PATH}/update/${id}`,
       method: "put",
@@ -39,7 +39,7 @@ const ModelAPI = {
   },
 
   // 删除（支持批量）
-  deleteModel(ids: number[]) {
+  deleteAgModel(ids: number[]) {
     return request<ApiResponse>({
       url: `${API_PATH}/delete`,
       method: "delete",
@@ -48,7 +48,7 @@ const ModelAPI = {
   },
 
   // 批量启用/停用
-  batchModel(body: BatchType) {
+  batchAgModel(body: BatchType) {
     return request<ApiResponse>({
       url: `${API_PATH}/available/setting`,
       method: "patch",
@@ -57,7 +57,7 @@ const ModelAPI = {
   },
 
   // 导出
-  exportModel(query: ModelPageQuery) {
+  exportAgModel(query: AgModelPageQuery) {
     return request<Blob>({
       url: `${API_PATH}/export`,
       method: "post",
@@ -67,7 +67,7 @@ const ModelAPI = {
   },
 
   // 下载导入模板
-  downloadTemplateModel() {
+  downloadTemplateAgModel() {
     return request<Blob>({
       url: `${API_PATH}/download/template`,
       method: "post",
@@ -76,7 +76,7 @@ const ModelAPI = {
   },
 
   // 导入
-  importModel(body: FormData) {
+  importAgModel(body: FormData) {
     return request<ApiResponse>({
       url: `${API_PATH}/import`,
       method: "post",
@@ -86,14 +86,14 @@ const ModelAPI = {
   },
 };
 
-export default ModelAPI;
+export default AgModelAPI;
 
 // ------------------------------
 // TS 类型声明
 // ------------------------------
 
 // 列表查询参数
-export interface ModelPageQuery extends PageQuery {
+export interface AgModelPageQuery extends PageQuery {
   name?: string;
   model_id?: string;
   provider?: string;
@@ -108,7 +108,7 @@ export interface ModelPageQuery extends PageQuery {
 }
 
 // 列表展示项
-export interface ModelTable extends BaseType {
+export interface AgModelTable extends BaseType {
   name?: string;
   model_id?: string;
   provider?: string;
@@ -122,7 +122,7 @@ export interface ModelTable extends BaseType {
 }
 
 // 新增/修改/详情表单参数
-export interface ModelForm extends BaseFormType {
+export interface AgModelForm extends BaseFormType {
   name?: string;
   model_id?: string;
   provider?: string;

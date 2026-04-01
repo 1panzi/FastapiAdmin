@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-from sqlalchemy import Integer, Text, DateTime, JSON, String
+from sqlalchemy import Integer, Text, JSON, String, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
 
 
-class EmbedderModel(ModelMixin, UserMixin):
+class AgEmbedderModel(ModelMixin, UserMixin):
     """
     嵌入模型表
     """

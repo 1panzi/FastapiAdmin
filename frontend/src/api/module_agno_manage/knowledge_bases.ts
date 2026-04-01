@@ -2,10 +2,10 @@ import request from "@/utils/request";
 
 const API_PATH = "/agno_manage/knowledge_bases";
 
-const AgKnowledgeBasesAPI = {
+const AgKnowledgeBaseAPI = {
   // 列表查询
-  listAgKnowledgeBases(query: AgKnowledgeBasesPageQuery) {
-    return request<ApiResponse<PageResult<AgKnowledgeBasesTable[]>>>({
+  listAgKnowledgeBase(query: AgKnowledgeBasePageQuery) {
+    return request<ApiResponse<PageResult<AgKnowledgeBaseTable[]>>>({
       url: `${API_PATH}/list`,
       method: "get",
       params: query,
@@ -13,15 +13,15 @@ const AgKnowledgeBasesAPI = {
   },
 
   // 详情查询
-  detailAgKnowledgeBases(id: number) {
-    return request<ApiResponse<AgKnowledgeBasesTable>>({
+  detailAgKnowledgeBase(id: number) {
+    return request<ApiResponse<AgKnowledgeBaseTable>>({
       url: `${API_PATH}/detail/${id}`,
       method: "get",
     });
   },
 
   // 新增
-  createAgKnowledgeBases(body: AgKnowledgeBasesForm) {
+  createAgKnowledgeBase(body: AgKnowledgeBaseForm) {
     return request<ApiResponse>({
       url: `${API_PATH}/create`,
       method: "post",
@@ -30,7 +30,7 @@ const AgKnowledgeBasesAPI = {
   },
 
   // 修改（带主键）
-  updateAgKnowledgeBases(id: number, body: AgKnowledgeBasesForm) {
+  updateAgKnowledgeBase(id: number, body: AgKnowledgeBaseForm) {
     return request<ApiResponse>({
       url: `${API_PATH}/update/${id}`,
       method: "put",
@@ -39,7 +39,7 @@ const AgKnowledgeBasesAPI = {
   },
 
   // 删除（支持批量）
-  deleteAgKnowledgeBases(ids: number[]) {
+  deleteAgKnowledgeBase(ids: number[]) {
     return request<ApiResponse>({
       url: `${API_PATH}/delete`,
       method: "delete",
@@ -48,7 +48,7 @@ const AgKnowledgeBasesAPI = {
   },
 
   // 批量启用/停用
-  batchAgKnowledgeBases(body: BatchType) {
+  batchAgKnowledgeBase(body: BatchType) {
     return request<ApiResponse>({
       url: `${API_PATH}/available/setting`,
       method: "patch",
@@ -57,7 +57,7 @@ const AgKnowledgeBasesAPI = {
   },
 
   // 导出
-  exportAgKnowledgeBases(query: AgKnowledgeBasesPageQuery) {
+  exportAgKnowledgeBase(query: AgKnowledgeBasePageQuery) {
     return request<Blob>({
       url: `${API_PATH}/export`,
       method: "post",
@@ -67,7 +67,7 @@ const AgKnowledgeBasesAPI = {
   },
 
   // 下载导入模板
-  downloadTemplateAgKnowledgeBases() {
+  downloadTemplateAgKnowledgeBase() {
     return request<Blob>({
       url: `${API_PATH}/download/template`,
       method: "post",
@@ -76,7 +76,7 @@ const AgKnowledgeBasesAPI = {
   },
 
   // 导入
-  importAgKnowledgeBases(body: FormData) {
+  importAgKnowledgeBase(body: FormData) {
     return request<ApiResponse>({
       url: `${API_PATH}/import`,
       method: "post",
@@ -86,14 +86,14 @@ const AgKnowledgeBasesAPI = {
   },
 };
 
-export default AgKnowledgeBasesAPI;
+export default AgKnowledgeBaseAPI;
 
 // ------------------------------
 // TS 类型声明
 // ------------------------------
 
 // 列表查询参数
-export interface AgKnowledgeBasesPageQuery extends PageQuery {
+export interface AgKnowledgeBasePageQuery extends PageQuery {
   name?: string;
   vectordb_id?: string;
   max_results?: string;
@@ -108,7 +108,7 @@ export interface AgKnowledgeBasesPageQuery extends PageQuery {
 }
 
 // 列表展示项
-export interface AgKnowledgeBasesTable extends BaseType {
+export interface AgKnowledgeBaseTable extends BaseType {
   name?: string;
   vectordb_id?: string;
   max_results?: string;
@@ -122,7 +122,7 @@ export interface AgKnowledgeBasesTable extends BaseType {
 }
 
 // 新增/修改/详情表单参数
-export interface AgKnowledgeBasesForm extends BaseFormType {
+export interface AgKnowledgeBaseForm extends BaseFormType {
   name?: string;
   vectordb_id?: string;
   max_results?: string;

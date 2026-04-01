@@ -4,11 +4,11 @@ from typing import Sequence
 
 from app.core.base_crud import CRUDBase
 from app.api.v1.module_system.auth.schema import AuthSchema
-from .model import ModelModel
-from .schema import ModelCreateSchema, ModelUpdateSchema, ModelOutSchema
+from .model import AgModelModel
+from .schema import AgModelCreateSchema, AgModelUpdateSchema, AgModelOutSchema
 
 
-class ModelCRUD(CRUDBase[ModelModel, ModelCreateSchema, ModelUpdateSchema]):
+class AgModelCRUD(CRUDBase[AgModelModel, AgModelCreateSchema, AgModelUpdateSchema]):
     """模型管理数据层"""
 
     def __init__(self, auth: AuthSchema) -> None:
@@ -18,9 +18,9 @@ class ModelCRUD(CRUDBase[ModelModel, ModelCreateSchema, ModelUpdateSchema]):
         参数:
         - auth (AuthSchema): 认证信息模型
         """
-        super().__init__(model=ModelModel, auth=auth)
+        super().__init__(model=AgModelModel, auth=auth)
 
-    async def get_by_id_models_crud(self, id: int, preload: list | None = None) -> ModelModel | None:
+    async def get_by_id_models_crud(self, id: int, preload: list | None = None) -> AgModelModel | None:
         """
         详情
         
@@ -29,11 +29,11 @@ class ModelCRUD(CRUDBase[ModelModel, ModelCreateSchema, ModelUpdateSchema]):
         - preload (list | None): 预加载关系，未提供时使用模型默认项
         
         返回:
-        - ModelModel | None: 模型实例或None
+        - AgModelModel | None: 模型实例或None
         """
         return await self.get(id=id, preload=preload)
     
-    async def list_models_crud(self, search: dict | None = None, order_by: list[dict] | None = None, preload: list | None = None) -> Sequence[ModelModel]:
+    async def list_models_crud(self, search: dict | None = None, order_by: list[dict] | None = None, preload: list | None = None) -> Sequence[AgModelModel]:
         """
         列表查询
         
@@ -43,32 +43,32 @@ class ModelCRUD(CRUDBase[ModelModel, ModelCreateSchema, ModelUpdateSchema]):
         - preload (list | None): 预加载关系，未提供时使用模型默认项
         
         返回:
-        - Sequence[ModelModel]: 模型实例序列
+        - Sequence[AgModelModel]: 模型实例序列
         """
         return await self.list(search=search, order_by=order_by, preload=preload)
     
-    async def create_models_crud(self, data: ModelCreateSchema) -> ModelModel | None:
+    async def create_models_crud(self, data: AgModelCreateSchema) -> AgModelModel | None:
         """
         创建
         
         参数:
-        - data (ModelCreateSchema): 创建模型
+        - data (AgModelCreateSchema): 创建模型
         
         返回:
-        - ModelModel | None: 模型实例或None
+        - AgModelModel | None: 模型实例或None
         """
         return await self.create(data=data)
     
-    async def update_models_crud(self, id: int, data: ModelUpdateSchema) -> ModelModel | None:
+    async def update_models_crud(self, id: int, data: AgModelUpdateSchema) -> AgModelModel | None:
         """
         更新
         
         参数:
         - id (int): 对象ID
-        - data (ModelUpdateSchema): 更新模型
+        - data (AgModelUpdateSchema): 更新模型
         
         返回:
-        - ModelModel | None: 模型实例或None
+        - AgModelModel | None: 模型实例或None
         """
         return await self.update(id=id, data=data)
     
@@ -118,6 +118,6 @@ class ModelCRUD(CRUDBase[ModelModel, ModelCreateSchema, ModelUpdateSchema]):
             limit=limit,
             order_by=order_by_list,
             search=search_dict,
-            out_schema=ModelOutSchema,
+            out_schema=AgModelOutSchema,
             preload=preload
         )

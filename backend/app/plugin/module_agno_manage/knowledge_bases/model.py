@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-from sqlalchemy import Text, JSON, DateTime, String, Integer
+from sqlalchemy import DateTime, JSON, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
 
 
-class AgKnowledgeBasesModel(ModelMixin, UserMixin):
+class AgKnowledgeBaseModel(ModelMixin, UserMixin):
     """
     知识库表
     """

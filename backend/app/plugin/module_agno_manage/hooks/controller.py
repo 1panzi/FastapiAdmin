@@ -11,12 +11,12 @@ from app.utils.common_util import bytes2file_response
 from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
 
-from .service import AgHooksService
-from .schema import AgHooksCreateSchema, AgHooksUpdateSchema, AgHooksQueryParam
+from .service import AgHookService
+from .schema import AgHookCreateSchema, AgHookUpdateSchema, AgHookQueryParam
 
-AgHooksRouter = APIRouter(prefix='/hooks', tags=["hook模块"]) 
+AgHookRouter = APIRouter(prefix='/hooks', tags=["hook模块"]) 
 
-@AgHooksRouter.get(
+@AgHookRouter.get(
     "/detail/{id}",
     summary="获取hook详情",
     description="获取hook详情"
@@ -35,18 +35,18 @@ async def get_hooks_detail_controller(
     返回:
     - JSONResponse - 包含hook详情的JSON响应
     """
-    result_dict = await AgHooksService.detail_hooks_service(auth=auth, id=id)
+    result_dict = await AgHookService.detail_hooks_service(auth=auth, id=id)
     log.info(f"获取hook详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取hook详情成功")
 
-@AgHooksRouter.get(
+@AgHookRouter.get(
     "/list",
     summary="查询hook列表",
     description="查询hook列表"
 )
 async def get_hooks_list_controller(
     page: PaginationQueryParam = Depends(),
-    search: AgHooksQueryParam = Depends(),
+    search: AgHookQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:hooks:query"]))
 ) -> JSONResponse:
     """
@@ -54,13 +54,13 @@ async def get_hooks_list_controller(
     
     参数:
     - page: PaginationQueryParam - 分页参数
-    - search: AgHooksQueryParam - 查询参数
+    - search: AgHookQueryParam - 查询参数
     - auth: AuthSchema - 认证信息
     
     返回:
     - JSONResponse - 包含hook列表的JSON响应
     """
-    result_dict = await AgHooksService.page_hooks_service(
+    result_dict = await AgHookService.page_hooks_service(
         auth=auth,
         page_no=page.page_no if page.page_no is not None else 1,
         page_size=page.page_size if page.page_size is not None else 10,
@@ -70,36 +70,36 @@ async def get_hooks_list_controller(
     log.info("查询hook列表成功")
     return SuccessResponse(data=result_dict, msg="查询hook列表成功")
 
-@AgHooksRouter.post(
+@AgHookRouter.post(
     "/create",
     summary="创建hook",
     description="创建hook"
 )
 async def create_hooks_controller(
-    data: AgHooksCreateSchema,
+    data: AgHookCreateSchema,
     auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:hooks:create"]))
 ) -> JSONResponse:
     """
     创建hook接口
     
     参数:
-    - data: AgHooksCreateSchema - 创建数据
+    - data: AgHookCreateSchema - 创建数据
     - auth: AuthSchema - 认证信息
     
     返回:
     - JSONResponse - 包含创建hook结果的JSON响应
     """
-    result_dict = await AgHooksService.create_hooks_service(auth=auth, data=data)
+    result_dict = await AgHookService.create_hooks_service(auth=auth, data=data)
     log.info("创建hook成功")
     return SuccessResponse(data=result_dict, msg="创建hook成功")
 
-@AgHooksRouter.put(
+@AgHookRouter.put(
     "/update/{id}",
     summary="修改hook",
     description="修改hook"
 )
 async def update_hooks_controller(
-    data: AgHooksUpdateSchema,
+    data: AgHookUpdateSchema,
     id: int = Path(..., description="ID"),
     auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:hooks:update"]))
 ) -> JSONResponse:
@@ -108,17 +108,17 @@ async def update_hooks_controller(
     
     参数:
     - id: int - 数据ID
-    - data: AgHooksUpdateSchema - 更新数据
+    - data: AgHookUpdateSchema - 更新数据
     - auth: AuthSchema - 认证信息
     
     返回:
     - JSONResponse - 包含修改hook结果的JSON响应
     """
-    result_dict = await AgHooksService.update_hooks_service(auth=auth, id=id, data=data)
+    result_dict = await AgHookService.update_hooks_service(auth=auth, id=id, data=data)
     log.info("修改hook成功")
     return SuccessResponse(data=result_dict, msg="修改hook成功")
 
-@AgHooksRouter.delete(
+@AgHookRouter.delete(
     "/delete",
     summary="删除hook",
     description="删除hook"
@@ -137,11 +137,11 @@ async def delete_hooks_controller(
     返回:
     - JSONResponse - 包含删除hook结果的JSON响应
     """
-    await AgHooksService.delete_hooks_service(auth=auth, ids=ids)
+    await AgHookService.delete_hooks_service(auth=auth, ids=ids)
     log.info(f"删除hook成功: {ids}")
     return SuccessResponse(msg="删除hook成功")
 
-@AgHooksRouter.patch(
+@AgHookRouter.patch(
     "/available/setting",
     summary="批量修改hook状态",
     description="批量修改hook状态"
@@ -160,31 +160,31 @@ async def batch_set_available_hooks_controller(
     返回:
     - JSONResponse - 包含批量修改hook状态结果的JSON响应
     """
-    await AgHooksService.set_available_hooks_service(auth=auth, data=data)
+    await AgHookService.set_available_hooks_service(auth=auth, data=data)
     log.info(f"批量修改hook状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改hook状态成功")
 
-@AgHooksRouter.post(
+@AgHookRouter.post(
     '/export',
     summary="导出hook",
     description="导出hook"
 )
 async def export_hooks_list_controller(
-    search: AgHooksQueryParam = Depends(),
+    search: AgHookQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:hooks:export"]))
 ) -> StreamingResponse:
     """
     导出hook接口
     
     参数:
-    - search: AgHooksQueryParam - 查询参数
+    - search: AgHookQueryParam - 查询参数
     - auth: AuthSchema - 认证信息
     
     返回:
     - StreamingResponse - 包含导出hook数据的流式响应
     """
-    result_dict_list = await AgHooksService.list_hooks_service(search=search, auth=auth)
-    export_result = await AgHooksService.batch_export_hooks_service(obj_list=result_dict_list)
+    result_dict_list = await AgHookService.list_hooks_service(search=search, auth=auth)
+    export_result = await AgHookService.batch_export_hooks_service(obj_list=result_dict_list)
     log.info('导出hook成功')
     return StreamResponse(
         data=bytes2file_response(export_result),
@@ -192,7 +192,7 @@ async def export_hooks_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_hooks.xlsx'}
     )
 
-@AgHooksRouter.post(
+@AgHookRouter.post(
     '/import',
     summary="导入hook",
     description="导入hook"
@@ -211,11 +211,11 @@ async def import_hooks_list_controller(
     返回:
     - JSONResponse - 包含导入hook结果的JSON响应
     """
-    batch_import_result = await AgHooksService.batch_import_hooks_service(file=file, auth=auth, update_support=True)
+    batch_import_result = await AgHookService.batch_import_hooks_service(file=file, auth=auth, update_support=True)
     log.info("导入hook成功")
     return SuccessResponse(data=batch_import_result, msg="导入hook成功")
 
-@AgHooksRouter.post(
+@AgHookRouter.post(
     '/download/template',
     summary="获取hook导入模板",
     description="获取hook导入模板",
@@ -228,7 +228,7 @@ async def export_hooks_template_controller() -> StreamingResponse:
     返回:
     - StreamingResponse - 包含hook导入模板的流式响应
     """
-    import_template_result = await AgHooksService.import_template_download_hooks_service()
+    import_template_result = await AgHookService.import_template_download_hooks_service()
     log.info('获取hook导入模板成功')
     return StreamResponse(
         data=bytes2file_response(import_template_result),

@@ -2,10 +2,10 @@ import request from "@/utils/request";
 
 const API_PATH = "/agno_manage/hooks";
 
-const AgHooksAPI = {
+const AgHookAPI = {
   // 列表查询
-  listAgHooks(query: AgHooksPageQuery) {
-    return request<ApiResponse<PageResult<AgHooksTable[]>>>({
+  listAgHook(query: AgHookPageQuery) {
+    return request<ApiResponse<PageResult<AgHookTable[]>>>({
       url: `${API_PATH}/list`,
       method: "get",
       params: query,
@@ -13,15 +13,15 @@ const AgHooksAPI = {
   },
 
   // 详情查询
-  detailAgHooks(id: number) {
-    return request<ApiResponse<AgHooksTable>>({
+  detailAgHook(id: number) {
+    return request<ApiResponse<AgHookTable>>({
       url: `${API_PATH}/detail/${id}`,
       method: "get",
     });
   },
 
   // 新增
-  createAgHooks(body: AgHooksForm) {
+  createAgHook(body: AgHookForm) {
     return request<ApiResponse>({
       url: `${API_PATH}/create`,
       method: "post",
@@ -30,7 +30,7 @@ const AgHooksAPI = {
   },
 
   // 修改（带主键）
-  updateAgHooks(id: number, body: AgHooksForm) {
+  updateAgHook(id: number, body: AgHookForm) {
     return request<ApiResponse>({
       url: `${API_PATH}/update/${id}`,
       method: "put",
@@ -39,7 +39,7 @@ const AgHooksAPI = {
   },
 
   // 删除（支持批量）
-  deleteAgHooks(ids: number[]) {
+  deleteAgHook(ids: number[]) {
     return request<ApiResponse>({
       url: `${API_PATH}/delete`,
       method: "delete",
@@ -48,7 +48,7 @@ const AgHooksAPI = {
   },
 
   // 批量启用/停用
-  batchAgHooks(body: BatchType) {
+  batchAgHook(body: BatchType) {
     return request<ApiResponse>({
       url: `${API_PATH}/available/setting`,
       method: "patch",
@@ -57,7 +57,7 @@ const AgHooksAPI = {
   },
 
   // 导出
-  exportAgHooks(query: AgHooksPageQuery) {
+  exportAgHook(query: AgHookPageQuery) {
     return request<Blob>({
       url: `${API_PATH}/export`,
       method: "post",
@@ -67,7 +67,7 @@ const AgHooksAPI = {
   },
 
   // 下载导入模板
-  downloadTemplateAgHooks() {
+  downloadTemplateAgHook() {
     return request<Blob>({
       url: `${API_PATH}/download/template`,
       method: "post",
@@ -76,7 +76,7 @@ const AgHooksAPI = {
   },
 
   // 导入
-  importAgHooks(body: FormData) {
+  importAgHook(body: FormData) {
     return request<ApiResponse>({
       url: `${API_PATH}/import`,
       method: "post",
@@ -86,14 +86,14 @@ const AgHooksAPI = {
   },
 };
 
-export default AgHooksAPI;
+export default AgHookAPI;
 
 // ------------------------------
 // TS 类型声明
 // ------------------------------
 
 // 列表查询参数
-export interface AgHooksPageQuery extends PageQuery {
+export interface AgHookPageQuery extends PageQuery {
   name?: string;
   hook_type?: string;
   module_path?: string;
@@ -108,7 +108,7 @@ export interface AgHooksPageQuery extends PageQuery {
 }
 
 // 列表展示项
-export interface AgHooksTable extends BaseType {
+export interface AgHookTable extends BaseType {
   name?: string;
   hook_type?: string;
   module_path?: string;
@@ -122,7 +122,7 @@ export interface AgHooksTable extends BaseType {
 }
 
 // 新增/修改/详情表单参数
-export interface AgHooksForm extends BaseFormType {
+export interface AgHookForm extends BaseFormType {
   name?: string;
   hook_type?: string;
   module_path?: string;

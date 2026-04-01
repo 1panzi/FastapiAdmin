@@ -4,11 +4,11 @@ from typing import Sequence
 
 from app.core.base_crud import CRUDBase
 from app.api.v1.module_system.auth.schema import AuthSchema
-from .model import AgHooksModel
-from .schema import AgHooksCreateSchema, AgHooksUpdateSchema, AgHooksOutSchema
+from .model import AgHookModel
+from .schema import AgHookCreateSchema, AgHookUpdateSchema, AgHookOutSchema
 
 
-class AgHooksCRUD(CRUDBase[AgHooksModel, AgHooksCreateSchema, AgHooksUpdateSchema]):
+class AgHookCRUD(CRUDBase[AgHookModel, AgHookCreateSchema, AgHookUpdateSchema]):
     """hook数据层"""
 
     def __init__(self, auth: AuthSchema) -> None:
@@ -18,9 +18,9 @@ class AgHooksCRUD(CRUDBase[AgHooksModel, AgHooksCreateSchema, AgHooksUpdateSchem
         参数:
         - auth (AuthSchema): 认证信息模型
         """
-        super().__init__(model=AgHooksModel, auth=auth)
+        super().__init__(model=AgHookModel, auth=auth)
 
-    async def get_by_id_hooks_crud(self, id: int, preload: list | None = None) -> AgHooksModel | None:
+    async def get_by_id_hooks_crud(self, id: int, preload: list | None = None) -> AgHookModel | None:
         """
         详情
         
@@ -29,11 +29,11 @@ class AgHooksCRUD(CRUDBase[AgHooksModel, AgHooksCreateSchema, AgHooksUpdateSchem
         - preload (list | None): 预加载关系，未提供时使用模型默认项
         
         返回:
-        - AgHooksModel | None: 模型实例或None
+        - AgHookModel | None: 模型实例或None
         """
         return await self.get(id=id, preload=preload)
     
-    async def list_hooks_crud(self, search: dict | None = None, order_by: list[dict] | None = None, preload: list | None = None) -> Sequence[AgHooksModel]:
+    async def list_hooks_crud(self, search: dict | None = None, order_by: list[dict] | None = None, preload: list | None = None) -> Sequence[AgHookModel]:
         """
         列表查询
         
@@ -43,32 +43,32 @@ class AgHooksCRUD(CRUDBase[AgHooksModel, AgHooksCreateSchema, AgHooksUpdateSchem
         - preload (list | None): 预加载关系，未提供时使用模型默认项
         
         返回:
-        - Sequence[AgHooksModel]: 模型实例序列
+        - Sequence[AgHookModel]: 模型实例序列
         """
         return await self.list(search=search, order_by=order_by, preload=preload)
     
-    async def create_hooks_crud(self, data: AgHooksCreateSchema) -> AgHooksModel | None:
+    async def create_hooks_crud(self, data: AgHookCreateSchema) -> AgHookModel | None:
         """
         创建
         
         参数:
-        - data (AgHooksCreateSchema): 创建模型
+        - data (AgHookCreateSchema): 创建模型
         
         返回:
-        - AgHooksModel | None: 模型实例或None
+        - AgHookModel | None: 模型实例或None
         """
         return await self.create(data=data)
     
-    async def update_hooks_crud(self, id: int, data: AgHooksUpdateSchema) -> AgHooksModel | None:
+    async def update_hooks_crud(self, id: int, data: AgHookUpdateSchema) -> AgHookModel | None:
         """
         更新
         
         参数:
         - id (int): 对象ID
-        - data (AgHooksUpdateSchema): 更新模型
+        - data (AgHookUpdateSchema): 更新模型
         
         返回:
-        - AgHooksModel | None: 模型实例或None
+        - AgHookModel | None: 模型实例或None
         """
         return await self.update(id=id, data=data)
     
@@ -118,6 +118,6 @@ class AgHooksCRUD(CRUDBase[AgHooksModel, AgHooksCreateSchema, AgHooksUpdateSchem
             limit=limit,
             order_by=order_by_list,
             search=search_dict,
-            out_schema=AgHooksOutSchema,
+            out_schema=AgHookOutSchema,
             preload=preload
         )

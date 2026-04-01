@@ -10,16 +10,16 @@ from app.core.exceptions import CustomException
 from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
 
-from .crud import ModelCRUD
+from .crud import AgModelCRUD
 from .schema import (
-    ModelCreateSchema,
-    ModelUpdateSchema,
-    ModelOutSchema,
-    ModelQueryParam
+    AgModelCreateSchema,
+    AgModelUpdateSchema,
+    AgModelOutSchema,
+    AgModelQueryParam
 )
 
 
-class ModelService:
+class AgModelService:
     """
     模型管理服务层
     """
@@ -36,30 +36,30 @@ class ModelService:
         返回:
         - dict - 数据详情
         """
-        obj = await ModelCRUD(auth).get_by_id_models_crud(id=id)
+        obj = await AgModelCRUD(auth).get_by_id_models_crud(id=id)
         if not obj:
             raise CustomException(msg="该数据不存在")
-        return ModelOutSchema.model_validate(obj).model_dump()
+        return AgModelOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def list_models_service(cls, auth: AuthSchema, search: ModelQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
+    async def list_models_service(cls, auth: AuthSchema, search: AgModelQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
         """
         列表查询
         
         参数:
         - auth: AuthSchema - 认证信息
-        - search: ModelQueryParam | None - 查询参数
+        - search: AgModelQueryParam | None - 查询参数
         - order_by: list[dict] | None - 排序参数
         
         返回:
         - list[dict] - 数据列表
         """
         search_dict = search.__dict__ if search else None
-        obj_list = await ModelCRUD(auth).list_models_crud(search=search_dict, order_by=order_by)
-        return [ModelOutSchema.model_validate(obj).model_dump() for obj in obj_list]
+        obj_list = await AgModelCRUD(auth).list_models_crud(search=search_dict, order_by=order_by)
+        return [AgModelOutSchema.model_validate(obj).model_dump() for obj in obj_list]
 
     @classmethod
-    async def page_models_service(cls, auth: AuthSchema, page_no: int, page_size: int, search: ModelQueryParam | None = None, order_by: list[dict] | None = None) -> dict:
+    async def page_models_service(cls, auth: AuthSchema, page_no: int, page_size: int, search: AgModelQueryParam | None = None, order_by: list[dict] | None = None) -> dict:
         """
         分页查询（数据库分页）
         
@@ -67,7 +67,7 @@ class ModelService:
         - auth: AuthSchema - 认证信息
         - page_no: int - 页码
         - page_size: int - 每页数量
-        - search: ModelQueryParam | None - 查询参数
+        - search: AgModelQueryParam | None - 查询参数
         - order_by: list[dict] | None - 排序参数
         
         返回:
@@ -76,7 +76,7 @@ class ModelService:
         search_dict = search.__dict__ if search else {}
         order_by_list = order_by or [{'id': 'asc'}]
         offset = (page_no - 1) * page_size
-        result = await ModelCRUD(auth).page_models_crud(
+        result = await AgModelCRUD(auth).page_models_crud(
             offset=offset,
             limit=page_size,
             order_by=order_by_list,
@@ -85,42 +85,42 @@ class ModelService:
         return result
     
     @classmethod
-    async def create_models_service(cls, auth: AuthSchema, data: ModelCreateSchema) -> dict:
+    async def create_models_service(cls, auth: AuthSchema, data: AgModelCreateSchema) -> dict:
         """
         创建
         
         参数:
         - auth: AuthSchema - 认证信息
-        - data: ModelCreateSchema - 创建数据
+        - data: AgModelCreateSchema - 创建数据
         
         返回:
         - dict - 创建结果
         """
-        obj = await ModelCRUD(auth).create_models_crud(data=data)
-        return ModelOutSchema.model_validate(obj).model_dump()
+        obj = await AgModelCRUD(auth).create_models_crud(data=data)
+        return AgModelOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def update_models_service(cls, auth: AuthSchema, id: int, data: ModelUpdateSchema) -> dict:
+    async def update_models_service(cls, auth: AuthSchema, id: int, data: AgModelUpdateSchema) -> dict:
         """
         更新
         
         参数:
         - auth: AuthSchema - 认证信息
         - id: int - 数据ID
-        - data: ModelUpdateSchema - 更新数据
+        - data: AgModelUpdateSchema - 更新数据
         
         返回:
         - dict - 更新结果
         """
         # 检查数据是否存在
-        obj = await ModelCRUD(auth).get_by_id_models_crud(id=id)
+        obj = await AgModelCRUD(auth).get_by_id_models_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
         
         # 检查唯一性约束
             
-        obj = await ModelCRUD(auth).update_models_crud(id=id, data=data)
-        return ModelOutSchema.model_validate(obj).model_dump()
+        obj = await AgModelCRUD(auth).update_models_crud(id=id, data=data)
+        return AgModelOutSchema.model_validate(obj).model_dump()
     
     @classmethod
     async def delete_models_service(cls, auth: AuthSchema, ids: list[int]) -> None:
@@ -137,10 +137,10 @@ class ModelService:
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
         for id in ids:
-            obj = await ModelCRUD(auth).get_by_id_models_crud(id=id)
+            obj = await AgModelCRUD(auth).get_by_id_models_crud(id=id)
             if not obj:
                 raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
-        await ModelCRUD(auth).delete_models_crud(ids=ids)
+        await AgModelCRUD(auth).delete_models_crud(ids=ids)
     
     @classmethod
     async def set_available_models_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
@@ -154,7 +154,7 @@ class ModelService:
         返回:
         - None
         """
-        await ModelCRUD(auth).set_available_models_crud(ids=data.ids, status=data.status)
+        await AgModelCRUD(auth).set_available_models_crud(ids=data.ids, status=data.status)
     
     @classmethod
     async def batch_export_models_service(cls, obj_list: list[dict]) -> bytes:
@@ -168,14 +168,14 @@ class ModelService:
         - bytes - 导出的Excel文件内容
         """
         mapping_dict = {
-            'id': '',
+            'id': 'ID',
             'uuid': '',
-            'name': '',
-            'model_id': '',
-            'provider': '',
-            'api_key': '',
-            'base_url': '',
-            'config': '',
+            'name': '模型名称',
+            'model_id': '模型标识符（传给Agno Model的id参数）',
+            'provider': '模型提供商(openai/anthropic/google/ollama/deepseek)',
+            'api_key': 'API密钥（明文存储）',
+            'base_url': '自定义API地址（用于ollama/vllm/lmstudio）',
+            'config': '模型配置参数（temperature/max_tokens/top_p等）',
             'status': '',
             'description': '',
             'created_time': '',
@@ -211,14 +211,14 @@ class ModelService:
         - str - 导入结果信息
         """
         header_dict = {
-            '': 'id',
+            'ID': 'id',
             '': 'uuid',
-            '': 'name',
-            '': 'model_id',
-            '': 'provider',
-            '': 'api_key',
-            '': 'base_url',
-            '': 'config',
+            '模型名称': 'name',
+            '模型标识符（传给Agno Model的id参数）': 'model_id',
+            '模型提供商(openai/anthropic/google/ollama/deepseek)': 'provider',
+            'API密钥（明文存储）': 'api_key',
+            '自定义API地址（用于ollama/vllm/lmstudio）': 'base_url',
+            '模型配置参数（temperature/max_tokens/top_p等）': 'config',
             '': 'status',
             '': 'description',
             '': 'created_time',
@@ -270,11 +270,11 @@ class ModelService:
                         "updated_id": row['updated_id'],
                     }
                     # 使用CreateSchema做校验后入库
-                    create_schema = ModelCreateSchema.model_validate(data)
+                    create_schema = AgModelCreateSchema.model_validate(data)
                     
                     # 检查唯一性约束
                     
-                    await ModelCRUD(auth).create_models_crud(data=create_schema)
+                    await AgModelCRUD(auth).create_models_crud(data=create_schema)
                     success_count += 1
                 except Exception as e:
                     error_msgs.append(f"第{count}行: {str(e)}")
@@ -298,14 +298,14 @@ class ModelService:
         - bytes - Excel文件的二进制数据
         """
         header_list = [
+            'ID',
             '',
-            '',
-            '',
-            '',
-            '',
-            '',
-            '',
-            '',
+            '模型名称',
+            '模型标识符（传给Agno Model的id参数）',
+            '模型提供商(openai/anthropic/google/ollama/deepseek)',
+            'API密钥（明文存储）',
+            '自定义API地址（用于ollama/vllm/lmstudio）',
+            '模型配置参数（temperature/max_tokens/top_p等）',
             '',
             '',
             '',

@@ -37,8 +37,8 @@
             <el-form-item label="函数名" prop="func_name">
               <el-input v-model="queryFormData.func_name" placeholder="请输入函数名" clearable />
             </el-form-item>
-            <el-form-item label="COMMENT ON COLUMN ag_toolkits.config               IS '初始化参数';" prop="config">
-              <el-input v-model="queryFormData.config" placeholder="请输入COMMENT ON COLUMN ag_toolkits.config               IS '初始化参数';" clearable />
+            <el-form-item label="初始化参数" prop="config">
+              <el-input v-model="queryFormData.config" placeholder="请输入初始化参数" clearable />
             </el-form-item>
             <el-form-item label="工具使用说明" prop="instructions">
               <el-input v-model="queryFormData.instructions" placeholder="请输入工具使用说明" clearable />
@@ -312,7 +312,7 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'config')?.show"
-          label="COMMENT ON COLUMN ag_toolkits.config               IS '初始化参数';"
+          label="初始化参数"
           prop="config"
           min-width="140"
           show-overflow-tooltip
@@ -526,7 +526,7 @@
           <el-descriptions-item label="函数名" :span="2">
             {{ detailFormData.func_name }}
           </el-descriptions-item>
-          <el-descriptions-item label="COMMENT ON COLUMN ag_toolkits.config               IS '初始化参数';" :span="2">
+          <el-descriptions-item label="初始化参数" :span="2">
             {{ detailFormData.config }}
           </el-descriptions-item>
           <el-descriptions-item label="工具使用说明" :span="2">
@@ -598,8 +598,8 @@
           <el-form-item label="函数名" prop="func_name" :required="false">
             <el-input v-model="formData.func_name" placeholder="请输入函数名" />
           </el-form-item>
-          <el-form-item label="COMMENT ON COLUMN ag_toolkits.config               IS '初始化参数';" prop="config" :required="false">
-            <el-input v-model="formData.config" placeholder="请输入COMMENT ON COLUMN ag_toolkits.config               IS '初始化参数';" />
+          <el-form-item label="初始化参数" prop="config" :required="false">
+            <el-input v-model="formData.config" placeholder="请输入初始化参数" />
           </el-form-item>
           <el-form-item label="工具使用说明" prop="instructions" :required="false">
             <el-input v-model="formData.instructions" placeholder="请输入工具使用说明" />
@@ -716,7 +716,7 @@ const tableColumns = ref([
   { prop: "module_path", label: "Python模块路径", show: true },
   { prop: "class_name", label: "类名（type=toolkit时使用）", show: true },
   { prop: "func_name", label: "函数名（type=function时使用）", show: true },
-  { prop: "config", label: "COMMENT ON COLUMN ag_toolkits.config               IS '初始化参数';", show: true },
+  { prop: "config", label: "初始化参数", show: true },
   { prop: "instructions", label: "工具使用说明", show: true },
   { prop: "requires_confirmation", label: "是否需要确认", show: true },
   { prop: "approval_type", label: "审批类型(NULL/required/audit)", show: true },
@@ -740,7 +740,7 @@ const exportColumns = [
   { prop: "module_path", label: "Python模块路径" },
   { prop: "class_name", label: "类名（type=toolkit时使用）" },
   { prop: "func_name", label: "函数名（type=function时使用）" },
-  { prop: "config", label: "COMMENT ON COLUMN ag_toolkits.config               IS '初始化参数';" },
+  { prop: "config", label: "初始化参数" },
   { prop: "instructions", label: "工具使用说明" },
   { prop: "requires_confirmation", label: "是否需要确认" },
   { prop: "approval_type", label: "审批类型(NULL/required/audit)" },
@@ -871,7 +871,7 @@ const rules = reactive({
   module_path: [{ required: false, message: "请输入Python模块路径", trigger: "blur" }],
   class_name: [{ required: true, message: "请输入类名（type=toolkit时使用）", trigger: "blur" }],
   func_name: [{ required: true, message: "请输入函数名（type=function时使用）", trigger: "blur" }],
-  config: [{ required: false, message: "请输入COMMENT ON COLUMN ag_toolkits.config               IS '初始化参数';", trigger: "blur" }],
+  config: [{ required: false, message: "请输入初始化参数", trigger: "blur" }],
   instructions: [{ required: true, message: "请输入工具使用说明", trigger: "blur" }],
   requires_confirmation: [{ required: false, message: "请输入是否需要确认", trigger: "blur" }],
   approval_type: [{ required: true, message: "请输入审批类型(NULL/required/audit)", trigger: "blur" }],

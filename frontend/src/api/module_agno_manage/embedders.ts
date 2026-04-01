@@ -2,10 +2,10 @@ import request from "@/utils/request";
 
 const API_PATH = "/agno_manage/embedders";
 
-const EmbedderAPI = {
+const AgEmbedderAPI = {
   // 列表查询
-  listEmbedder(query: EmbedderPageQuery) {
-    return request<ApiResponse<PageResult<EmbedderTable[]>>>({
+  listAgEmbedder(query: AgEmbedderPageQuery) {
+    return request<ApiResponse<PageResult<AgEmbedderTable[]>>>({
       url: `${API_PATH}/list`,
       method: "get",
       params: query,
@@ -13,15 +13,15 @@ const EmbedderAPI = {
   },
 
   // 详情查询
-  detailEmbedder(id: number) {
-    return request<ApiResponse<EmbedderTable>>({
+  detailAgEmbedder(id: number) {
+    return request<ApiResponse<AgEmbedderTable>>({
       url: `${API_PATH}/detail/${id}`,
       method: "get",
     });
   },
 
   // 新增
-  createEmbedder(body: EmbedderForm) {
+  createAgEmbedder(body: AgEmbedderForm) {
     return request<ApiResponse>({
       url: `${API_PATH}/create`,
       method: "post",
@@ -30,7 +30,7 @@ const EmbedderAPI = {
   },
 
   // 修改（带主键）
-  updateEmbedder(id: number, body: EmbedderForm) {
+  updateAgEmbedder(id: number, body: AgEmbedderForm) {
     return request<ApiResponse>({
       url: `${API_PATH}/update/${id}`,
       method: "put",
@@ -39,7 +39,7 @@ const EmbedderAPI = {
   },
 
   // 删除（支持批量）
-  deleteEmbedder(ids: number[]) {
+  deleteAgEmbedder(ids: number[]) {
     return request<ApiResponse>({
       url: `${API_PATH}/delete`,
       method: "delete",
@@ -48,7 +48,7 @@ const EmbedderAPI = {
   },
 
   // 批量启用/停用
-  batchEmbedder(body: BatchType) {
+  batchAgEmbedder(body: BatchType) {
     return request<ApiResponse>({
       url: `${API_PATH}/available/setting`,
       method: "patch",
@@ -57,7 +57,7 @@ const EmbedderAPI = {
   },
 
   // 导出
-  exportEmbedder(query: EmbedderPageQuery) {
+  exportAgEmbedder(query: AgEmbedderPageQuery) {
     return request<Blob>({
       url: `${API_PATH}/export`,
       method: "post",
@@ -67,7 +67,7 @@ const EmbedderAPI = {
   },
 
   // 下载导入模板
-  downloadTemplateEmbedder() {
+  downloadTemplateAgEmbedder() {
     return request<Blob>({
       url: `${API_PATH}/download/template`,
       method: "post",
@@ -76,7 +76,7 @@ const EmbedderAPI = {
   },
 
   // 导入
-  importEmbedder(body: FormData) {
+  importAgEmbedder(body: FormData) {
     return request<ApiResponse>({
       url: `${API_PATH}/import`,
       method: "post",
@@ -86,14 +86,14 @@ const EmbedderAPI = {
   },
 };
 
-export default EmbedderAPI;
+export default AgEmbedderAPI;
 
 // ------------------------------
 // TS 类型声明
 // ------------------------------
 
 // 列表查询参数
-export interface EmbedderPageQuery extends PageQuery {
+export interface AgEmbedderPageQuery extends PageQuery {
   name?: string;
   provider?: string;
   model_id?: string;
@@ -109,7 +109,7 @@ export interface EmbedderPageQuery extends PageQuery {
 }
 
 // 列表展示项
-export interface EmbedderTable extends BaseType {
+export interface AgEmbedderTable extends BaseType {
   name?: string;
   provider?: string;
   model_id?: string;
@@ -124,7 +124,7 @@ export interface EmbedderTable extends BaseType {
 }
 
 // 新增/修改/详情表单参数
-export interface EmbedderForm extends BaseFormType {
+export interface AgEmbedderForm extends BaseFormType {
   name?: string;
   provider?: string;
   model_id?: string;

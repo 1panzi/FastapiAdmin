@@ -10,16 +10,16 @@ from app.core.exceptions import CustomException
 from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
 
-from .crud import AgKnowledgeBasesCRUD
+from .crud import AgKnowledgeBaseCRUD
 from .schema import (
-    AgKnowledgeBasesCreateSchema,
-    AgKnowledgeBasesUpdateSchema,
-    AgKnowledgeBasesOutSchema,
-    AgKnowledgeBasesQueryParam
+    AgKnowledgeBaseCreateSchema,
+    AgKnowledgeBaseUpdateSchema,
+    AgKnowledgeBaseOutSchema,
+    AgKnowledgeBaseQueryParam
 )
 
 
-class AgKnowledgeBasesService:
+class AgKnowledgeBaseService:
     """
     知识库服务层
     """
@@ -36,30 +36,30 @@ class AgKnowledgeBasesService:
         返回:
         - dict - 数据详情
         """
-        obj = await AgKnowledgeBasesCRUD(auth).get_by_id_knowledge_bases_crud(id=id)
+        obj = await AgKnowledgeBaseCRUD(auth).get_by_id_knowledge_bases_crud(id=id)
         if not obj:
             raise CustomException(msg="该数据不存在")
-        return AgKnowledgeBasesOutSchema.model_validate(obj).model_dump()
+        return AgKnowledgeBaseOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def list_knowledge_bases_service(cls, auth: AuthSchema, search: AgKnowledgeBasesQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
+    async def list_knowledge_bases_service(cls, auth: AuthSchema, search: AgKnowledgeBaseQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
         """
         列表查询
         
         参数:
         - auth: AuthSchema - 认证信息
-        - search: AgKnowledgeBasesQueryParam | None - 查询参数
+        - search: AgKnowledgeBaseQueryParam | None - 查询参数
         - order_by: list[dict] | None - 排序参数
         
         返回:
         - list[dict] - 数据列表
         """
         search_dict = search.__dict__ if search else None
-        obj_list = await AgKnowledgeBasesCRUD(auth).list_knowledge_bases_crud(search=search_dict, order_by=order_by)
-        return [AgKnowledgeBasesOutSchema.model_validate(obj).model_dump() for obj in obj_list]
+        obj_list = await AgKnowledgeBaseCRUD(auth).list_knowledge_bases_crud(search=search_dict, order_by=order_by)
+        return [AgKnowledgeBaseOutSchema.model_validate(obj).model_dump() for obj in obj_list]
 
     @classmethod
-    async def page_knowledge_bases_service(cls, auth: AuthSchema, page_no: int, page_size: int, search: AgKnowledgeBasesQueryParam | None = None, order_by: list[dict] | None = None) -> dict:
+    async def page_knowledge_bases_service(cls, auth: AuthSchema, page_no: int, page_size: int, search: AgKnowledgeBaseQueryParam | None = None, order_by: list[dict] | None = None) -> dict:
         """
         分页查询（数据库分页）
         
@@ -67,7 +67,7 @@ class AgKnowledgeBasesService:
         - auth: AuthSchema - 认证信息
         - page_no: int - 页码
         - page_size: int - 每页数量
-        - search: AgKnowledgeBasesQueryParam | None - 查询参数
+        - search: AgKnowledgeBaseQueryParam | None - 查询参数
         - order_by: list[dict] | None - 排序参数
         
         返回:
@@ -76,7 +76,7 @@ class AgKnowledgeBasesService:
         search_dict = search.__dict__ if search else {}
         order_by_list = order_by or [{'id': 'asc'}]
         offset = (page_no - 1) * page_size
-        result = await AgKnowledgeBasesCRUD(auth).page_knowledge_bases_crud(
+        result = await AgKnowledgeBaseCRUD(auth).page_knowledge_bases_crud(
             offset=offset,
             limit=page_size,
             order_by=order_by_list,
@@ -85,42 +85,42 @@ class AgKnowledgeBasesService:
         return result
     
     @classmethod
-    async def create_knowledge_bases_service(cls, auth: AuthSchema, data: AgKnowledgeBasesCreateSchema) -> dict:
+    async def create_knowledge_bases_service(cls, auth: AuthSchema, data: AgKnowledgeBaseCreateSchema) -> dict:
         """
         创建
         
         参数:
         - auth: AuthSchema - 认证信息
-        - data: AgKnowledgeBasesCreateSchema - 创建数据
+        - data: AgKnowledgeBaseCreateSchema - 创建数据
         
         返回:
         - dict - 创建结果
         """
-        obj = await AgKnowledgeBasesCRUD(auth).create_knowledge_bases_crud(data=data)
-        return AgKnowledgeBasesOutSchema.model_validate(obj).model_dump()
+        obj = await AgKnowledgeBaseCRUD(auth).create_knowledge_bases_crud(data=data)
+        return AgKnowledgeBaseOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def update_knowledge_bases_service(cls, auth: AuthSchema, id: int, data: AgKnowledgeBasesUpdateSchema) -> dict:
+    async def update_knowledge_bases_service(cls, auth: AuthSchema, id: int, data: AgKnowledgeBaseUpdateSchema) -> dict:
         """
         更新
         
         参数:
         - auth: AuthSchema - 认证信息
         - id: int - 数据ID
-        - data: AgKnowledgeBasesUpdateSchema - 更新数据
+        - data: AgKnowledgeBaseUpdateSchema - 更新数据
         
         返回:
         - dict - 更新结果
         """
         # 检查数据是否存在
-        obj = await AgKnowledgeBasesCRUD(auth).get_by_id_knowledge_bases_crud(id=id)
+        obj = await AgKnowledgeBaseCRUD(auth).get_by_id_knowledge_bases_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
         
         # 检查唯一性约束
             
-        obj = await AgKnowledgeBasesCRUD(auth).update_knowledge_bases_crud(id=id, data=data)
-        return AgKnowledgeBasesOutSchema.model_validate(obj).model_dump()
+        obj = await AgKnowledgeBaseCRUD(auth).update_knowledge_bases_crud(id=id, data=data)
+        return AgKnowledgeBaseOutSchema.model_validate(obj).model_dump()
     
     @classmethod
     async def delete_knowledge_bases_service(cls, auth: AuthSchema, ids: list[int]) -> None:
@@ -137,10 +137,10 @@ class AgKnowledgeBasesService:
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
         for id in ids:
-            obj = await AgKnowledgeBasesCRUD(auth).get_by_id_knowledge_bases_crud(id=id)
+            obj = await AgKnowledgeBaseCRUD(auth).get_by_id_knowledge_bases_crud(id=id)
             if not obj:
                 raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
-        await AgKnowledgeBasesCRUD(auth).delete_knowledge_bases_crud(ids=ids)
+        await AgKnowledgeBaseCRUD(auth).delete_knowledge_bases_crud(ids=ids)
     
     @classmethod
     async def set_available_knowledge_bases_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
@@ -154,7 +154,7 @@ class AgKnowledgeBasesService:
         返回:
         - None
         """
-        await AgKnowledgeBasesCRUD(auth).set_available_knowledge_bases_crud(ids=data.ids, status=data.status)
+        await AgKnowledgeBaseCRUD(auth).set_available_knowledge_bases_crud(ids=data.ids, status=data.status)
     
     @classmethod
     async def batch_export_knowledge_bases_service(cls, obj_list: list[dict]) -> bytes:
@@ -270,11 +270,11 @@ class AgKnowledgeBasesService:
                         "updated_id": row['updated_id'],
                     }
                     # 使用CreateSchema做校验后入库
-                    create_schema = AgKnowledgeBasesCreateSchema.model_validate(data)
+                    create_schema = AgKnowledgeBaseCreateSchema.model_validate(data)
                     
                     # 检查唯一性约束
                     
-                    await AgKnowledgeBasesCRUD(auth).create_knowledge_bases_crud(data=create_schema)
+                    await AgKnowledgeBaseCRUD(auth).create_knowledge_bases_crud(data=create_schema)
                     success_count += 1
                 except Exception as e:
                     error_msgs.append(f"第{count}行: {str(e)}")

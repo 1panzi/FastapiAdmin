@@ -11,12 +11,12 @@ from app.utils.common_util import bytes2file_response
 from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
 
-from .service import EmbedderService
-from .schema import EmbedderCreateSchema, EmbedderUpdateSchema, EmbedderQueryParam
+from .service import AgEmbedderService
+from .schema import AgEmbedderCreateSchema, AgEmbedderUpdateSchema, AgEmbedderQueryParam
 
-EmbedderRouter = APIRouter(prefix='/embedders', tags=["嵌入模型模块"]) 
+AgEmbedderRouter = APIRouter(prefix='/embedders', tags=["嵌入模型模块"]) 
 
-@EmbedderRouter.get(
+@AgEmbedderRouter.get(
     "/detail/{id}",
     summary="获取嵌入模型详情",
     description="获取嵌入模型详情"
@@ -35,18 +35,18 @@ async def get_embedders_detail_controller(
     返回:
     - JSONResponse - 包含嵌入模型详情的JSON响应
     """
-    result_dict = await EmbedderService.detail_embedders_service(auth=auth, id=id)
+    result_dict = await AgEmbedderService.detail_embedders_service(auth=auth, id=id)
     log.info(f"获取嵌入模型详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取嵌入模型详情成功")
 
-@EmbedderRouter.get(
+@AgEmbedderRouter.get(
     "/list",
     summary="查询嵌入模型列表",
     description="查询嵌入模型列表"
 )
 async def get_embedders_list_controller(
     page: PaginationQueryParam = Depends(),
-    search: EmbedderQueryParam = Depends(),
+    search: AgEmbedderQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:embedders:query"]))
 ) -> JSONResponse:
     """
@@ -54,13 +54,13 @@ async def get_embedders_list_controller(
     
     参数:
     - page: PaginationQueryParam - 分页参数
-    - search: EmbedderQueryParam - 查询参数
+    - search: AgEmbedderQueryParam - 查询参数
     - auth: AuthSchema - 认证信息
     
     返回:
     - JSONResponse - 包含嵌入模型列表的JSON响应
     """
-    result_dict = await EmbedderService.page_embedders_service(
+    result_dict = await AgEmbedderService.page_embedders_service(
         auth=auth,
         page_no=page.page_no if page.page_no is not None else 1,
         page_size=page.page_size if page.page_size is not None else 10,
@@ -70,36 +70,36 @@ async def get_embedders_list_controller(
     log.info("查询嵌入模型列表成功")
     return SuccessResponse(data=result_dict, msg="查询嵌入模型列表成功")
 
-@EmbedderRouter.post(
+@AgEmbedderRouter.post(
     "/create",
     summary="创建嵌入模型",
     description="创建嵌入模型"
 )
 async def create_embedders_controller(
-    data: EmbedderCreateSchema,
+    data: AgEmbedderCreateSchema,
     auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:embedders:create"]))
 ) -> JSONResponse:
     """
     创建嵌入模型接口
     
     参数:
-    - data: EmbedderCreateSchema - 创建数据
+    - data: AgEmbedderCreateSchema - 创建数据
     - auth: AuthSchema - 认证信息
     
     返回:
     - JSONResponse - 包含创建嵌入模型结果的JSON响应
     """
-    result_dict = await EmbedderService.create_embedders_service(auth=auth, data=data)
+    result_dict = await AgEmbedderService.create_embedders_service(auth=auth, data=data)
     log.info("创建嵌入模型成功")
     return SuccessResponse(data=result_dict, msg="创建嵌入模型成功")
 
-@EmbedderRouter.put(
+@AgEmbedderRouter.put(
     "/update/{id}",
     summary="修改嵌入模型",
     description="修改嵌入模型"
 )
 async def update_embedders_controller(
-    data: EmbedderUpdateSchema,
+    data: AgEmbedderUpdateSchema,
     id: int = Path(..., description="ID"),
     auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:embedders:update"]))
 ) -> JSONResponse:
@@ -108,17 +108,17 @@ async def update_embedders_controller(
     
     参数:
     - id: int - 数据ID
-    - data: EmbedderUpdateSchema - 更新数据
+    - data: AgEmbedderUpdateSchema - 更新数据
     - auth: AuthSchema - 认证信息
     
     返回:
     - JSONResponse - 包含修改嵌入模型结果的JSON响应
     """
-    result_dict = await EmbedderService.update_embedders_service(auth=auth, id=id, data=data)
+    result_dict = await AgEmbedderService.update_embedders_service(auth=auth, id=id, data=data)
     log.info("修改嵌入模型成功")
     return SuccessResponse(data=result_dict, msg="修改嵌入模型成功")
 
-@EmbedderRouter.delete(
+@AgEmbedderRouter.delete(
     "/delete",
     summary="删除嵌入模型",
     description="删除嵌入模型"
@@ -137,11 +137,11 @@ async def delete_embedders_controller(
     返回:
     - JSONResponse - 包含删除嵌入模型结果的JSON响应
     """
-    await EmbedderService.delete_embedders_service(auth=auth, ids=ids)
+    await AgEmbedderService.delete_embedders_service(auth=auth, ids=ids)
     log.info(f"删除嵌入模型成功: {ids}")
     return SuccessResponse(msg="删除嵌入模型成功")
 
-@EmbedderRouter.patch(
+@AgEmbedderRouter.patch(
     "/available/setting",
     summary="批量修改嵌入模型状态",
     description="批量修改嵌入模型状态"
@@ -160,31 +160,31 @@ async def batch_set_available_embedders_controller(
     返回:
     - JSONResponse - 包含批量修改嵌入模型状态结果的JSON响应
     """
-    await EmbedderService.set_available_embedders_service(auth=auth, data=data)
+    await AgEmbedderService.set_available_embedders_service(auth=auth, data=data)
     log.info(f"批量修改嵌入模型状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改嵌入模型状态成功")
 
-@EmbedderRouter.post(
+@AgEmbedderRouter.post(
     '/export',
     summary="导出嵌入模型",
     description="导出嵌入模型"
 )
 async def export_embedders_list_controller(
-    search: EmbedderQueryParam = Depends(),
+    search: AgEmbedderQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:embedders:export"]))
 ) -> StreamingResponse:
     """
     导出嵌入模型接口
     
     参数:
-    - search: EmbedderQueryParam - 查询参数
+    - search: AgEmbedderQueryParam - 查询参数
     - auth: AuthSchema - 认证信息
     
     返回:
     - StreamingResponse - 包含导出嵌入模型数据的流式响应
     """
-    result_dict_list = await EmbedderService.list_embedders_service(search=search, auth=auth)
-    export_result = await EmbedderService.batch_export_embedders_service(obj_list=result_dict_list)
+    result_dict_list = await AgEmbedderService.list_embedders_service(search=search, auth=auth)
+    export_result = await AgEmbedderService.batch_export_embedders_service(obj_list=result_dict_list)
     log.info('导出嵌入模型成功')
     return StreamResponse(
         data=bytes2file_response(export_result),
@@ -192,7 +192,7 @@ async def export_embedders_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_embedders.xlsx'}
     )
 
-@EmbedderRouter.post(
+@AgEmbedderRouter.post(
     '/import',
     summary="导入嵌入模型",
     description="导入嵌入模型"
@@ -211,11 +211,11 @@ async def import_embedders_list_controller(
     返回:
     - JSONResponse - 包含导入嵌入模型结果的JSON响应
     """
-    batch_import_result = await EmbedderService.batch_import_embedders_service(file=file, auth=auth, update_support=True)
+    batch_import_result = await AgEmbedderService.batch_import_embedders_service(file=file, auth=auth, update_support=True)
     log.info("导入嵌入模型成功")
     return SuccessResponse(data=batch_import_result, msg="导入嵌入模型成功")
 
-@EmbedderRouter.post(
+@AgEmbedderRouter.post(
     '/download/template',
     summary="获取嵌入模型导入模板",
     description="获取嵌入模型导入模板",
@@ -228,7 +228,7 @@ async def export_embedders_template_controller() -> StreamingResponse:
     返回:
     - StreamingResponse - 包含嵌入模型导入模板的流式响应
     """
-    import_template_result = await EmbedderService.import_template_download_embedders_service()
+    import_template_result = await AgEmbedderService.import_template_download_embedders_service()
     log.info('获取嵌入模型导入模板成功')
     return StreamResponse(
         data=bytes2file_response(import_template_result),

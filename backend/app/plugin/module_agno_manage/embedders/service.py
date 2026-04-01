@@ -10,16 +10,16 @@ from app.core.exceptions import CustomException
 from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
 
-from .crud import EmbedderCRUD
+from .crud import AgEmbedderCRUD
 from .schema import (
-    EmbedderCreateSchema,
-    EmbedderUpdateSchema,
-    EmbedderOutSchema,
-    EmbedderQueryParam
+    AgEmbedderCreateSchema,
+    AgEmbedderUpdateSchema,
+    AgEmbedderOutSchema,
+    AgEmbedderQueryParam
 )
 
 
-class EmbedderService:
+class AgEmbedderService:
     """
     嵌入模型服务层
     """
@@ -36,30 +36,30 @@ class EmbedderService:
         返回:
         - dict - 数据详情
         """
-        obj = await EmbedderCRUD(auth).get_by_id_embedders_crud(id=id)
+        obj = await AgEmbedderCRUD(auth).get_by_id_embedders_crud(id=id)
         if not obj:
             raise CustomException(msg="该数据不存在")
-        return EmbedderOutSchema.model_validate(obj).model_dump()
+        return AgEmbedderOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def list_embedders_service(cls, auth: AuthSchema, search: EmbedderQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
+    async def list_embedders_service(cls, auth: AuthSchema, search: AgEmbedderQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
         """
         列表查询
         
         参数:
         - auth: AuthSchema - 认证信息
-        - search: EmbedderQueryParam | None - 查询参数
+        - search: AgEmbedderQueryParam | None - 查询参数
         - order_by: list[dict] | None - 排序参数
         
         返回:
         - list[dict] - 数据列表
         """
         search_dict = search.__dict__ if search else None
-        obj_list = await EmbedderCRUD(auth).list_embedders_crud(search=search_dict, order_by=order_by)
-        return [EmbedderOutSchema.model_validate(obj).model_dump() for obj in obj_list]
+        obj_list = await AgEmbedderCRUD(auth).list_embedders_crud(search=search_dict, order_by=order_by)
+        return [AgEmbedderOutSchema.model_validate(obj).model_dump() for obj in obj_list]
 
     @classmethod
-    async def page_embedders_service(cls, auth: AuthSchema, page_no: int, page_size: int, search: EmbedderQueryParam | None = None, order_by: list[dict] | None = None) -> dict:
+    async def page_embedders_service(cls, auth: AuthSchema, page_no: int, page_size: int, search: AgEmbedderQueryParam | None = None, order_by: list[dict] | None = None) -> dict:
         """
         分页查询（数据库分页）
         
@@ -67,7 +67,7 @@ class EmbedderService:
         - auth: AuthSchema - 认证信息
         - page_no: int - 页码
         - page_size: int - 每页数量
-        - search: EmbedderQueryParam | None - 查询参数
+        - search: AgEmbedderQueryParam | None - 查询参数
         - order_by: list[dict] | None - 排序参数
         
         返回:
@@ -76,7 +76,7 @@ class EmbedderService:
         search_dict = search.__dict__ if search else {}
         order_by_list = order_by or [{'id': 'asc'}]
         offset = (page_no - 1) * page_size
-        result = await EmbedderCRUD(auth).page_embedders_crud(
+        result = await AgEmbedderCRUD(auth).page_embedders_crud(
             offset=offset,
             limit=page_size,
             order_by=order_by_list,
@@ -85,42 +85,42 @@ class EmbedderService:
         return result
     
     @classmethod
-    async def create_embedders_service(cls, auth: AuthSchema, data: EmbedderCreateSchema) -> dict:
+    async def create_embedders_service(cls, auth: AuthSchema, data: AgEmbedderCreateSchema) -> dict:
         """
         创建
         
         参数:
         - auth: AuthSchema - 认证信息
-        - data: EmbedderCreateSchema - 创建数据
+        - data: AgEmbedderCreateSchema - 创建数据
         
         返回:
         - dict - 创建结果
         """
-        obj = await EmbedderCRUD(auth).create_embedders_crud(data=data)
-        return EmbedderOutSchema.model_validate(obj).model_dump()
+        obj = await AgEmbedderCRUD(auth).create_embedders_crud(data=data)
+        return AgEmbedderOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def update_embedders_service(cls, auth: AuthSchema, id: int, data: EmbedderUpdateSchema) -> dict:
+    async def update_embedders_service(cls, auth: AuthSchema, id: int, data: AgEmbedderUpdateSchema) -> dict:
         """
         更新
         
         参数:
         - auth: AuthSchema - 认证信息
         - id: int - 数据ID
-        - data: EmbedderUpdateSchema - 更新数据
+        - data: AgEmbedderUpdateSchema - 更新数据
         
         返回:
         - dict - 更新结果
         """
         # 检查数据是否存在
-        obj = await EmbedderCRUD(auth).get_by_id_embedders_crud(id=id)
+        obj = await AgEmbedderCRUD(auth).get_by_id_embedders_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
         
         # 检查唯一性约束
             
-        obj = await EmbedderCRUD(auth).update_embedders_crud(id=id, data=data)
-        return EmbedderOutSchema.model_validate(obj).model_dump()
+        obj = await AgEmbedderCRUD(auth).update_embedders_crud(id=id, data=data)
+        return AgEmbedderOutSchema.model_validate(obj).model_dump()
     
     @classmethod
     async def delete_embedders_service(cls, auth: AuthSchema, ids: list[int]) -> None:
@@ -137,10 +137,10 @@ class EmbedderService:
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
         for id in ids:
-            obj = await EmbedderCRUD(auth).get_by_id_embedders_crud(id=id)
+            obj = await AgEmbedderCRUD(auth).get_by_id_embedders_crud(id=id)
             if not obj:
                 raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
-        await EmbedderCRUD(auth).delete_embedders_crud(ids=ids)
+        await AgEmbedderCRUD(auth).delete_embedders_crud(ids=ids)
     
     @classmethod
     async def set_available_embedders_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
@@ -154,7 +154,7 @@ class EmbedderService:
         返回:
         - None
         """
-        await EmbedderCRUD(auth).set_available_embedders_crud(ids=data.ids, status=data.status)
+        await AgEmbedderCRUD(auth).set_available_embedders_crud(ids=data.ids, status=data.status)
     
     @classmethod
     async def batch_export_embedders_service(cls, obj_list: list[dict]) -> bytes:
@@ -273,11 +273,11 @@ class EmbedderService:
                         "updated_id": row['updated_id'],
                     }
                     # 使用CreateSchema做校验后入库
-                    create_schema = EmbedderCreateSchema.model_validate(data)
+                    create_schema = AgEmbedderCreateSchema.model_validate(data)
                     
                     # 检查唯一性约束
                     
-                    await EmbedderCRUD(auth).create_embedders_crud(data=create_schema)
+                    await AgEmbedderCRUD(auth).create_embedders_crud(data=create_schema)
                     success_count += 1
                 except Exception as e:
                     error_msgs.append(f"第{count}行: {str(e)}")

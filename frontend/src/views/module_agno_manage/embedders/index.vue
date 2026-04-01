@@ -578,7 +578,7 @@
 
 <script setup lang="ts">
 defineOptions({
-  name: "Embedder",
+  name: "AgEmbedder",
   inheritAttrs: false,
 });
 
@@ -592,10 +592,10 @@ import DatePicker from "@/components/DatePicker/index.vue";
 import type { IContentConfig } from "@/components/CURD/types";
 import ImportModal from "@/components/CURD/ImportModal.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
-import EmbedderAPI, {
-  EmbedderPageQuery,
-  EmbedderTable,
-  EmbedderForm,
+import AgEmbedderAPI, {
+  AgEmbedderPageQuery,
+  AgEmbedderTable,
+  AgEmbedderForm,
 } from "@/api/module_agno_manage/embedders";
 
 const visible = ref(true);
@@ -603,13 +603,13 @@ const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
 const selectIds = ref<number[]>([]);
-const selectionRows = ref<EmbedderTable[]>([]);
+const selectionRows = ref<AgEmbedderTable[]>([]);
 const loading = ref(false);
 const isExpand = ref(false);
 const isExpandable = ref(true);
 
 // 分页表单
-const pageTableData = ref<EmbedderTable[]>([]);
+const pageTableData = ref<AgEmbedderTable[]>([]);
 
 // 表格列配置
 const tableColumns = ref([
@@ -652,7 +652,7 @@ const exportColumns = [
 const curdContentConfig = {
   permPrefix: "module_agno_manage:embedders",
   cols: exportColumns as any,
-  importTemplate: () => EmbedderAPI.downloadTemplateEmbedder(),
+  importTemplate: () => AgEmbedderAPI.downloadTemplateAgEmbedder(),
   exportsAction: async (params: any) => {
     const query: any = { ...params };
     query.status = "0";
@@ -660,7 +660,7 @@ const curdContentConfig = {
     query.page_size = 9999;
     const all: any[] = [];
     while (true) {
-      const res = await EmbedderAPI.listEmbedder(query);
+      const res = await AgEmbedderAPI.listAgEmbedder(query);
       const items = res.data?.data?.items || [];
       const total = res.data?.data?.total || 0;
       all.push(...items);
@@ -672,7 +672,7 @@ const curdContentConfig = {
 } as unknown as IContentConfig;
 
 // 详情表单
-const detailFormData = ref<EmbedderTable>({});
+const detailFormData = ref<AgEmbedderTable>({});
 // 日期范围临时变量
 const createdDateRange = ref<[Date, Date] | []>([]);
 // 更新时间范围临时变量
@@ -699,7 +699,7 @@ function handleUpdatedDateRangeChange(range: [Date, Date]) {
 }
 
 // 分页查询参数
-const queryFormData = reactive<EmbedderPageQuery>({
+const queryFormData = reactive<AgEmbedderPageQuery>({
   page_no: 1,
   page_size: 10,
   name: undefined,
@@ -717,7 +717,7 @@ const queryFormData = reactive<EmbedderPageQuery>({
 });
 
 // 编辑表单
-const formData = reactive<EmbedderForm>({
+const formData = reactive<AgEmbedderForm>({
   id: undefined,
   name: undefined,
   provider: undefined,
@@ -787,7 +787,7 @@ async function handleRefresh() {
 async function loadingData() {
   loading.value = true;
   try {
-    const response = await EmbedderAPI.listEmbedder(queryFormData);
+    const response = await AgEmbedderAPI.listAgEmbedder(queryFormData);
     pageTableData.value = response.data.data.items;
     total.value = response.data.data.total;
   } catch (error: any) {
@@ -821,7 +821,7 @@ async function handleResetQuery() {
 }
 
 // 定义初始表单数据常量
-const initialFormData: EmbedderForm = {
+const initialFormData: AgEmbedderForm = {
   id: undefined,
   name: undefined,
   provider: undefined,
@@ -860,7 +860,7 @@ async function handleCloseDialog() {
 async function handleOpenDialog(type: "create" | "update" | "detail", id?: number) {
   dialogVisible.type = type;
   if (id) {
-    const response = await EmbedderAPI.detailEmbedder(id);
+    const response = await AgEmbedderAPI.detailAgEmbedder(id);
     if (type === "detail") {
       dialogVisible.title = "详情";
       Object.assign(detailFormData.value, response.data.data);
@@ -869,7 +869,7 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
       Object.assign(formData, response.data.data);
     }
   } else {
-    dialogVisible.title = "新增Embedder";
+    dialogVisible.title = "新增AgEmbedder";
     formData.id = undefined;
     formData.name = undefined;
     formData.provider = undefined;
@@ -895,7 +895,7 @@ async function handleSubmit() {
       const id = formData.id;
       if (id) {
         try {
-          await EmbedderAPI.updateEmbedder(id, { id, ...submitData });
+          await AgEmbedderAPI.updateAgEmbedder(id, { id, ...submitData });
           dialogVisible.visible = false;
           resetForm();
           handleCloseDialog();
@@ -907,7 +907,7 @@ async function handleSubmit() {
         }
       } else {
         try {
-          await EmbedderAPI.createEmbedder(submitData);
+          await AgEmbedderAPI.createAgEmbedder(submitData);
           dialogVisible.visible = false;
           resetForm();
           handleCloseDialog();
@@ -932,7 +932,7 @@ async function handleDelete(ids: number[]) {
     .then(async () => {
       try {
         loading.value = true;
-        await EmbedderAPI.deleteEmbedder(ids);
+        await AgEmbedderAPI.deleteAgEmbedder(ids);
         handleResetQuery();
       } catch (error: any) {
         console.error(error);
@@ -956,7 +956,7 @@ async function handleMoreClick(status: string) {
       .then(async () => {
         try {
           loading.value = true;
-          await EmbedderAPI.batchEmbedder({ ids: selectIds.value, status });
+          await AgEmbedderAPI.batchAgEmbedder({ ids: selectIds.value, status });
           handleResetQuery();
         } catch (error: any) {
           console.error(error);
@@ -974,7 +974,7 @@ async function handleMoreClick(status: string) {
 const handleUpload = async (formData: FormData) => {
   try {
     uploadLoading.value = true;
-    const response = await EmbedderAPI.importEmbedder(formData);
+    const response = await AgEmbedderAPI.importAgEmbedder(formData);
     if (response.data.code === ResultEnum.SUCCESS) {
       ElMessage.success(`${response.data.msg}，${response.data.data}`);
       importDialogVisible.value = false;

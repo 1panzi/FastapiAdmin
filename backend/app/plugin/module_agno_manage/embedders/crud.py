@@ -4,11 +4,11 @@ from typing import Sequence
 
 from app.core.base_crud import CRUDBase
 from app.api.v1.module_system.auth.schema import AuthSchema
-from .model import EmbedderModel
-from .schema import EmbedderCreateSchema, EmbedderUpdateSchema, EmbedderOutSchema
+from .model import AgEmbedderModel
+from .schema import AgEmbedderCreateSchema, AgEmbedderUpdateSchema, AgEmbedderOutSchema
 
 
-class EmbedderCRUD(CRUDBase[EmbedderModel, EmbedderCreateSchema, EmbedderUpdateSchema]):
+class AgEmbedderCRUD(CRUDBase[AgEmbedderModel, AgEmbedderCreateSchema, AgEmbedderUpdateSchema]):
     """嵌入模型数据层"""
 
     def __init__(self, auth: AuthSchema) -> None:
@@ -18,9 +18,9 @@ class EmbedderCRUD(CRUDBase[EmbedderModel, EmbedderCreateSchema, EmbedderUpdateS
         参数:
         - auth (AuthSchema): 认证信息模型
         """
-        super().__init__(model=EmbedderModel, auth=auth)
+        super().__init__(model=AgEmbedderModel, auth=auth)
 
-    async def get_by_id_embedders_crud(self, id: int, preload: list | None = None) -> EmbedderModel | None:
+    async def get_by_id_embedders_crud(self, id: int, preload: list | None = None) -> AgEmbedderModel | None:
         """
         详情
         
@@ -29,11 +29,11 @@ class EmbedderCRUD(CRUDBase[EmbedderModel, EmbedderCreateSchema, EmbedderUpdateS
         - preload (list | None): 预加载关系，未提供时使用模型默认项
         
         返回:
-        - EmbedderModel | None: 模型实例或None
+        - AgEmbedderModel | None: 模型实例或None
         """
         return await self.get(id=id, preload=preload)
     
-    async def list_embedders_crud(self, search: dict | None = None, order_by: list[dict] | None = None, preload: list | None = None) -> Sequence[EmbedderModel]:
+    async def list_embedders_crud(self, search: dict | None = None, order_by: list[dict] | None = None, preload: list | None = None) -> Sequence[AgEmbedderModel]:
         """
         列表查询
         
@@ -43,32 +43,32 @@ class EmbedderCRUD(CRUDBase[EmbedderModel, EmbedderCreateSchema, EmbedderUpdateS
         - preload (list | None): 预加载关系，未提供时使用模型默认项
         
         返回:
-        - Sequence[EmbedderModel]: 模型实例序列
+        - Sequence[AgEmbedderModel]: 模型实例序列
         """
         return await self.list(search=search, order_by=order_by, preload=preload)
     
-    async def create_embedders_crud(self, data: EmbedderCreateSchema) -> EmbedderModel | None:
+    async def create_embedders_crud(self, data: AgEmbedderCreateSchema) -> AgEmbedderModel | None:
         """
         创建
         
         参数:
-        - data (EmbedderCreateSchema): 创建模型
+        - data (AgEmbedderCreateSchema): 创建模型
         
         返回:
-        - EmbedderModel | None: 模型实例或None
+        - AgEmbedderModel | None: 模型实例或None
         """
         return await self.create(data=data)
     
-    async def update_embedders_crud(self, id: int, data: EmbedderUpdateSchema) -> EmbedderModel | None:
+    async def update_embedders_crud(self, id: int, data: AgEmbedderUpdateSchema) -> AgEmbedderModel | None:
         """
         更新
         
         参数:
         - id (int): 对象ID
-        - data (EmbedderUpdateSchema): 更新模型
+        - data (AgEmbedderUpdateSchema): 更新模型
         
         返回:
-        - EmbedderModel | None: 模型实例或None
+        - AgEmbedderModel | None: 模型实例或None
         """
         return await self.update(id=id, data=data)
     
@@ -118,6 +118,6 @@ class EmbedderCRUD(CRUDBase[EmbedderModel, EmbedderCreateSchema, EmbedderUpdateS
             limit=limit,
             order_by=order_by_list,
             search=search_dict,
-            out_schema=EmbedderOutSchema,
+            out_schema=AgEmbedderOutSchema,
             preload=preload
         )

@@ -11,12 +11,12 @@ from app.utils.common_util import bytes2file_response
 from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
 
-from .service import AgKnowledgeBasesService
-from .schema import AgKnowledgeBasesCreateSchema, AgKnowledgeBasesUpdateSchema, AgKnowledgeBasesQueryParam
+from .service import AgKnowledgeBaseService
+from .schema import AgKnowledgeBaseCreateSchema, AgKnowledgeBaseUpdateSchema, AgKnowledgeBaseQueryParam
 
-AgKnowledgeBasesRouter = APIRouter(prefix='/knowledge_bases', tags=["知识库模块"]) 
+AgKnowledgeBaseRouter = APIRouter(prefix='/knowledge_bases', tags=["知识库模块"]) 
 
-@AgKnowledgeBasesRouter.get(
+@AgKnowledgeBaseRouter.get(
     "/detail/{id}",
     summary="获取知识库详情",
     description="获取知识库详情"
@@ -35,18 +35,18 @@ async def get_knowledge_bases_detail_controller(
     返回:
     - JSONResponse - 包含知识库详情的JSON响应
     """
-    result_dict = await AgKnowledgeBasesService.detail_knowledge_bases_service(auth=auth, id=id)
+    result_dict = await AgKnowledgeBaseService.detail_knowledge_bases_service(auth=auth, id=id)
     log.info(f"获取知识库详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取知识库详情成功")
 
-@AgKnowledgeBasesRouter.get(
+@AgKnowledgeBaseRouter.get(
     "/list",
     summary="查询知识库列表",
     description="查询知识库列表"
 )
 async def get_knowledge_bases_list_controller(
     page: PaginationQueryParam = Depends(),
-    search: AgKnowledgeBasesQueryParam = Depends(),
+    search: AgKnowledgeBaseQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:knowledge_bases:query"]))
 ) -> JSONResponse:
     """
@@ -54,13 +54,13 @@ async def get_knowledge_bases_list_controller(
     
     参数:
     - page: PaginationQueryParam - 分页参数
-    - search: AgKnowledgeBasesQueryParam - 查询参数
+    - search: AgKnowledgeBaseQueryParam - 查询参数
     - auth: AuthSchema - 认证信息
     
     返回:
     - JSONResponse - 包含知识库列表的JSON响应
     """
-    result_dict = await AgKnowledgeBasesService.page_knowledge_bases_service(
+    result_dict = await AgKnowledgeBaseService.page_knowledge_bases_service(
         auth=auth,
         page_no=page.page_no if page.page_no is not None else 1,
         page_size=page.page_size if page.page_size is not None else 10,
@@ -70,36 +70,36 @@ async def get_knowledge_bases_list_controller(
     log.info("查询知识库列表成功")
     return SuccessResponse(data=result_dict, msg="查询知识库列表成功")
 
-@AgKnowledgeBasesRouter.post(
+@AgKnowledgeBaseRouter.post(
     "/create",
     summary="创建知识库",
     description="创建知识库"
 )
 async def create_knowledge_bases_controller(
-    data: AgKnowledgeBasesCreateSchema,
+    data: AgKnowledgeBaseCreateSchema,
     auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:knowledge_bases:create"]))
 ) -> JSONResponse:
     """
     创建知识库接口
     
     参数:
-    - data: AgKnowledgeBasesCreateSchema - 创建数据
+    - data: AgKnowledgeBaseCreateSchema - 创建数据
     - auth: AuthSchema - 认证信息
     
     返回:
     - JSONResponse - 包含创建知识库结果的JSON响应
     """
-    result_dict = await AgKnowledgeBasesService.create_knowledge_bases_service(auth=auth, data=data)
+    result_dict = await AgKnowledgeBaseService.create_knowledge_bases_service(auth=auth, data=data)
     log.info("创建知识库成功")
     return SuccessResponse(data=result_dict, msg="创建知识库成功")
 
-@AgKnowledgeBasesRouter.put(
+@AgKnowledgeBaseRouter.put(
     "/update/{id}",
     summary="修改知识库",
     description="修改知识库"
 )
 async def update_knowledge_bases_controller(
-    data: AgKnowledgeBasesUpdateSchema,
+    data: AgKnowledgeBaseUpdateSchema,
     id: int = Path(..., description="ID"),
     auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:knowledge_bases:update"]))
 ) -> JSONResponse:
@@ -108,17 +108,17 @@ async def update_knowledge_bases_controller(
     
     参数:
     - id: int - 数据ID
-    - data: AgKnowledgeBasesUpdateSchema - 更新数据
+    - data: AgKnowledgeBaseUpdateSchema - 更新数据
     - auth: AuthSchema - 认证信息
     
     返回:
     - JSONResponse - 包含修改知识库结果的JSON响应
     """
-    result_dict = await AgKnowledgeBasesService.update_knowledge_bases_service(auth=auth, id=id, data=data)
+    result_dict = await AgKnowledgeBaseService.update_knowledge_bases_service(auth=auth, id=id, data=data)
     log.info("修改知识库成功")
     return SuccessResponse(data=result_dict, msg="修改知识库成功")
 
-@AgKnowledgeBasesRouter.delete(
+@AgKnowledgeBaseRouter.delete(
     "/delete",
     summary="删除知识库",
     description="删除知识库"
@@ -137,11 +137,11 @@ async def delete_knowledge_bases_controller(
     返回:
     - JSONResponse - 包含删除知识库结果的JSON响应
     """
-    await AgKnowledgeBasesService.delete_knowledge_bases_service(auth=auth, ids=ids)
+    await AgKnowledgeBaseService.delete_knowledge_bases_service(auth=auth, ids=ids)
     log.info(f"删除知识库成功: {ids}")
     return SuccessResponse(msg="删除知识库成功")
 
-@AgKnowledgeBasesRouter.patch(
+@AgKnowledgeBaseRouter.patch(
     "/available/setting",
     summary="批量修改知识库状态",
     description="批量修改知识库状态"
@@ -160,31 +160,31 @@ async def batch_set_available_knowledge_bases_controller(
     返回:
     - JSONResponse - 包含批量修改知识库状态结果的JSON响应
     """
-    await AgKnowledgeBasesService.set_available_knowledge_bases_service(auth=auth, data=data)
+    await AgKnowledgeBaseService.set_available_knowledge_bases_service(auth=auth, data=data)
     log.info(f"批量修改知识库状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改知识库状态成功")
 
-@AgKnowledgeBasesRouter.post(
+@AgKnowledgeBaseRouter.post(
     '/export',
     summary="导出知识库",
     description="导出知识库"
 )
 async def export_knowledge_bases_list_controller(
-    search: AgKnowledgeBasesQueryParam = Depends(),
+    search: AgKnowledgeBaseQueryParam = Depends(),
     auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:knowledge_bases:export"]))
 ) -> StreamingResponse:
     """
     导出知识库接口
     
     参数:
-    - search: AgKnowledgeBasesQueryParam - 查询参数
+    - search: AgKnowledgeBaseQueryParam - 查询参数
     - auth: AuthSchema - 认证信息
     
     返回:
     - StreamingResponse - 包含导出知识库数据的流式响应
     """
-    result_dict_list = await AgKnowledgeBasesService.list_knowledge_bases_service(search=search, auth=auth)
-    export_result = await AgKnowledgeBasesService.batch_export_knowledge_bases_service(obj_list=result_dict_list)
+    result_dict_list = await AgKnowledgeBaseService.list_knowledge_bases_service(search=search, auth=auth)
+    export_result = await AgKnowledgeBaseService.batch_export_knowledge_bases_service(obj_list=result_dict_list)
     log.info('导出知识库成功')
     return StreamResponse(
         data=bytes2file_response(export_result),
@@ -192,7 +192,7 @@ async def export_knowledge_bases_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_knowledge_bases.xlsx'}
     )
 
-@AgKnowledgeBasesRouter.post(
+@AgKnowledgeBaseRouter.post(
     '/import',
     summary="导入知识库",
     description="导入知识库"
@@ -211,11 +211,11 @@ async def import_knowledge_bases_list_controller(
     返回:
     - JSONResponse - 包含导入知识库结果的JSON响应
     """
-    batch_import_result = await AgKnowledgeBasesService.batch_import_knowledge_bases_service(file=file, auth=auth, update_support=True)
+    batch_import_result = await AgKnowledgeBaseService.batch_import_knowledge_bases_service(file=file, auth=auth, update_support=True)
     log.info("导入知识库成功")
     return SuccessResponse(data=batch_import_result, msg="导入知识库成功")
 
-@AgKnowledgeBasesRouter.post(
+@AgKnowledgeBaseRouter.post(
     '/download/template',
     summary="获取知识库导入模板",
     description="获取知识库导入模板",
@@ -228,7 +228,7 @@ async def export_knowledge_bases_template_controller() -> StreamingResponse:
     返回:
     - StreamingResponse - 包含知识库导入模板的流式响应
     """
-    import_template_result = await AgKnowledgeBasesService.import_template_download_knowledge_bases_service()
+    import_template_result = await AgKnowledgeBaseService.import_template_download_knowledge_bases_service()
     log.info('获取知识库导入模板成功')
     return StreamResponse(
         data=bytes2file_response(import_template_result),

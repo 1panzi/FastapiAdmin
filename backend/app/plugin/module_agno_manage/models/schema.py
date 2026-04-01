@@ -4,48 +4,50 @@ from pydantic import BaseModel, ConfigDict, Field
 from fastapi import Query
 from datetime import datetime
 from app.core.validator import DateTimeStr
+from app.core.validator import DateTimeStr
 from app.common.enums import QueueEnum
 from app.core.base_schema import BaseSchema, UserBySchema
 
-class ModelCreateSchema(BaseModel):
+class AgModelCreateSchema(BaseModel):
     """
     模型管理新增模型
     """
-    name: str = Field(default=..., description='')
-    model_id: str = Field(default=..., description='')
-    provider: str = Field(default=..., description='')
-    api_key: str = Field(default=..., description='')
-    base_url: str = Field(default=..., description='')
-    config: dict = Field(default=..., description='')
+    name: str = Field(default=..., description='模型名称')
+    model_id: str = Field(default=..., description='模型标识符（传给Agno Model的id参数）')
+    provider: str = Field(default=..., description='模型提供商(openai/anthropic/google/ollama/deepseek)')
+    api_key: str = Field(default=..., description='API密钥（明文存储）')
+    base_url: str = Field(default=..., description='自定义API地址（用于ollama/vllm/lmstudio）')
+    config: dict = Field(default=..., description='模型配置参数（temperature/max_tokens/top_p等）')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 
 
-class ModelUpdateSchema(ModelCreateSchema):
+class AgModelUpdateSchema(AgModelCreateSchema):
     """
     模型管理更新模型
     """
     ...
 
 
-class ModelOutSchema(ModelCreateSchema, BaseSchema, UserBySchema):
+class AgModelOutSchema(AgModelCreateSchema, BaseSchema, UserBySchema):
     """
     模型管理响应模型
     """
     model_config = ConfigDict(from_attributes=True)
 
 
-class ModelQueryParam:
+class AgModelQueryParam:
     """模型管理查询参数"""
 
     def __init__(
         self,
-        name: str | None = Query(None, description=""),
+        name: str | None = Query(None, description="模型名称"),
         uuid: str | None = Query(None, description=""),
-        model_id: str | None = Query(None, description=""),
-        provider: str | None = Query(None, description=""),
-        api_key: str | None = Query(None, description=""),
-        base_url: str | None = Query(None, description=""),
+        model_id: str | None = Query(None, description="模型标识符（传给Agno Model的id参数）"),
+        provider: str | None = Query(None, description="模型提供商(openai/anthropic/google/ollama/deepseek)"),
+        api_key: str | None = Query(None, description="API密钥（明文存储）"),
+        base_url: str | None = Query(None, description="自定义API地址（用于ollama/vllm/lmstudio）"),
+        # config: dict | None = Query(None, description="模型配置参数（temperature/max_tokens/top_p等）"),
         status: str | None = Query(None, description=""),
         created_id: int | None = Query(None, description=""),
         updated_id: int | None = Query(None, description=""),
@@ -69,6 +71,9 @@ class ModelQueryParam:
         # 精确查询字段
         if base_url:
             self.base_url = (QueueEnum.eq.value, base_url)
+        # 精确查询字段
+        # if config:
+        #     self.config = (QueueEnum.eq.value, config)
         # 精确查询字段
         if status:
             self.status = (QueueEnum.eq.value, status)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-from sqlalchemy import Integer, DateTime, String, Text, JSON
+from sqlalchemy import JSON, DateTime, String, Text, Integer
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -21,5 +21,5 @@ class AgSkillModel(ModelMixin, UserMixin):
     scripts: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='脚本文件名列表')
     references: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='参考文件名列表')
     allowed_tools: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='允许使用的工具列表')
-    skill_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='元数据')
+    metadata_config: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='元数据')
 

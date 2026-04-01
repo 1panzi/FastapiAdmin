@@ -22,23 +22,23 @@
             :inline="true"
             @submit.prevent="handleQuery"
           >
-            <el-form-item label="" prop="name">
-              <el-input v-model="queryFormData.name" placeholder="请输入" clearable />
+            <el-form-item label="模型名称" prop="name">
+              <el-input v-model="queryFormData.name" placeholder="请输入模型名称" clearable />
             </el-form-item>
-            <el-form-item label="" prop="model_id">
-              <el-input v-model="queryFormData.model_id" placeholder="请输入" clearable />
+            <el-form-item label="模型标识符" prop="model_id">
+              <el-input v-model="queryFormData.model_id" placeholder="请输入模型标识符" clearable />
             </el-form-item>
-            <el-form-item label="" prop="provider">
-              <el-input v-model="queryFormData.provider" placeholder="请输入" clearable />
+            <el-form-item label="模型提供商(openai/anthropic/google/ollama/deepseek)" prop="provider">
+              <el-input v-model="queryFormData.provider" placeholder="请输入模型提供商(openai/anthropic/google/ollama/deepseek)" clearable />
             </el-form-item>
-            <el-form-item label="" prop="api_key">
-              <el-input v-model="queryFormData.api_key" placeholder="请输入" clearable />
+            <el-form-item label="API密钥" prop="api_key">
+              <el-input v-model="queryFormData.api_key" placeholder="请输入API密钥" clearable />
             </el-form-item>
-            <el-form-item label="" prop="base_url">
-              <el-input v-model="queryFormData.base_url" placeholder="请输入" clearable />
+            <el-form-item label="自定义API地址" prop="base_url">
+              <el-input v-model="queryFormData.base_url" placeholder="请输入自定义API地址" clearable />
             </el-form-item>
-            <el-form-item label="" prop="config">
-              <el-input v-model="queryFormData.config" placeholder="请输入" clearable />
+            <el-form-item label="模型配置参数" prop="config">
+              <el-input v-model="queryFormData.config" placeholder="请输入模型配置参数" clearable />
             </el-form-item>
             <el-form-item prop="status" label="状态">
               <el-select
@@ -256,42 +256,42 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'name')?.show"
-          label=""
+          label="模型名称"
           prop="name"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'model_id')?.show"
-          label=""
+          label="模型标识符"
           prop="model_id"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'provider')?.show"
-          label=""
+          label="模型提供商(openai/anthropic/google/ollama/deepseek)"
           prop="provider"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'api_key')?.show"
-          label=""
+          label="API密钥"
           prop="api_key"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'base_url')?.show"
-          label=""
+          label="自定义API地址"
           prop="base_url"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'config')?.show"
-          label=""
+          label="模型配置参数"
           prop="config"
           min-width="140"
           show-overflow-tooltip
@@ -435,28 +435,28 @@
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
           <el-descriptions-item label="" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="模型名称" :span="2">
             {{ detailFormData.name }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="模型标识符" :span="2">
             {{ detailFormData.model_id }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="模型提供商(openai/anthropic/google/ollama/deepseek)" :span="2">
             {{ detailFormData.provider }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="API密钥" :span="2">
             {{ detailFormData.api_key }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="自定义API地址" :span="2">
             {{ detailFormData.base_url }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="模型配置参数" :span="2">
             {{ detailFormData.config }}
           </el-descriptions-item>
           <el-descriptions-item label="状态" :span="2">
@@ -492,23 +492,23 @@
           label-width="auto"
           label-position="right"
         >
-          <el-form-item label="" prop="name" :required="false">
-            <el-input v-model="formData.name" placeholder="请输入" />
+          <el-form-item label="模型名称" prop="name" :required="false">
+            <el-input v-model="formData.name" placeholder="请输入模型名称" />
           </el-form-item>
-          <el-form-item label="" prop="model_id" :required="false">
-            <el-input v-model="formData.model_id" placeholder="请输入" />
+          <el-form-item label="模型标识符" prop="model_id" :required="false">
+            <el-input v-model="formData.model_id" placeholder="请输入模型标识符" />
           </el-form-item>
-          <el-form-item label="" prop="provider" :required="false">
-            <el-input v-model="formData.provider" placeholder="请输入" />
+          <el-form-item label="模型提供商(openai/anthropic/google/ollama/deepseek)" prop="provider" :required="false">
+            <el-input v-model="formData.provider" placeholder="请输入模型提供商(openai/anthropic/google/ollama/deepseek)" />
           </el-form-item>
-          <el-form-item label="" prop="api_key" :required="false">
-            <el-input v-model="formData.api_key" placeholder="请输入" />
+          <el-form-item label="API密钥" prop="api_key" :required="false">
+            <el-input v-model="formData.api_key" placeholder="请输入API密钥" />
           </el-form-item>
-          <el-form-item label="" prop="base_url" :required="false">
-            <el-input v-model="formData.base_url" placeholder="请输入" />
+          <el-form-item label="自定义API地址" prop="base_url" :required="false">
+            <el-input v-model="formData.base_url" placeholder="请输入自定义API地址" />
           </el-form-item>
-          <el-form-item label="" prop="config" :required="false">
-            <el-input v-model="formData.config" placeholder="请输入" />
+          <el-form-item label="模型配置参数" prop="config" :required="false">
+            <el-input v-model="formData.config" placeholder="请输入模型配置参数" />
           </el-form-item>
           <el-form-item label="状态" prop="status" :required="true">
             <el-radio-group v-model="formData.status">
@@ -562,7 +562,7 @@
 
 <script setup lang="ts">
 defineOptions({
-  name: "Model",
+  name: "AgModel",
   inheritAttrs: false,
 });
 
@@ -576,10 +576,10 @@ import DatePicker from "@/components/DatePicker/index.vue";
 import type { IContentConfig } from "@/components/CURD/types";
 import ImportModal from "@/components/CURD/ImportModal.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
-import ModelAPI, {
-  ModelPageQuery,
-  ModelTable,
-  ModelForm,
+import AgModelAPI, {
+  AgModelPageQuery,
+  AgModelTable,
+  AgModelForm,
 } from "@/api/module_agno_manage/models";
 
 const visible = ref(true);
@@ -587,24 +587,24 @@ const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
 const selectIds = ref<number[]>([]);
-const selectionRows = ref<ModelTable[]>([]);
+const selectionRows = ref<AgModelTable[]>([]);
 const loading = ref(false);
 const isExpand = ref(false);
 const isExpandable = ref(true);
 
 // 分页表单
-const pageTableData = ref<ModelTable[]>([]);
+const pageTableData = ref<AgModelTable[]>([]);
 
 // 表格列配置
 const tableColumns = ref([
   { prop: "selection", label: "选择框", show: true },
   { prop: "index", label: "序号", show: true },
-  { prop: "name", label: "name", show: true },
-  { prop: "model_id", label: "model_id", show: true },
-  { prop: "provider", label: "provider", show: true },
-  { prop: "api_key", label: "api_key", show: true },
-  { prop: "base_url", label: "base_url", show: true },
-  { prop: "config", label: "config", show: true },
+  { prop: "name", label: "模型名称", show: true },
+  { prop: "model_id", label: "模型标识符（传给Agno Model的id参数）", show: true },
+  { prop: "provider", label: "模型提供商(openai/anthropic/google/ollama/deepseek)", show: true },
+  { prop: "api_key", label: "API密钥（明文存储）", show: true },
+  { prop: "base_url", label: "自定义API地址（用于ollama/vllm/lmstudio）", show: true },
+  { prop: "config", label: "模型配置参数（temperature/max_tokens/top_p等）", show: true },
   { prop: "status", label: "status", show: true },
   { prop: "description", label: "description", show: true },
   { prop: "created_time", label: "created_time", show: true },
@@ -616,12 +616,12 @@ const tableColumns = ref([
 
 // 导出列（不含选择/序号/操作）
 const exportColumns = [
-  { prop: "name", label: "name" },
-  { prop: "model_id", label: "model_id" },
-  { prop: "provider", label: "provider" },
-  { prop: "api_key", label: "api_key" },
-  { prop: "base_url", label: "base_url" },
-  { prop: "config", label: "config" },
+  { prop: "name", label: "模型名称" },
+  { prop: "model_id", label: "模型标识符（传给Agno Model的id参数）" },
+  { prop: "provider", label: "模型提供商(openai/anthropic/google/ollama/deepseek)" },
+  { prop: "api_key", label: "API密钥（明文存储）" },
+  { prop: "base_url", label: "自定义API地址（用于ollama/vllm/lmstudio）" },
+  { prop: "config", label: "模型配置参数（temperature/max_tokens/top_p等）" },
   { prop: "status", label: "status" },
   { prop: "description", label: "description" },
   { prop: "created_time", label: "created_time" },
@@ -634,7 +634,7 @@ const exportColumns = [
 const curdContentConfig = {
   permPrefix: "module_agno_manage:models",
   cols: exportColumns as any,
-  importTemplate: () => ModelAPI.downloadTemplateModel(),
+  importTemplate: () => AgModelAPI.downloadTemplateAgModel(),
   exportsAction: async (params: any) => {
     const query: any = { ...params };
     query.status = "0";
@@ -642,7 +642,7 @@ const curdContentConfig = {
     query.page_size = 9999;
     const all: any[] = [];
     while (true) {
-      const res = await ModelAPI.listModel(query);
+      const res = await AgModelAPI.listAgModel(query);
       const items = res.data?.data?.items || [];
       const total = res.data?.data?.total || 0;
       all.push(...items);
@@ -654,7 +654,7 @@ const curdContentConfig = {
 } as unknown as IContentConfig;
 
 // 详情表单
-const detailFormData = ref<ModelTable>({});
+const detailFormData = ref<AgModelTable>({});
 // 日期范围临时变量
 const createdDateRange = ref<[Date, Date] | []>([]);
 // 更新时间范围临时变量
@@ -681,7 +681,7 @@ function handleUpdatedDateRangeChange(range: [Date, Date]) {
 }
 
 // 分页查询参数
-const queryFormData = reactive<ModelPageQuery>({
+const queryFormData = reactive<AgModelPageQuery>({
   page_no: 1,
   page_size: 10,
   name: undefined,
@@ -698,7 +698,7 @@ const queryFormData = reactive<ModelPageQuery>({
 });
 
 // 编辑表单
-const formData = reactive<ModelForm>({
+const formData = reactive<AgModelForm>({
   id: undefined,
   name: undefined,
   model_id: undefined,
@@ -724,14 +724,14 @@ const dialogVisible = reactive({
 
 // 表单验证规则
 const rules = reactive({
-  id: [{ required: false, message: "请输入id", trigger: "blur" }],
+  id: [{ required: false, message: "请输入ID", trigger: "blur" }],
   uuid: [{ required: false, message: "请输入uuid", trigger: "blur" }],
-  name: [{ required: false, message: "请输入name", trigger: "blur" }],
-  model_id: [{ required: false, message: "请输入model_id", trigger: "blur" }],
-  provider: [{ required: false, message: "请输入provider", trigger: "blur" }],
-  api_key: [{ required: true, message: "请输入api_key", trigger: "blur" }],
-  base_url: [{ required: true, message: "请输入base_url", trigger: "blur" }],
-  config: [{ required: false, message: "请输入config", trigger: "blur" }],
+  name: [{ required: false, message: "请输入模型名称", trigger: "blur" }],
+  model_id: [{ required: false, message: "请输入模型标识符（传给Agno Model的id参数）", trigger: "blur" }],
+  provider: [{ required: false, message: "请输入模型提供商(openai/anthropic/google/ollama/deepseek)", trigger: "blur" }],
+  api_key: [{ required: true, message: "请输入API密钥（明文存储）", trigger: "blur" }],
+  base_url: [{ required: true, message: "请输入自定义API地址（用于ollama/vllm/lmstudio）", trigger: "blur" }],
+  config: [{ required: false, message: "请输入模型配置参数（temperature/max_tokens/top_p等）", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
   description: [{ required: true, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
@@ -766,7 +766,7 @@ async function handleRefresh() {
 async function loadingData() {
   loading.value = true;
   try {
-    const response = await ModelAPI.listModel(queryFormData);
+    const response = await AgModelAPI.listAgModel(queryFormData);
     pageTableData.value = response.data.data.items;
     total.value = response.data.data.total;
   } catch (error: any) {
@@ -800,7 +800,7 @@ async function handleResetQuery() {
 }
 
 // 定义初始表单数据常量
-const initialFormData: ModelForm = {
+const initialFormData: AgModelForm = {
   id: undefined,
   name: undefined,
   model_id: undefined,
@@ -838,7 +838,7 @@ async function handleCloseDialog() {
 async function handleOpenDialog(type: "create" | "update" | "detail", id?: number) {
   dialogVisible.type = type;
   if (id) {
-    const response = await ModelAPI.detailModel(id);
+    const response = await AgModelAPI.detailAgModel(id);
     if (type === "detail") {
       dialogVisible.title = "详情";
       Object.assign(detailFormData.value, response.data.data);
@@ -847,7 +847,7 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
       Object.assign(formData, response.data.data);
     }
   } else {
-    dialogVisible.title = "新增Model";
+    dialogVisible.title = "新增AgModel";
     formData.id = undefined;
     formData.name = undefined;
     formData.model_id = undefined;
@@ -872,7 +872,7 @@ async function handleSubmit() {
       const id = formData.id;
       if (id) {
         try {
-          await ModelAPI.updateModel(id, { id, ...submitData });
+          await AgModelAPI.updateAgModel(id, { id, ...submitData });
           dialogVisible.visible = false;
           resetForm();
           handleCloseDialog();
@@ -884,7 +884,7 @@ async function handleSubmit() {
         }
       } else {
         try {
-          await ModelAPI.createModel(submitData);
+          await AgModelAPI.createAgModel(submitData);
           dialogVisible.visible = false;
           resetForm();
           handleCloseDialog();
@@ -909,7 +909,7 @@ async function handleDelete(ids: number[]) {
     .then(async () => {
       try {
         loading.value = true;
-        await ModelAPI.deleteModel(ids);
+        await AgModelAPI.deleteAgModel(ids);
         handleResetQuery();
       } catch (error: any) {
         console.error(error);
@@ -933,7 +933,7 @@ async function handleMoreClick(status: string) {
       .then(async () => {
         try {
           loading.value = true;
-          await ModelAPI.batchModel({ ids: selectIds.value, status });
+          await AgModelAPI.batchAgModel({ ids: selectIds.value, status });
           handleResetQuery();
         } catch (error: any) {
           console.error(error);
@@ -951,7 +951,7 @@ async function handleMoreClick(status: string) {
 const handleUpload = async (formData: FormData) => {
   try {
     uploadLoading.value = true;
-    const response = await ModelAPI.importModel(formData);
+    const response = await AgModelAPI.importAgModel(formData);
     if (response.data.code === ResultEnum.SUCCESS) {
       ElMessage.success(`${response.data.msg}，${response.data.data}`);
       importDialogVisible.value = false;

@@ -10,16 +10,16 @@ from app.core.exceptions import CustomException
 from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
 
-from .crud import AgHooksCRUD
+from .crud import AgHookCRUD
 from .schema import (
-    AgHooksCreateSchema,
-    AgHooksUpdateSchema,
-    AgHooksOutSchema,
-    AgHooksQueryParam
+    AgHookCreateSchema,
+    AgHookUpdateSchema,
+    AgHookOutSchema,
+    AgHookQueryParam
 )
 
 
-class AgHooksService:
+class AgHookService:
     """
     hook服务层
     """
@@ -36,30 +36,30 @@ class AgHooksService:
         返回:
         - dict - 数据详情
         """
-        obj = await AgHooksCRUD(auth).get_by_id_hooks_crud(id=id)
+        obj = await AgHookCRUD(auth).get_by_id_hooks_crud(id=id)
         if not obj:
             raise CustomException(msg="该数据不存在")
-        return AgHooksOutSchema.model_validate(obj).model_dump()
+        return AgHookOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def list_hooks_service(cls, auth: AuthSchema, search: AgHooksQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
+    async def list_hooks_service(cls, auth: AuthSchema, search: AgHookQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
         """
         列表查询
         
         参数:
         - auth: AuthSchema - 认证信息
-        - search: AgHooksQueryParam | None - 查询参数
+        - search: AgHookQueryParam | None - 查询参数
         - order_by: list[dict] | None - 排序参数
         
         返回:
         - list[dict] - 数据列表
         """
         search_dict = search.__dict__ if search else None
-        obj_list = await AgHooksCRUD(auth).list_hooks_crud(search=search_dict, order_by=order_by)
-        return [AgHooksOutSchema.model_validate(obj).model_dump() for obj in obj_list]
+        obj_list = await AgHookCRUD(auth).list_hooks_crud(search=search_dict, order_by=order_by)
+        return [AgHookOutSchema.model_validate(obj).model_dump() for obj in obj_list]
 
     @classmethod
-    async def page_hooks_service(cls, auth: AuthSchema, page_no: int, page_size: int, search: AgHooksQueryParam | None = None, order_by: list[dict] | None = None) -> dict:
+    async def page_hooks_service(cls, auth: AuthSchema, page_no: int, page_size: int, search: AgHookQueryParam | None = None, order_by: list[dict] | None = None) -> dict:
         """
         分页查询（数据库分页）
         
@@ -67,7 +67,7 @@ class AgHooksService:
         - auth: AuthSchema - 认证信息
         - page_no: int - 页码
         - page_size: int - 每页数量
-        - search: AgHooksQueryParam | None - 查询参数
+        - search: AgHookQueryParam | None - 查询参数
         - order_by: list[dict] | None - 排序参数
         
         返回:
@@ -76,7 +76,7 @@ class AgHooksService:
         search_dict = search.__dict__ if search else {}
         order_by_list = order_by or [{'id': 'asc'}]
         offset = (page_no - 1) * page_size
-        result = await AgHooksCRUD(auth).page_hooks_crud(
+        result = await AgHookCRUD(auth).page_hooks_crud(
             offset=offset,
             limit=page_size,
             order_by=order_by_list,
@@ -85,42 +85,42 @@ class AgHooksService:
         return result
     
     @classmethod
-    async def create_hooks_service(cls, auth: AuthSchema, data: AgHooksCreateSchema) -> dict:
+    async def create_hooks_service(cls, auth: AuthSchema, data: AgHookCreateSchema) -> dict:
         """
         创建
         
         参数:
         - auth: AuthSchema - 认证信息
-        - data: AgHooksCreateSchema - 创建数据
+        - data: AgHookCreateSchema - 创建数据
         
         返回:
         - dict - 创建结果
         """
-        obj = await AgHooksCRUD(auth).create_hooks_crud(data=data)
-        return AgHooksOutSchema.model_validate(obj).model_dump()
+        obj = await AgHookCRUD(auth).create_hooks_crud(data=data)
+        return AgHookOutSchema.model_validate(obj).model_dump()
     
     @classmethod
-    async def update_hooks_service(cls, auth: AuthSchema, id: int, data: AgHooksUpdateSchema) -> dict:
+    async def update_hooks_service(cls, auth: AuthSchema, id: int, data: AgHookUpdateSchema) -> dict:
         """
         更新
         
         参数:
         - auth: AuthSchema - 认证信息
         - id: int - 数据ID
-        - data: AgHooksUpdateSchema - 更新数据
+        - data: AgHookUpdateSchema - 更新数据
         
         返回:
         - dict - 更新结果
         """
         # 检查数据是否存在
-        obj = await AgHooksCRUD(auth).get_by_id_hooks_crud(id=id)
+        obj = await AgHookCRUD(auth).get_by_id_hooks_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
         
         # 检查唯一性约束
             
-        obj = await AgHooksCRUD(auth).update_hooks_crud(id=id, data=data)
-        return AgHooksOutSchema.model_validate(obj).model_dump()
+        obj = await AgHookCRUD(auth).update_hooks_crud(id=id, data=data)
+        return AgHookOutSchema.model_validate(obj).model_dump()
     
     @classmethod
     async def delete_hooks_service(cls, auth: AuthSchema, ids: list[int]) -> None:
@@ -137,10 +137,10 @@ class AgHooksService:
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
         for id in ids:
-            obj = await AgHooksCRUD(auth).get_by_id_hooks_crud(id=id)
+            obj = await AgHookCRUD(auth).get_by_id_hooks_crud(id=id)
             if not obj:
                 raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
-        await AgHooksCRUD(auth).delete_hooks_crud(ids=ids)
+        await AgHookCRUD(auth).delete_hooks_crud(ids=ids)
     
     @classmethod
     async def set_available_hooks_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
@@ -154,7 +154,7 @@ class AgHooksService:
         返回:
         - None
         """
-        await AgHooksCRUD(auth).set_available_hooks_crud(ids=data.ids, status=data.status)
+        await AgHookCRUD(auth).set_available_hooks_crud(ids=data.ids, status=data.status)
     
     @classmethod
     async def batch_export_hooks_service(cls, obj_list: list[dict]) -> bytes:
@@ -270,11 +270,11 @@ class AgHooksService:
                         "updated_id": row['updated_id'],
                     }
                     # 使用CreateSchema做校验后入库
-                    create_schema = AgHooksCreateSchema.model_validate(data)
+                    create_schema = AgHookCreateSchema.model_validate(data)
                     
                     # 检查唯一性约束
                     
-                    await AgHooksCRUD(auth).create_hooks_crud(data=create_schema)
+                    await AgHookCRUD(auth).create_hooks_crud(data=create_schema)
                     success_count += 1
                 except Exception as e:
                     error_msgs.append(f"第{count}行: {str(e)}")
