@@ -17,20 +17,25 @@ def _build_agno_db():
     使用同步 BaseDb（非 AsyncBaseDb），以支持 AgentOS 全部功能（含 components 路由）。
     复用项目 settings.DB_URI（同步驱动：pymysql / psycopg / sqlite）。
     """
+    from agno.db.mysql.mysql import MySQLDb
+    from agno.db.postgres.postgres import PostgresDb
+    from agno.db.sqlite.sqlite import SqliteDb
+
     from app.config.setting import settings
 
-    db_type = settings.DATABASE_TYPE
     db_uri = settings.DB_URI
 
-    if db_type == "postgres":
-        from agno.db.postgres.postgres import PostgresDb
-        return PostgresDb(db_url=db_uri)
-    elif db_type == "mysql":
-        from agno.db.mysql.mysql import MySQLDb
-        return MySQLDb(db_url=db_uri)
-    else:
-        from agno.db.sqlite.sqlite import SqliteDb
-        return SqliteDb(db_file=db_uri.replace("sqlite:///", ""))
+    db_mapping = {
+        "mysql": lambda: MySQLDb(db_url=db_uri),
+        "postgres": lambda: PostgresDb(db_url=db_uri),
+        "sqlite": lambda: SqliteDb(db_file=db_uri.replace("sqlite:///", "")),
+    }
+
+    db_type = settings.DATABASE_TYPE
+    if db_type not in db_mapping:
+        raise ValueError(f"[AgentOS] 不支持的数据库类型: {db_type}")
+
+    return db_mapping[db_type]()
 
 
 async def init_agent_os(app: FastAPI) -> None:
