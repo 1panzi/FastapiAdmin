@@ -188,7 +188,7 @@ const uuidv4 = () => {
 };
 
 const userStore = useUserStoreHook();
-const userId = computed(() => userStore.basicInfo.id);
+const userId = computed(() => userStore.basicInfo.id ?? 1);
 
 // Agent 列表
 const agentList = ref<AgAgentTable[]>([]);
@@ -271,11 +271,6 @@ function removeFile(index: number) {
 async function sendMessage() {
   const text = inputText.value.trim();
   if (!text || !currentSession.value || sending.value) return;
-
-  if (!userId.value) {
-    ElMessage.warning("用户未登录，请重新登录");
-    return;
-  }
 
   // 中止上一条未完成的流式请求
   streamController?.abort();
