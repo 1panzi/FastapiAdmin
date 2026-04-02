@@ -50,9 +50,9 @@ async def init_agent_os(app: FastAPI) -> None:
     from app.plugin.module_agno_manage.core.registry import get_registry
 
     registry = get_registry()
-    agents = registry.agents if registry.agents else []
-    teams = registry.teams if registry.teams else []
-    workflows = registry.workflows if registry.workflows else []
+    agents = registry.agents
+    teams = registry.teams
+    workflows = registry.workflows
 
     if not agents and not teams and not workflows:
         log.warning("[AgentOS] registry 中无 agent/team/workflow，初始化空AgentOS")

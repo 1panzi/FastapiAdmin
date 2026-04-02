@@ -46,94 +46,94 @@ async def _do_warm_up() -> None:
         result = await db.execute(select(AgModelModel).where(AgModelModel.status == "0"))
         for row in result.scalars().all():
             try:
-                registry.register_model(str(row.uuid), row)
+                registry.register_model(str(row.id), row)
             except Exception as e:
-                log.warning(f"[Startup] skip model uuid={row.uuid}: {e}")
+                log.warning(f"[Startup] skip model id={row.id}: {e}")
 
         from app.plugin.module_agno_manage.embedders.model import AgEmbedderModel
         result = await db.execute(select(AgEmbedderModel).where(AgEmbedderModel.status == "0"))
         for row in result.scalars().all():
             try:
-                registry.register_embedder(str(row.uuid), row)
+                registry.register_embedder(str(row.id), row)
             except Exception as e:
-                log.warning(f"[Startup] skip embedder uuid={row.uuid}: {e}")
+                log.warning(f"[Startup] skip embedder id={row.id}: {e}")
 
         # ── 第二层：行数据缓存（按需冷启动） ─────────────────────────────
         from app.plugin.module_agno_manage.vectordbs.model import AgVectordbModel
         result = await db.execute(select(AgVectordbModel).where(AgVectordbModel.status == "0"))
         for row in result.scalars().all():
-            registry._vectordb_rows[str(row.uuid)] = row
+            registry._vectordb_rows[str(row.id)] = row
 
         from app.plugin.module_agno_manage.knowledge_bases.model import AgKnowledgeBaseModel
         result = await db.execute(select(AgKnowledgeBaseModel).where(AgKnowledgeBaseModel.status == "0"))
         for row in result.scalars().all():
-            registry._kb_rows[str(row.uuid)] = row
+            registry._kb_rows[str(row.id)] = row
 
         # ── 第三层：工具类 ────────────────────────────────────────────────
         from app.plugin.module_agno_manage.toolkits.model import AgToolkitModel
         result = await db.execute(select(AgToolkitModel).where(AgToolkitModel.status == "0"))
         for row in result.scalars().all():
             try:
-                registry.register_toolkit(str(row.uuid), row)
+                registry.register_toolkit(str(row.id), row)
             except Exception as e:
-                log.warning(f"[Startup] skip toolkit uuid={row.uuid}: {e}")
+                log.warning(f"[Startup] skip toolkit id={row.id}: {e}")
 
         from app.plugin.module_agno_manage.mcp_servers.model import AgMcpServerModel
         result = await db.execute(select(AgMcpServerModel).where(AgMcpServerModel.status == "0"))
         for row in result.scalars().all():
-            registry._mcp_rows[str(row.uuid)] = row
+            registry._mcp_rows[str(row.id)] = row
 
         from app.plugin.module_agno_manage.skills.model import AgSkillModel
         result = await db.execute(select(AgSkillModel).where(AgSkillModel.status == "0"))
         for row in result.scalars().all():
-            registry._skill_rows[str(row.uuid)] = row
+            registry._skill_rows[str(row.id)] = row
 
         from app.plugin.module_agno_manage.hooks.model import AgHookModel
         result = await db.execute(select(AgHookModel).where(AgHookModel.status == "0"))
         for row in result.scalars().all():
             try:
-                registry.register_hook(str(row.uuid), row)
+                registry.register_hook(str(row.id), row)
             except Exception as e:
-                log.warning(f"[Startup] skip hook uuid={row.uuid}: {e}")
+                log.warning(f"[Startup] skip hook id={row.id}: {e}")
 
         from app.plugin.module_agno_manage.guardrails.model import AgGuardrailModel
         result = await db.execute(select(AgGuardrailModel).where(AgGuardrailModel.status == "0"))
         for row in result.scalars().all():
             try:
-                registry.register_guardrail(str(row.uuid), row)
+                registry.register_guardrail(str(row.id), row)
             except Exception as e:
-                log.warning(f"[Startup] skip guardrail uuid={row.uuid}: {e}")
+                log.warning(f"[Startup] skip guardrail id={row.id}: {e}")
 
         # ── 第四层：子管理器行数据 ─────────────────────────────────────────
         from app.plugin.module_agno_manage.memory_managers.model import AgMemoryManagerModel
         result = await db.execute(select(AgMemoryManagerModel).where(AgMemoryManagerModel.status == "0"))
         for row in result.scalars().all():
-            registry._memory_manager_rows[str(row.uuid)] = row
+            registry._memory_manager_rows[str(row.id)] = row
 
         from app.plugin.module_agno_manage.learning_configs.model import AgLearningConfigModel
         result = await db.execute(select(AgLearningConfigModel).where(AgLearningConfigModel.status == "0"))
         for row in result.scalars().all():
-            registry._learning_rows[str(row.uuid)] = row
+            registry._learning_rows[str(row.id)] = row
 
         from app.plugin.module_agno_manage.reasoning_configs.model import AgReasoningConfigModel
         result = await db.execute(select(AgReasoningConfigModel).where(AgReasoningConfigModel.status == "0"))
         for row in result.scalars().all():
-            registry._reasoning_rows[str(row.uuid)] = row
+            registry._reasoning_rows[str(row.id)] = row
 
         from app.plugin.module_agno_manage.compression_configs.model import AgCompressionConfigModel
         result = await db.execute(select(AgCompressionConfigModel).where(AgCompressionConfigModel.status == "0"))
         for row in result.scalars().all():
-            registry._compression_rows[str(row.uuid)] = row
+            registry._compression_rows[str(row.id)] = row
 
         from app.plugin.module_agno_manage.sess_summary_configs.model import AgSessSummaryConfigModel
         result = await db.execute(select(AgSessSummaryConfigModel).where(AgSessSummaryConfigModel.status == "0"))
         for row in result.scalars().all():
-            registry._session_summary_rows[str(row.uuid)] = row
+            registry._session_summary_rows[str(row.id)] = row
 
         from app.plugin.module_agno_manage.culture_configs.model import AgCultureConfigModel
         result = await db.execute(select(AgCultureConfigModel).where(AgCultureConfigModel.status == "0"))
         for row in result.scalars().all():
-            registry._culture_rows[str(row.uuid)] = row
+            registry._culture_rows[str(row.id)] = row
 
         # ── 第五层：Agent ──────────────────────────────────────────────────
         from app.plugin.module_agno_manage.agents.model import AgAgentModel
@@ -151,12 +151,12 @@ async def _do_warm_up() -> None:
         from app.plugin.module_agno_manage.bindings.model import AgBindingModel
         result = await db.execute(select(AgBindingModel).where(AgBindingModel.status == "0"))
         for row in result.scalars().all():
-            registry._binding_rows[str(row.uuid)] = row
+            registry._binding_rows[str(row.id)] = row
 
         from app.plugin.module_agno_manage.integrations.model import AgIntegrationModel
         result = await db.execute(select(AgIntegrationModel).where(AgIntegrationModel.status == "0"))
         for row in result.scalars().all():
-            registry._integration_rows[str(row.uuid)] = row
+            registry._integration_rows[str(row.id)] = row
 
     set_registry(registry)
     log.info(

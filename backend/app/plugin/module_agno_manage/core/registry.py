@@ -311,7 +311,7 @@ class RuntimeRegistry:
         使用 callable factory（cache_callables=False）实现热插拔。
         agent_id = str(row.id)，对应 AgentOS 路由 /agents/{id}/runs
         """
-        from agno.agent import Agent
+        from agno.agent import Agent as AgnoAgent
 
         agent_id = str(row.id)
 
@@ -354,13 +354,13 @@ class RuntimeRegistry:
             if v is not None:
                 kwargs[f] = v
 
-        agent = Agent(
-            agent_id=agent_id,
+        agent = AgnoAgent(
+            id=agent_id,
             name=row.name,
             model=model,
             tools=_tools,
             knowledge=_knowledge,
-            cache_callables=False,   # ⚠️ 必须关闭，热插拔绑定时无需重建 Agent
+            cache_callables=False,   # ⚠️ 必须关闭，热插拔绑定时无需重建 AgnoAgent
             **kwargs,
         )
 

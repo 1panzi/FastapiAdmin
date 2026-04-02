@@ -1,0 +1,18 @@
+{
+  "name": "ollama1",
+  "model_id": "isotnek/qwen3.5:9B-Unsloth-UD-Q4_K_XL",
+  "provider": "ollama",
+  "api_key": "xx",
+  "base_url": "http://192.168.81.15:7869",
+  "config": {
+ 
+  },
+  "status": "0",
+  "description": "本地ollama"
+}
+
+
+{
+  "name": "测试agent",
+  "model_id": 3
+}
