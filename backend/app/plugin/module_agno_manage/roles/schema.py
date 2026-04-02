@@ -13,7 +13,7 @@ class AgRoleCreateSchema(BaseModel):
     agno角色管理新增模型
     """
     name: str = Field(default=..., description='角色名称（唯一，如admin/operator/viewer）')
-    scopes: dict = Field(default=..., description='gentOS权限范围列表（JSON数组）')
+    scopes: dict | None = Field(default=None, description='gentOS权限范围列表（JSON数组）')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 
