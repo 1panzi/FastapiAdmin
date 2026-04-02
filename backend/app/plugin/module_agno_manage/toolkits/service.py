@@ -100,8 +100,8 @@ class AgToolkitService:
     @staticmethod
     def _is_super_admin(auth: AuthSchema) -> bool:
         """判断是否为超管（简化版，实际应该查角色表）。"""
-        # TODO: 根据实际权限系统判断，这里暂时用 user_id=1 作为超管
-        return auth.user_id == 1
+        # TODO: 根据实际权限系统判断，这里暂时用 user.id=1 作为超管
+        return auth.user and auth.user.id == 1
 
     @classmethod
     async def create_toolkits_service(cls, auth: AuthSchema, data: AgToolkitCreateSchema) -> dict:
@@ -473,7 +473,7 @@ class AgToolkitService:
                 select(AgBindingModel).where(
                     and_(
                         AgBindingModel.owner_type == "user",
-                        AgBindingModel.owner_id == auth.user_id,
+                        AgBindingModel.owner_id == auth.user.id,
                         AgBindingModel.resource_type == "toolkit",
                         AgBindingModel.resource_id == toolkit_id,
                         AgBindingModel.status == "0",
@@ -485,7 +485,7 @@ class AgToolkitService:
 
         binding_data = AgBindingCreateSchema(
             owner_type="user",
-            owner_id=auth.user_id,
+            owner_id=auth.user.id,
             resource_type="toolkit",
             resource_id=toolkit_id,
             config_override=config_override,
@@ -507,7 +507,7 @@ class AgToolkitService:
                 select(AgBindingModel).where(
                     and_(
                         AgBindingModel.owner_type == "user",
-                        AgBindingModel.owner_id == auth.user_id,
+                        AgBindingModel.owner_id == auth.user.id,
                         AgBindingModel.resource_type == "toolkit",
                         AgBindingModel.resource_id == toolkit_id,
                         AgBindingModel.status == "0",
@@ -536,7 +536,7 @@ class AgToolkitService:
                 ).where(
                     and_(
                         AgBindingModel.owner_type == "user",
-                        AgBindingModel.owner_id == auth.user_id,
+                        AgBindingModel.owner_id == auth.user.id,
                         AgBindingModel.resource_type == "toolkit",
                         AgBindingModel.status == "0",
                         AgToolkitModel.global_enabled == True,  # noqa: E712
