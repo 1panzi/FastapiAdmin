@@ -100,6 +100,77 @@ const AgXxxAPI = {
 
 **tableColumns 规范**：每项格式为 `{ prop, label, show: true }`，`prop` 与 `AgXxxTable` 字段名对应。`status`、`created_id`、`updated_id` 存在重复列是有意为之——一列显示原始值，一列通过 slot 模板渲染（如标签/用户名）。
 
+### 字段类型处理规范
+
+#### 1. 布尔字段（三态：true/false/null）
+
+**类型定义：**
+- `AgXxxTable` 接口：`fieldName?: boolean | null`
+- `AgXxxForm` 接口：`fieldName?: boolean | null`
+
+**表单组件（编辑/新增）：**
+```vue
+<el-select v-model="formData.fieldName" placeholder="默认" clearable style="width:100%">
+  <el-option label="开启" :value="true" />
+  <el-option label="关闭" :value="false" />
+</el-select>
+```
+- `clearable` 属性允许清空选择，返回 `null`（表示使用默认值）
+- 三个状态：`true`（开启）、`false`（关闭）、`null`（默认/未设置）
+
+**表格展示：**
+```vue
+<el-table-column label="字段名" prop="fieldName" min-width="100">
+  <template #default="scope">
+    <el-tag :type="scope.row.fieldName === true ? 'success' : scope.row.fieldName === false ? 'danger' : undefined">
+      {{ scope.row.fieldName === true ? '是' : scope.row.fieldName === false ? '否' : '默认' }}
+    </el-tag>
+  </template>
+</el-table-column>
+```
+
+**详情展示：**
+```vue
+<el-descriptions-item label="字段名" :span="2">
+  <el-tag :type="detailFormData.fieldName === true ? 'success' : detailFormData.fieldName === false ? 'danger' : undefined">
+    {{ detailFormData.fieldName === true ? '是' : detailFormData.fieldName === false ? '否' : '默认' }}
+  </el-tag>
+</el-descriptions-item>
+```
+
+**搜索表单：**
+```vue
+<el-select v-model="queryFormData.fieldName" placeholder="请选择" style="width: 120px" clearable>
+  <el-option :value="'true'" label="是" />
+  <el-option :value="'false'" label="否" />
+</el-select>
+```
+注意：搜索表单中使用字符串 `'true'` 和 `'false'`，因为查询参数会被序列化为 URL 参数。
+
+#### 2. Record 字段（字典/对象类型）
+
+**类型定义：**
+- `AgXxxTable` 接口：`fieldName?: Record<string, any> | null`
+- `AgXxxForm` 接口：`fieldName?: Record<string, any>`（不带 `| null`）
+
+**表单组件（编辑/新增）：**
+```vue
+<el-form-item label="字段名" prop="fieldName">
+  <DictEditor v-model="formData.fieldName" />
+</el-form-item>
+```
+使用 `@/views/module_agno_manage/components/DictEditor/index.vue` 组件。
+
+**详情展示：**
+```vue
+<el-descriptions-item label="字段名" :span="4">
+  <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ JSON.stringify(detailFormData.fieldName, null, 2) }}</pre>
+</el-descriptions-item>
+```
+
+**搜索表单：**
+Record 类型字段通常不在搜索表单中出现。
+
 ### models 视图特殊说明
 - `providerList` 在 `onMounted` 时通过 `ProviderAPI.listProvider({})` 加载
 - 提供商在 UI 中显示 `Provider.label`，存储值为 `Provider.provider`（字符串 key）
