@@ -180,7 +180,12 @@ import AgnoAgentChatAPI, {
 import { useUserStoreHook } from "@/store/modules/user.store";
 import type { AgAgentTable } from "@/api/module_agno_manage/agents";
 
-const uuidv4 = () => crypto.randomUUID();
+const uuidv4 = () => {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+};
 
 const userStore = useUserStoreHook();
 const userId = computed(() => userStore.basicInfo.id);
