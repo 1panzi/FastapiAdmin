@@ -11,6 +11,28 @@ from fastapi import FastAPI
 from app.core.logger import log
 
 
+def _build_agno_db():
+    """根据项目 DATABASE_TYPE 构建对应的 Agno 同步 BaseDb 实例。
+
+    使用同步 BaseDb（非 AsyncBaseDb），以支持 AgentOS 全部功能（含 components 路由）。
+    复用项目 settings.DB_URI（同步驱动：pymysql / psycopg / sqlite）。
+    """
+    from app.config.setting import settings
+
+    db_type = settings.DATABASE_TYPE
+    db_url = settings.DB_URI
+
+    if db_type == "postgres":
+        from agno.db.postgres.postgres import PostgresDb
+        return PostgresDb(db_url=db_url)
+    elif db_type == "mysql":
+        from agno.db.mysql.mysql import MySQLDb
+        return MySQLDb(db_url=db_url)
+    else:
+        from agno.db.sqlite.sqlite import SqliteDb
+        return SqliteDb(db_url=db_url)
+
+
 async def init_agent_os(app: FastAPI) -> None:
     """
     在 registry 预热完成后初始化 AgentOS 并挂载到 base_app。
@@ -32,10 +54,12 @@ async def init_agent_os(app: FastAPI) -> None:
         return
 
     try:
+        db = _build_agno_db()
         agent_os = AgentOS(
             agents=agents,
             teams=teams,
             workflows=workflows,
+            db=db,
             base_app=app,
             telemetry=False,
         )
@@ -44,7 +68,8 @@ async def init_agent_os(app: FastAPI) -> None:
             f"[AgentOS] 初始化完成 — "
             f"agents={len(registry.agents)}, "
             f"teams={len(registry.teams)}, "
-            f"workflows={len(registry.workflows)}"
+            f"workflows={len(registry.workflows)}, "
+            f"db={db.__class__.__name__}"
         )
     except Exception as e:
         log.error(f"[AgentOS] 初始化失败: {e}")
