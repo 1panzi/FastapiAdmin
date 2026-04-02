@@ -45,18 +45,17 @@ async def init_agent_os(app: FastAPI) -> None:
     调用时机：startup 事件队列中排在 warm_up() 之后（在 register_routers 末尾注册，
     CoreRouter 的 _on_startup 由 include_router 先注册，故顺序正确）。
     """
-    from agno.os.agent_os import AgentOS
+    from agno.os import AgentOS
 
     from app.plugin.module_agno_manage.core.registry import get_registry
 
     registry = get_registry()
-    agents = registry.agents if registry.agents else None
-    teams = registry.teams if registry.teams else None
-    workflows = registry.workflows if registry.workflows else None
+    agents = registry.agents if registry.agents else []
+    teams = registry.teams if registry.teams else []
+    workflows = registry.workflows if registry.workflows else []
 
     if not agents and not teams and not workflows:
-        log.info("[AgentOS] registry 中无 agent/team/workflow，跳过 AgentOS 初始化")
-        return
+        log.warning("[AgentOS] registry 中无 agent/team/workflow，初始化空AgentOS")
 
     try:
         db = _build_agno_db()

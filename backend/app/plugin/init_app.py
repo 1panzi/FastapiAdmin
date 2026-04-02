@@ -154,12 +154,7 @@ def register_routers(app: FastAPI) -> None:
         dependencies=[Depends(RateLimiter(times=5, seconds=10))],
     )
 
-    # AgentOS：startup 时初始化，传入 app 引用（与 warm_up 无顺序依赖）
-    async def _agno_os_startup() -> None:
-        from app.plugin.module_agno_manage.core.agno_os import init_agent_os
-        await init_agent_os(app)
 
-    app.router.add_event_handler("startup", _agno_os_startup)
 
 
 def register_files(app: FastAPI) -> None:

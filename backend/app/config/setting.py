@@ -208,6 +208,7 @@ class Settings(BaseSettings):
         """获取事件列表"""
         EVENTS: list[str | None] = [
             "app.core.database.redis_connect" if self.REDIS_ENABLE else None,
+            "app.plugin.module_agno_manage.core.agent_os_event.init_agent_os_event",
         ]
         return EVENTS
 
