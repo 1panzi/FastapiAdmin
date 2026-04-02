@@ -97,7 +97,7 @@ export interface AgGuardrailPageQuery extends PageQuery {
   name?: string;
   type?: string;
   hook_type?: string;
-  config?: Record<string, any>;
+  config?: string;
   module_path?: string;
   class_name?: string;
   status?: string;

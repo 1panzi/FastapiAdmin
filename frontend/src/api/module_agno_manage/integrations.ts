@@ -102,7 +102,7 @@ export interface AgIntegrationPageQuery extends PageQuery {
   token?: string;
   signing_secret?: string;
   prefix?: string;
-  config?: Record<string, any>;
+  config?: string;
   status?: string;
   created_id?: number;
   updated_id?: number;

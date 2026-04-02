@@ -97,7 +97,7 @@ export interface AgVectordbPageQuery extends PageQuery {
   name?: string;
   provider?: string;
   embedder_id?: string;
-  config?: Record<string, any>;
+  config?: string;
   status?: string;
   created_id?: number;
   updated_id?: number;

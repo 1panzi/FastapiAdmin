@@ -98,7 +98,7 @@ export interface AgMcpServerPageQuery extends PageQuery {
   transport?: string;
   command?: string;
   url?: string;
-  env_config?: Record<string, any>;
+  env_config?: string;
   include_tools?: string;
   exclude_tools?: string;
   tool_name_prefix?: string;

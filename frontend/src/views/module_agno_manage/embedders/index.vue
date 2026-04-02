@@ -524,7 +524,7 @@
             <el-input v-model="formData.dimensions" placeholder="请输入向量维度" />
           </el-form-item>
           <el-form-item label="其他构造参数" prop="config" :required="false">
-            <el-input v-model="formData.config" placeholder="请输入其他构造参数" />
+            <DictEditor v-model="formData.config" />
           </el-form-item>
           <el-form-item label="状态" prop="status" :required="true">
             <el-radio-group v-model="formData.status">

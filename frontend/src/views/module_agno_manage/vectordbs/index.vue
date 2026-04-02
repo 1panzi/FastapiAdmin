@@ -476,7 +476,7 @@
             <el-input v-model="formData.embedder_id" placeholder="请输入关联嵌入模型ID" />
           </el-form-item>
           <el-form-item label="连接配置" prop="config" :required="false">
-            <el-input v-model="formData.config" placeholder="请输入连接配置" />
+            <DictEditor v-model="formData.config" />
           </el-form-item>
           <el-form-item label="状态" prop="status" :required="true">
             <el-radio-group v-model="formData.status">

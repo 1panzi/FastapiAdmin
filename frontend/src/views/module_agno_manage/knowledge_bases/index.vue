@@ -505,7 +505,7 @@
             <el-input v-model="formData.reader_type" placeholder="请输入文档读取器类型(pdf/web/docx/csv/json/text)" />
           </el-form-item>
           <el-form-item label="读取器配置参数" prop="reader_config" :required="false">
-            <el-input v-model="formData.reader_config" placeholder="请输入读取器配置参数" />
+            <DictEditor v-model="formData.reader_config" />
           </el-form-item>
           <el-form-item label="默认搜索过滤条件" prop="default_filters" :required="false">
             <el-input v-model="formData.default_filters" placeholder="请输入默认搜索过滤条件" />

@@ -98,7 +98,7 @@ export interface AgKnowledgeBasePageQuery extends PageQuery {
   vectordb_id?: string;
   max_results?: string;
   reader_type?: string;
-  reader_config?: Record<string, any>;
+  reader_config?: string;
   default_filters?: string;
   status?: string;
   created_id?: number;
