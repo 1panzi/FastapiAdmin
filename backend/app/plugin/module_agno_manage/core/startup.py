@@ -35,9 +35,10 @@ async def _do_warm_up() -> None:
     """按依赖顺序将所有启用资源加载到 RuntimeRegistry。"""
     from sqlalchemy import select
     from app.core.database import async_db_session
-    from app.plugin.module_agno_manage.core.registry import RuntimeRegistry, set_registry
+    from app.plugin.module_agno_manage.core.registry import get_registry
 
-    registry = RuntimeRegistry()
+    # 使用全局单例，而非新建实例——保证 AgentOS 持有的 agents 列表引用始终有效
+    registry = get_registry()
 
     async with async_db_session() as db:
 
@@ -158,7 +159,6 @@ async def _do_warm_up() -> None:
         for row in result.scalars().all():
             registry._integration_rows[str(row.id)] = row
 
-    set_registry(registry)
     log.info(
         f"[Registry] warm-up complete — "
         f"models={len(registry._model_cache)}, "
