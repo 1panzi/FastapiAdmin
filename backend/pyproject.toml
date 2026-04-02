@@ -15,7 +15,7 @@ dependencies = [
     "bcrypt==4.0.1",                            # 密码加密解析,切勿升级，如果升级，请同时升级python版本
     "bleach==6.3.0",                            # 过滤 HTML 标签
     "click==8.1.7",                             # 命令行参数解析
-    "croniter==6.0.0",                          # 实现cron表达式验证和解析执行计划
+    "croniter>=1.0.12,<5.0.0",                  # cron（与 prefect 约束一致；部署 requirements.txt 同源）
     "cryptography==45.0.2",                     # mysql8 密码加密
     "fastapi==0.115.2",                         # fastapi 框架
     "fastapi-limiter==0.1.6",                   # 接口限流
@@ -34,7 +34,7 @@ dependencies = [
     "openpyxl==3.1.5",                          # Excel
     "pandas==2.2.3",                            # 数据处理
     "passlib==1.7.4",                           # 密码加密
-    "prefect>=3.1.0",                           # 工作流编排（与 Vue Flow 画布联动执行）
+    "prefect>=3.5.0,<4",                        # 工作流编排（与 typer>=0.19 兼容；部署与 requirements.txt 一致）
     "pillow==11.0.0",                           # 图片处理
     "psutil==6.1.0",                            # 系统信息
     "psycopg==3.3.2",                           # postgresql 同步操作数据库基于 psycopg是psycopg2升级版：psycopg2 是一个 pure-Python PostgreSQL 适配器。
@@ -53,7 +53,7 @@ dependencies = [
     "typer==0.19.0",                             # 命令行工具
     "user-agents==2.2.0",                       # 获取用户UA
     "uvicorn==0.30.6",                          # uvicorn web 框架
-    "websockets==16.0",                         # websocket 框架
+    "websockets>=15.0.1,<16.0",                 # websocket（prefect>=3.5 需 >=15.0.1；与部署 requirements.txt 一致）
 ]
 
 [dependency-groups]

@@ -7,9 +7,9 @@ typer==0.19.0                           # 命令行工具
 click==8.1.7                            # 命令行参数解析
 uvicorn==0.30.6                         # uvicorn web 框架
 gunicorn==23.0.0                        # 协程框架
-websockets>=10.4,<14.0                # websocket 框架（prefect==3.1.0 依赖 websockets<14）
+websockets>=15.0.1,<16.0              # websocket（prefect>=3.5 需 >=15.0.1；旧 3.1.x 需 <14，已升级 prefect）
 httpx==0.27.2                           # HTTP 客户端
-croniter==6.0.0                         # 实现cron表达式验证和解析执行计划
+croniter>=1.0.12,<5.0.0                # 实现cron表达式验证和解析执行计划（prefect==3.1.0 约束 croniter<5）
 pandas==2.2.3                           # 数据处理
 openpyxl==3.1.5                         # Excel
 SQLAlchemy==2.0.45                      # 数据库ORM
@@ -41,4 +41,4 @@ agno==2.5.8                             # 大模型开发框架
 openai==2.28.0                          # openai 接口
 ruff==0.14.13                           # 代码格式化
 pytest==9.0.2                           # 测试框架
-prefect==3.1.0                          # 工作流编排（与 Vue Flow 画布联动执行）
+prefect>=3.5.0,<4                       # 工作流编排（3.1.x 与 typer>=0.19 不兼容，需 >=3.5）
