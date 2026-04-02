@@ -69,6 +69,8 @@ async def init_agent_os(app: FastAPI) -> None:
             telemetry=False,
         )
         agent_os.get_app()
+        # 清除 openapi schema 缓存，让 /docs 重新生成包含 AgentOS 路由
+        app.openapi_schema = None
         log.info(
             f"[AgentOS] 初始化完成 — "
             f"agents={len(registry.agents)}, "
