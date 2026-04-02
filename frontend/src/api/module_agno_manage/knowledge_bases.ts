@@ -98,7 +98,7 @@ export interface AgKnowledgeBasePageQuery extends PageQuery {
   vectordb_id?: string;
   max_results?: string;
   reader_type?: string;
-  reader_config?: string;
+  reader_config?: Record<string, any>;
   default_filters?: string;
   status?: string;
   created_id?: number;
@@ -113,7 +113,7 @@ export interface AgKnowledgeBaseTable extends BaseType {
   vectordb_id?: string;
   max_results?: string;
   reader_type?: string;
-  reader_config?: string;
+  reader_config?: Record<string, any>;
   default_filters?: string;
   created_id?: string;
   updated_id?: string;
@@ -127,6 +127,6 @@ export interface AgKnowledgeBaseForm extends BaseFormType {
   vectordb_id?: string;
   max_results?: string;
   reader_type?: string;
-  reader_config?: string;
+  reader_config?: Record<string, any>;
   default_filters?: string;
 }

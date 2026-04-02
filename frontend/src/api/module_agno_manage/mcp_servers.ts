@@ -98,7 +98,7 @@ export interface AgMcpServerPageQuery extends PageQuery {
   transport?: string;
   command?: string;
   url?: string;
-  env_config?: string;
+  env_config?: Record<string, any>;
   include_tools?: string;
   exclude_tools?: string;
   tool_name_prefix?: string;
@@ -117,7 +117,7 @@ export interface AgMcpServerTable extends BaseType {
   transport?: string;
   command?: string;
   url?: string;
-  env_config?: string;
+  env_config?: Record<string, any>;
   include_tools?: string;
   exclude_tools?: string;
   tool_name_prefix?: string;
@@ -135,7 +135,7 @@ export interface AgMcpServerForm extends BaseFormType {
   transport?: string;
   command?: string;
   url?: string;
-  env_config?: string;
+  env_config?: Record<string, any>;
   include_tools?: string;
   exclude_tools?: string;
   tool_name_prefix?: string;

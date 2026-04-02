@@ -100,7 +100,7 @@ export interface AgEmbedderPageQuery extends PageQuery {
   api_key?: string;
   base_url?: string;
   dimensions?: string;
-  config?: string;
+  config?: Record<string, any>;
   status?: string;
   created_id?: number;
   updated_id?: number;
@@ -116,7 +116,7 @@ export interface AgEmbedderTable extends BaseType {
   api_key?: string;
   base_url?: string;
   dimensions?: string;
-  config?: string;
+  config?: Record<string, any>;
   created_id?: string;
   updated_id?: string;
   created_by?: CommonType;
@@ -131,5 +131,5 @@ export interface AgEmbedderForm extends BaseFormType {
   api_key?: string;
   base_url?: string;
   dimensions?: string;
-  config?: string;
+  config?: Record<string, any>;
 }

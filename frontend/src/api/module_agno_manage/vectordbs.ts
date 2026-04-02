@@ -97,7 +97,7 @@ export interface AgVectordbPageQuery extends PageQuery {
   name?: string;
   provider?: string;
   embedder_id?: string;
-  config?: string;
+  config?: Record<string, any>;
   status?: string;
   created_id?: number;
   updated_id?: number;
@@ -110,7 +110,7 @@ export interface AgVectordbTable extends BaseType {
   name?: string;
   provider?: string;
   embedder_id?: string;
-  config?: string;
+  config?: Record<string, any>;
   created_id?: string;
   updated_id?: string;
   created_by?: CommonType;
@@ -122,5 +122,5 @@ export interface AgVectordbForm extends BaseFormType {
   name?: string;
   provider?: string;
   embedder_id?: string;
-  config?: string;
+  config?: Record<string, any>;
 }

@@ -99,7 +99,7 @@ export interface AgModelPageQuery extends PageQuery {
   provider?: string;
   api_key?: string;
   base_url?: string;
-  config?: string;
+  config?: Record<string, any>;
   status?: string;
   created_id?: number;
   updated_id?: number;
@@ -114,7 +114,7 @@ export interface AgModelTable extends BaseType {
   provider?: string;
   api_key?: string;
   base_url?: string;
-  config?: string;
+  config?: Record<string, any>;
   created_id?: string;
   updated_id?: string;
   created_by?: CommonType;
@@ -128,5 +128,5 @@ export interface AgModelForm extends BaseFormType {
   provider?: string;
   api_key?: string;
   base_url?: string;
-  config?: string;
+  config?: Record<string, any>;
 }

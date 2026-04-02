@@ -97,7 +97,7 @@ export interface AgGuardrailPageQuery extends PageQuery {
   name?: string;
   type?: string;
   hook_type?: string;
-  config?: string;
+  config?: Record<string, any>;
   module_path?: string;
   class_name?: string;
   status?: string;
@@ -112,7 +112,7 @@ export interface AgGuardrailTable extends BaseType {
   name?: string;
   type?: string;
   hook_type?: string;
-  config?: string;
+  config?: Record<string, any>;
   module_path?: string;
   class_name?: string;
   created_id?: string;
@@ -126,7 +126,7 @@ export interface AgGuardrailForm extends BaseFormType {
   name?: string;
   type?: string;
   hook_type?: string;
-  config?: string;
+  config?: Record<string, any>;
   module_path?: string;
   class_name?: string;
 }

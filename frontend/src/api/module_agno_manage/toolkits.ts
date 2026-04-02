@@ -99,7 +99,7 @@ export interface AgToolkitPageQuery extends PageQuery {
   module_path?: string;
   class_name?: string;
   func_name?: string;
-  config?: string;
+  config?: Record<string, any>;
   instructions?: string;
   requires_confirmation?: string;
   approval_type?: string;
@@ -121,7 +121,7 @@ export interface AgToolkitTable extends BaseType {
   module_path?: string;
   class_name?: string;
   func_name?: string;
-  config?: string;
+  config?: Record<string, any>;
   instructions?: string;
   requires_confirmation?: string;
   approval_type?: string;
@@ -142,7 +142,7 @@ export interface AgToolkitForm extends BaseFormType {
   module_path?: string;
   class_name?: string;
   func_name?: string;
-  config?: string;
+  config?: Record<string, any>;
   instructions?: string;
   requires_confirmation?: string;
   approval_type?: string;

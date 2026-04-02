@@ -102,7 +102,7 @@ export interface AgIntegrationPageQuery extends PageQuery {
   token?: string;
   signing_secret?: string;
   prefix?: string;
-  config?: string;
+  config?: Record<string, any>;
   status?: string;
   created_id?: number;
   updated_id?: number;
@@ -120,7 +120,7 @@ export interface AgIntegrationTable extends BaseType {
   token?: string;
   signing_secret?: string;
   prefix?: string;
-  config?: string;
+  config?: Record<string, any>;
   created_id?: string;
   updated_id?: string;
   created_by?: CommonType;
@@ -137,5 +137,5 @@ export interface AgIntegrationForm extends BaseFormType {
   token?: string;
   signing_secret?: string;
   prefix?: string;
-  config?: string;
+  config?: Record<string, any>;
 }

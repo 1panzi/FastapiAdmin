@@ -98,7 +98,7 @@ export interface AgHookPageQuery extends PageQuery {
   hook_type?: string;
   module_path?: string;
   func_name?: string;
-  config?: string;
+  config?: Record<string, any>;
   run_in_background?: string;
   status?: string;
   created_id?: number;
@@ -113,7 +113,7 @@ export interface AgHookTable extends BaseType {
   hook_type?: string;
   module_path?: string;
   func_name?: string;
-  config?: string;
+  config?: Record<string, any>;
   run_in_background?: string;
   created_id?: string;
   updated_id?: string;
@@ -127,6 +127,6 @@ export interface AgHookForm extends BaseFormType {
   hook_type?: string;
   module_path?: string;
   func_name?: string;
-  config?: string;
+  config?: Record<string, any>;
   run_in_background?: string;
 }
