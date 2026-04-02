@@ -344,9 +344,9 @@
           align="center"
         >
           <template #default="scope">
-            <el-tag v-if="scope.row.requires_confirmation === true" type="success">是</el-tag>
-            <el-tag v-else-if="scope.row.requires_confirmation === false" type="danger">否</el-tag>
-            <el-tag v-else type="info">默认</el-tag>
+            <el-tag :type="scope.row.requires_confirmation === true ? 'success' : scope.row.requires_confirmation === false ? 'danger' : undefined">
+              {{ scope.row.requires_confirmation === true ? '是' : scope.row.requires_confirmation === false ? '否' : '默认' }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column
@@ -364,9 +364,9 @@
           align="center"
         >
           <template #default="scope">
-            <el-tag v-if="scope.row.stop_after_call === true" type="success">是</el-tag>
-            <el-tag v-else-if="scope.row.stop_after_call === false" type="danger">否</el-tag>
-            <el-tag v-else type="info">默认</el-tag>
+            <el-tag :type="scope.row.stop_after_call === true ? 'success' : scope.row.stop_after_call === false ? 'danger' : undefined">
+              {{ scope.row.stop_after_call === true ? '是' : scope.row.stop_after_call === false ? '否' : '默认' }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column
@@ -377,9 +377,9 @@
           align="center"
         >
           <template #default="scope">
-            <el-tag v-if="scope.row.show_result === true" type="success">是</el-tag>
-            <el-tag v-else-if="scope.row.show_result === false" type="danger">否</el-tag>
-            <el-tag v-else type="info">默认</el-tag>
+            <el-tag :type="scope.row.show_result === true ? 'success' : scope.row.show_result === false ? 'danger' : undefined">
+              {{ scope.row.show_result === true ? '是' : scope.row.show_result === false ? '否' : '默认' }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column
@@ -390,9 +390,9 @@
           align="center"
         >
           <template #default="scope">
-            <el-tag v-if="scope.row.cache_results === true" type="success">是</el-tag>
-            <el-tag v-else-if="scope.row.cache_results === false" type="danger">否</el-tag>
-            <el-tag v-else type="info">默认</el-tag>
+            <el-tag :type="scope.row.cache_results === true ? 'success' : scope.row.cache_results === false ? 'danger' : undefined">
+              {{ scope.row.cache_results === true ? '是' : scope.row.cache_results === false ? '否' : '默认' }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column
@@ -562,27 +562,27 @@
             {{ detailFormData.instructions }}
           </el-descriptions-item>
           <el-descriptions-item label="需要确认" :span="2">
-            <el-tag v-if="detailFormData.requires_confirmation === true" type="success">是</el-tag>
-            <el-tag v-else-if="detailFormData.requires_confirmation === false" type="danger">否</el-tag>
-            <el-tag v-else type="info">默认</el-tag>
+            <el-tag :type="detailFormData.requires_confirmation === true ? 'success' : detailFormData.requires_confirmation === false ? 'danger' : undefined">
+              {{ detailFormData.requires_confirmation === true ? '是' : detailFormData.requires_confirmation === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="审批类型" :span="2">
             {{ detailFormData.approval_type || "无" }}
           </el-descriptions-item>
           <el-descriptions-item label="调用后停止" :span="2">
-            <el-tag v-if="detailFormData.stop_after_call === true" type="success">是</el-tag>
-            <el-tag v-else-if="detailFormData.stop_after_call === false" type="danger">否</el-tag>
-            <el-tag v-else type="info">默认</el-tag>
+            <el-tag :type="detailFormData.stop_after_call === true ? 'success' : detailFormData.stop_after_call === false ? 'danger' : undefined">
+              {{ detailFormData.stop_after_call === true ? '是' : detailFormData.stop_after_call === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="展示结果" :span="2">
-            <el-tag v-if="detailFormData.show_result === true" type="success">是</el-tag>
-            <el-tag v-else-if="detailFormData.show_result === false" type="danger">否</el-tag>
-            <el-tag v-else type="info">默认</el-tag>
+            <el-tag :type="detailFormData.show_result === true ? 'success' : detailFormData.show_result === false ? 'danger' : undefined">
+              {{ detailFormData.show_result === true ? '是' : detailFormData.show_result === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="缓存结果" :span="2">
-            <el-tag v-if="detailFormData.cache_results === true" type="success">是</el-tag>
-            <el-tag v-else-if="detailFormData.cache_results === false" type="danger">否</el-tag>
-            <el-tag v-else type="info">默认</el-tag>
+            <el-tag :type="detailFormData.cache_results === true ? 'success' : detailFormData.cache_results === false ? 'danger' : undefined">
+              {{ detailFormData.cache_results === true ? '是' : detailFormData.cache_results === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item v-if="detailFormData.cache_results" label="缓存TTL(秒)" :span="2">
             {{ detailFormData.cache_ttl }}
@@ -676,10 +676,9 @@
             />
           </el-form-item>
           <el-form-item label="需要确认" prop="requires_confirmation">
-            <el-select v-model="formData.requires_confirmation" placeholder="请选择" clearable>
-              <el-option :value="true" label="是" />
-              <el-option :value="false" label="否" />
-              <el-option value="default" label="默认" />
+            <el-select v-model="formData.requires_confirmation" placeholder="默认" clearable>
+              <el-option label="是" :value="true" />
+              <el-option label="否" :value="false" />
             </el-select>
           </el-form-item>
           <el-form-item label="审批类型" prop="approval_type">
@@ -689,24 +688,21 @@
             </el-select>
           </el-form-item>
           <el-form-item label="调用后停止" prop="stop_after_call">
-            <el-select v-model="formData.stop_after_call" placeholder="请选择" clearable>
-              <el-option :value="true" label="是" />
-              <el-option :value="false" label="否" />
-              <el-option value="default" label="默认" />
+            <el-select v-model="formData.stop_after_call" placeholder="默认" clearable>
+              <el-option label="是" :value="true" />
+              <el-option label="否" :value="false" />
             </el-select>
           </el-form-item>
           <el-form-item label="展示结果" prop="show_result">
-            <el-select v-model="formData.show_result" placeholder="请选择" clearable>
-              <el-option :value="true" label="是" />
-              <el-option :value="false" label="否" />
-              <el-option value="default" label="默认" />
+            <el-select v-model="formData.show_result" placeholder="默认" clearable>
+              <el-option label="是" :value="true" />
+              <el-option label="否" :value="false" />
             </el-select>
           </el-form-item>
           <el-form-item label="缓存结果" prop="cache_results">
-            <el-select v-model="formData.cache_results" placeholder="请选择" clearable>
-              <el-option :value="true" label="是" />
-              <el-option :value="false" label="否" />
-              <el-option value="default" label="默认" />
+            <el-select v-model="formData.cache_results" placeholder="默认" clearable>
+              <el-option label="是" :value="true" />
+              <el-option label="否" :value="false" />
             </el-select>
           </el-form-item>
           <el-form-item v-if="formData.cache_results" label="缓存TTL(秒)" prop="cache_ttl">
@@ -932,11 +928,11 @@ const formData = reactive<AgToolkitForm>({
   func_name: undefined,
   config: undefined,
   instructions: undefined,
-  requires_confirmation: "default" as any,
+  requires_confirmation: undefined,
   approval_type: undefined,
-  stop_after_call: "default" as any,
-  show_result: "default" as any,
-  cache_results: "default" as any,
+  stop_after_call: undefined,
+  show_result: undefined,
+  cache_results: undefined,
   cache_ttl: undefined,
   source_code: undefined,
   param_schema: undefined,
@@ -1053,11 +1049,11 @@ const initialFormData: AgToolkitForm = {
   func_name: undefined,
   config: undefined,
   instructions: undefined,
-  requires_confirmation: "default" as any,
+  requires_confirmation: undefined,
   approval_type: undefined,
-  stop_after_call: "default" as any,
-  show_result: "default" as any,
-  cache_results: "default" as any,
+  stop_after_call: undefined,
+  show_result: undefined,
+  cache_results: undefined,
   cache_ttl: undefined,
   source_code: undefined,
   param_schema: undefined,
@@ -1098,19 +1094,6 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     } else if (type === "update") {
       dialogVisible.title = "修改";
       Object.assign(formData, response.data.data);
-      // 将后端返回的 null 值转换为 "default"，以便在表单中正确显示
-      if (formData.requires_confirmation === null || formData.requires_confirmation === undefined) {
-        formData.requires_confirmation = "default" as any;
-      }
-      if (formData.stop_after_call === null || formData.stop_after_call === undefined) {
-        formData.stop_after_call = "default" as any;
-      }
-      if (formData.show_result === null || formData.show_result === undefined) {
-        formData.show_result = "default" as any;
-      }
-      if (formData.cache_results === null || formData.cache_results === undefined) {
-        formData.cache_results = "default" as any;
-      }
     }
   } else {
     dialogVisible.title = "新增AgToolkit";
@@ -1125,11 +1108,11 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     formData.func_name = undefined;
     formData.config = undefined;
     formData.instructions = undefined;
-    formData.requires_confirmation = "default" as any;
+    formData.requires_confirmation = undefined;
     formData.approval_type = undefined;
-    formData.stop_after_call = "default" as any;
-    formData.show_result = "default" as any;
-    formData.cache_results = "default" as any;
+    formData.stop_after_call = undefined;
+    formData.show_result = undefined;
+    formData.cache_results = undefined;
     formData.cache_ttl = undefined;
     formData.source_code = undefined;
     formData.param_schema = undefined;
@@ -1146,9 +1129,9 @@ async function handleSubmit() {
     if (valid) {
       loading.value = true;
       // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
-      // 过滤 null/undefined/"default" 字段，不传递给接口（表示"使用默认值"）
+      // 过滤 null/undefined 字段，不传递给接口（表示"使用默认值"）
       const submitData = Object.fromEntries(
-        Object.entries({ ...formData }).filter(([, v]) => v !== null && v !== undefined && v !== "default")
+        Object.entries({ ...formData }).filter(([, v]) => v !== null && v !== undefined)
       ) as AgToolkitForm;
       const id = formData.id;
       if (id) {
