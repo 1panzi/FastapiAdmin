@@ -779,7 +779,7 @@ import type { IContentConfig } from "@/components/CURD/types";
 import ImportModal from "@/components/CURD/ImportModal.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
 import DictEditor from "@/views/module_agno_manage/components/DictEditor/index.vue";
-import UserTableSelect from "@/components/UserTableSelect/index.vue";
+import UserTableSelect from "@/views/module_system/user/components/UserTableSelect.vue";
 import AgToolkitAPI, {
   AgToolkitPageQuery,
   AgToolkitTable,
