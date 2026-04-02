@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import DateTime, Integer, Text, String
+from sqlalchemy import Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -19,4 +17,3 @@ class AgSessSummaryConfigModel(ModelMixin, UserMixin):
     model_id: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='关联摘要模型ID')
     session_summary_prompt: Mapped[str | None] = mapped_column(Text, nullable=True, comment='摘要生成提示词')
     summary_request_message: Mapped[str | None] = mapped_column(Text, nullable=True, comment='摘要请求消息')
-

@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import Integer, Text, DateTime, String
+from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -20,4 +18,3 @@ class AgTeamMemberModel(ModelMixin, UserMixin):
     member_id: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='成员ID（agent或嵌套team）')
     role: Mapped[str | None] = mapped_column(String(255), nullable=True, comment='成员角色描述')
     member_order: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='成员排序（数字小优先）')
-

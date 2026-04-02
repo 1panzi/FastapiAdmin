@@ -1,20 +1,24 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import (
+    AgLearningConfigCreateSchema,
+    AgLearningConfigQueryParam,
+    AgLearningConfigUpdateSchema,
+)
 from .service import AgLearningConfigService
-from .schema import AgLearningConfigCreateSchema, AgLearningConfigUpdateSchema, AgLearningConfigQueryParam
 
-AgLearningConfigRouter = APIRouter(prefix='/learning_configs', tags=["学习管理模块"]) 
+AgLearningConfigRouter = APIRouter(prefix='/learning_configs', tags=["学习管理模块"])
+
 
 @AgLearningConfigRouter.get(
     "/detail/{id}",
@@ -38,6 +42,7 @@ async def get_learning_configs_detail_controller(
     result_dict = await AgLearningConfigService.detail_learning_configs_service(auth=auth, id=id)
     log.info(f"获取学习管理详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取学习管理详情成功")
+
 
 @AgLearningConfigRouter.get(
     "/list",
@@ -70,6 +75,7 @@ async def get_learning_configs_list_controller(
     log.info("查询学习管理列表成功")
     return SuccessResponse(data=result_dict, msg="查询学习管理列表成功")
 
+
 @AgLearningConfigRouter.post(
     "/create",
     summary="创建学习管理",
@@ -92,6 +98,7 @@ async def create_learning_configs_controller(
     result_dict = await AgLearningConfigService.create_learning_configs_service(auth=auth, data=data)
     log.info("创建学习管理成功")
     return SuccessResponse(data=result_dict, msg="创建学习管理成功")
+
 
 @AgLearningConfigRouter.put(
     "/update/{id}",
@@ -118,6 +125,7 @@ async def update_learning_configs_controller(
     log.info("修改学习管理成功")
     return SuccessResponse(data=result_dict, msg="修改学习管理成功")
 
+
 @AgLearningConfigRouter.delete(
     "/delete",
     summary="删除学习管理",
@@ -141,6 +149,7 @@ async def delete_learning_configs_controller(
     log.info(f"删除学习管理成功: {ids}")
     return SuccessResponse(msg="删除学习管理成功")
 
+
 @AgLearningConfigRouter.patch(
     "/available/setting",
     summary="批量修改学习管理状态",
@@ -163,6 +172,7 @@ async def batch_set_available_learning_configs_controller(
     await AgLearningConfigService.set_available_learning_configs_service(auth=auth, data=data)
     log.info(f"批量修改学习管理状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改学习管理状态成功")
+
 
 @AgLearningConfigRouter.post(
     '/export',
@@ -192,6 +202,7 @@ async def export_learning_configs_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_learning_configs.xlsx'}
     )
 
+
 @AgLearningConfigRouter.post(
     '/import',
     summary="导入学习管理",
@@ -214,6 +225,7 @@ async def import_learning_configs_list_controller(
     batch_import_result = await AgLearningConfigService.batch_import_learning_configs_service(file=file, auth=auth, update_support=True)
     log.info("导入学习管理成功")
     return SuccessResponse(data=batch_import_result, msg="导入学习管理成功")
+
 
 @AgLearningConfigRouter.post(
     '/download/template',

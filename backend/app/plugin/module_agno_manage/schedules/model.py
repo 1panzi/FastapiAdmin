@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import String, JSON, DateTime, Integer, Text
+from sqlalchemy import JSON, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -24,4 +22,3 @@ class AgScheduleModel(ModelMixin, UserMixin):
     timeout_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='任务超时秒数')
     max_retries: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='失败最大重试次数')
     retry_delay_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='重试间隔秒数')
-

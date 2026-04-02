@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import AgGuardrailCreateSchema, AgGuardrailQueryParam, AgGuardrailUpdateSchema
 from .service import AgGuardrailService
-from .schema import AgGuardrailCreateSchema, AgGuardrailUpdateSchema, AgGuardrailQueryParam
 
-AgGuardrailRouter = APIRouter(prefix='/guardrails', tags=["护栏模块"]) 
+AgGuardrailRouter = APIRouter(prefix='/guardrails', tags=["护栏模块"])
+
 
 @AgGuardrailRouter.get(
     "/detail/{id}",
@@ -38,6 +38,7 @@ async def get_guardrails_detail_controller(
     result_dict = await AgGuardrailService.detail_guardrails_service(auth=auth, id=id)
     log.info(f"获取护栏详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取护栏详情成功")
+
 
 @AgGuardrailRouter.get(
     "/list",
@@ -70,6 +71,7 @@ async def get_guardrails_list_controller(
     log.info("查询护栏列表成功")
     return SuccessResponse(data=result_dict, msg="查询护栏列表成功")
 
+
 @AgGuardrailRouter.post(
     "/create",
     summary="创建护栏",
@@ -92,6 +94,7 @@ async def create_guardrails_controller(
     result_dict = await AgGuardrailService.create_guardrails_service(auth=auth, data=data)
     log.info("创建护栏成功")
     return SuccessResponse(data=result_dict, msg="创建护栏成功")
+
 
 @AgGuardrailRouter.put(
     "/update/{id}",
@@ -118,6 +121,7 @@ async def update_guardrails_controller(
     log.info("修改护栏成功")
     return SuccessResponse(data=result_dict, msg="修改护栏成功")
 
+
 @AgGuardrailRouter.delete(
     "/delete",
     summary="删除护栏",
@@ -141,6 +145,7 @@ async def delete_guardrails_controller(
     log.info(f"删除护栏成功: {ids}")
     return SuccessResponse(msg="删除护栏成功")
 
+
 @AgGuardrailRouter.patch(
     "/available/setting",
     summary="批量修改护栏状态",
@@ -163,6 +168,7 @@ async def batch_set_available_guardrails_controller(
     await AgGuardrailService.set_available_guardrails_service(auth=auth, data=data)
     log.info(f"批量修改护栏状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改护栏状态成功")
+
 
 @AgGuardrailRouter.post(
     '/export',
@@ -192,6 +198,7 @@ async def export_guardrails_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_guardrails.xlsx'}
     )
 
+
 @AgGuardrailRouter.post(
     '/import',
     summary="导入护栏",
@@ -215,6 +222,7 @@ async def import_guardrails_list_controller(
     log.info("导入护栏成功")
     return SuccessResponse(data=batch_import_result, msg="导入护栏成功")
 
+
 @AgGuardrailRouter.post(
     '/download/template',
     summary="获取护栏导入模板",
@@ -235,6 +243,7 @@ async def export_guardrails_template_controller() -> StreamingResponse:
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         headers={'Content-Disposition': 'attachment; filename=ag_guardrails_template.xlsx'}
     )
+
 
 @AgGuardrailRouter.get(
     "/agno/guardrail_types",

@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 
 import io
+
 import pandas as pd
 from fastapi import UploadFile
 
@@ -13,9 +13,9 @@ from app.utils.excel_util import ExcelUtil
 from .crud import AgDocumentCRUD
 from .schema import (
     AgDocumentCreateSchema,
-    AgDocumentUpdateSchema,
     AgDocumentOutSchema,
-    AgDocumentQueryParam
+    AgDocumentQueryParam,
+    AgDocumentUpdateSchema,
 )
 
 
@@ -23,7 +23,7 @@ class AgDocumentService:
     """
     知识库文档服务层
     """
-    
+
     @classmethod
     async def detail_documents_service(cls, auth: AuthSchema, id: int) -> dict:
         """
@@ -40,7 +40,7 @@ class AgDocumentService:
         if not obj:
             raise CustomException(msg="该数据不存在")
         return AgDocumentOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def list_documents_service(cls, auth: AuthSchema, search: AgDocumentQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
         """
@@ -83,7 +83,7 @@ class AgDocumentService:
             search=search_dict
         )
         return result
-    
+
     @classmethod
     async def create_documents_service(cls, auth: AuthSchema, data: AgDocumentCreateSchema) -> dict:
         """
@@ -98,7 +98,7 @@ class AgDocumentService:
         """
         obj = await AgDocumentCRUD(auth).create_documents_crud(data=data)
         return AgDocumentOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def update_documents_service(cls, auth: AuthSchema, id: int, data: AgDocumentUpdateSchema) -> dict:
         """
@@ -116,12 +116,12 @@ class AgDocumentService:
         obj = await AgDocumentCRUD(auth).get_by_id_documents_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
-        
+
         # 检查唯一性约束
-            
+
         obj = await AgDocumentCRUD(auth).update_documents_crud(id=id, data=data)
         return AgDocumentOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def delete_documents_service(cls, auth: AuthSchema, ids: list[int]) -> None:
         """
@@ -141,7 +141,7 @@ class AgDocumentService:
             if not obj:
                 raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
         await AgDocumentCRUD(auth).delete_documents_crud(ids=ids)
-    
+
     @classmethod
     async def set_available_documents_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
         """
@@ -155,7 +155,7 @@ class AgDocumentService:
         - None
         """
         await AgDocumentCRUD(auth).set_available_documents_crud(ids=data.ids, status=data.status)
-    
+
     @classmethod
     async def batch_export_documents_service(cls, obj_list: list[dict]) -> bytes:
         """
@@ -245,13 +245,13 @@ class AgDocumentService:
 
             # 重命名列名
             df.rename(columns=header_dict, inplace=True)
-            
+
             # 验证必填字段
-            
+
             error_msgs = []
             success_count = 0
             count = 0
-            
+
             for _index, row in df.iterrows():
                 count += 1
                 try:
@@ -274,9 +274,9 @@ class AgDocumentService:
                     }
                     # 使用CreateSchema做校验后入库
                     create_schema = AgDocumentCreateSchema.model_validate(data)
-                    
+
                     # 检查唯一性约束
-                    
+
                     await AgDocumentCRUD(auth).create_documents_crud(data=create_schema)
                     success_count += 1
                 except Exception as e:
@@ -287,11 +287,11 @@ class AgDocumentService:
             if error_msgs:
                 result += "\n错误信息:\n" + "\n".join(error_msgs)
             return result
-            
+
         except Exception as e:
             log.error(f"批量导入失败: {str(e)}")
             raise CustomException(msg=f"导入失败: {str(e)}")
-    
+
     @classmethod
     async def import_template_download_documents_service(cls) -> bytes:
         """
@@ -319,8 +319,7 @@ class AgDocumentService:
         ]
         selector_header_list = []
         option_list = []
-        
-        
+
         return ExcelUtil.get_excel_template(
             header_list=header_list,
             selector_header_list=selector_header_list,

@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 
 import io
+
 import pandas as pd
 from fastapi import UploadFile
 
@@ -8,15 +8,15 @@ from app.api.v1.module_system.auth.schema import AuthSchema
 from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
 from app.core.logger import log
+from app.plugin.module_agno_manage.core.registry import get_registry
 from app.utils.excel_util import ExcelUtil
 
-from app.plugin.module_agno_manage.core.registry import get_registry
 from .crud import AgSessSummaryConfigCRUD
 from .schema import (
     AgSessSummaryConfigCreateSchema,
-    AgSessSummaryConfigUpdateSchema,
     AgSessSummaryConfigOutSchema,
-    AgSessSummaryConfigQueryParam
+    AgSessSummaryConfigQueryParam,
+    AgSessSummaryConfigUpdateSchema,
 )
 
 
@@ -24,7 +24,7 @@ class AgSessSummaryConfigService:
     """
     会话摘要配置服务层
     """
-    
+
     @classmethod
     async def detail_sess_summary_configs_service(cls, auth: AuthSchema, id: int) -> dict:
         """
@@ -41,7 +41,7 @@ class AgSessSummaryConfigService:
         if not obj:
             raise CustomException(msg="该数据不存在")
         return AgSessSummaryConfigOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def list_sess_summary_configs_service(cls, auth: AuthSchema, search: AgSessSummaryConfigQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
         """
@@ -84,7 +84,7 @@ class AgSessSummaryConfigService:
             search=search_dict
         )
         return result
-    
+
     @classmethod
     async def create_sess_summary_configs_service(cls, auth: AuthSchema, data: AgSessSummaryConfigCreateSchema) -> dict:
         """
@@ -101,7 +101,7 @@ class AgSessSummaryConfigService:
         if obj and obj.status == "0":
             get_registry().update_session_summary_row(str(obj.id), obj)
         return AgSessSummaryConfigOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def update_sess_summary_configs_service(cls, auth: AuthSchema, id: int, data: AgSessSummaryConfigUpdateSchema) -> dict:
         """
@@ -119,9 +119,9 @@ class AgSessSummaryConfigService:
         obj = await AgSessSummaryConfigCRUD(auth).get_by_id_sess_summary_configs_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
-        
+
         # 检查唯一性约束
-            
+
         obj = await AgSessSummaryConfigCRUD(auth).update_sess_summary_configs_crud(id=id, data=data)
         if obj:
             if obj.status == "0":
@@ -129,7 +129,7 @@ class AgSessSummaryConfigService:
             else:
                 get_registry().remove_session_summary_row(str(obj.id))
         return AgSessSummaryConfigOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def delete_sess_summary_configs_service(cls, auth: AuthSchema, ids: list[int]) -> None:
         """
@@ -153,7 +153,7 @@ class AgSessSummaryConfigService:
         await AgSessSummaryConfigCRUD(auth).delete_sess_summary_configs_crud(ids=ids)
         for rid in ids_to_remove:
             get_registry().remove_session_summary_row(rid)
-    
+
     @classmethod
     async def set_available_sess_summary_configs_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
         """
@@ -177,7 +177,7 @@ class AgSessSummaryConfigService:
                 get_registry().update_session_summary_row(str(obj.id), obj)
             else:
                 get_registry().remove_session_summary_row(str(obj.id))
-    
+
     @classmethod
     async def batch_export_sess_summary_configs_service(cls, obj_list: list[dict]) -> bytes:
         """
@@ -261,13 +261,13 @@ class AgSessSummaryConfigService:
 
             # 重命名列名
             df.rename(columns=header_dict, inplace=True)
-            
+
             # 验证必填字段
-            
+
             error_msgs = []
             success_count = 0
             count = 0
-            
+
             for _index, row in df.iterrows():
                 count += 1
                 try:
@@ -287,9 +287,9 @@ class AgSessSummaryConfigService:
                     }
                     # 使用CreateSchema做校验后入库
                     create_schema = AgSessSummaryConfigCreateSchema.model_validate(data)
-                    
+
                     # 检查唯一性约束
-                    
+
                     await AgSessSummaryConfigCRUD(auth).create_sess_summary_configs_crud(data=create_schema)
                     success_count += 1
                 except Exception as e:
@@ -300,11 +300,11 @@ class AgSessSummaryConfigService:
             if error_msgs:
                 result += "\n错误信息:\n" + "\n".join(error_msgs)
             return result
-            
+
         except Exception as e:
             log.error(f"批量导入失败: {str(e)}")
             raise CustomException(msg=f"导入失败: {str(e)}")
-    
+
     @classmethod
     async def import_template_download_sess_summary_configs_service(cls) -> bytes:
         """
@@ -329,8 +329,7 @@ class AgSessSummaryConfigService:
         ]
         selector_header_list = []
         option_list = []
-        
-        
+
         return ExcelUtil.get_excel_template(
             header_list=header_list,
             selector_header_list=selector_header_list,

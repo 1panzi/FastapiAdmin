@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import JSON, String, Text, DateTime, Integer
+from sqlalchemy import JSON, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -24,4 +22,3 @@ class AgIntegrationModel(ModelMixin, UserMixin):
     signing_secret: Mapped[str | None] = mapped_column(Text, nullable=True, comment='签名密钥（Slack校验用）')
     prefix: Mapped[str | None] = mapped_column(String(100), nullable=True, comment='路由前缀（如/slack /telegram）')
     config: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='渠道扩展配置（streaming/reply_to_mentions_only等）')
-

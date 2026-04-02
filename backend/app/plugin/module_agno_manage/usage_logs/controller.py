@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import AgUsageLogCreateSchema, AgUsageLogQueryParam, AgUsageLogUpdateSchema
 from .service import AgUsageLogService
-from .schema import AgUsageLogCreateSchema, AgUsageLogUpdateSchema, AgUsageLogQueryParam
 
-AgUsageLogRouter = APIRouter(prefix='/usage_logs', tags=["用量日志模块"]) 
+AgUsageLogRouter = APIRouter(prefix='/usage_logs', tags=["用量日志模块"])
+
 
 @AgUsageLogRouter.get(
     "/detail/{id}",
@@ -38,6 +38,7 @@ async def get_usage_logs_detail_controller(
     result_dict = await AgUsageLogService.detail_usage_logs_service(auth=auth, id=id)
     log.info(f"获取用量日志详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取用量日志详情成功")
+
 
 @AgUsageLogRouter.get(
     "/list",
@@ -70,6 +71,7 @@ async def get_usage_logs_list_controller(
     log.info("查询用量日志列表成功")
     return SuccessResponse(data=result_dict, msg="查询用量日志列表成功")
 
+
 @AgUsageLogRouter.post(
     "/create",
     summary="创建用量日志",
@@ -92,6 +94,7 @@ async def create_usage_logs_controller(
     result_dict = await AgUsageLogService.create_usage_logs_service(auth=auth, data=data)
     log.info("创建用量日志成功")
     return SuccessResponse(data=result_dict, msg="创建用量日志成功")
+
 
 @AgUsageLogRouter.put(
     "/update/{id}",
@@ -118,6 +121,7 @@ async def update_usage_logs_controller(
     log.info("修改用量日志成功")
     return SuccessResponse(data=result_dict, msg="修改用量日志成功")
 
+
 @AgUsageLogRouter.delete(
     "/delete",
     summary="删除用量日志",
@@ -141,6 +145,7 @@ async def delete_usage_logs_controller(
     log.info(f"删除用量日志成功: {ids}")
     return SuccessResponse(msg="删除用量日志成功")
 
+
 @AgUsageLogRouter.patch(
     "/available/setting",
     summary="批量修改用量日志状态",
@@ -163,6 +168,7 @@ async def batch_set_available_usage_logs_controller(
     await AgUsageLogService.set_available_usage_logs_service(auth=auth, data=data)
     log.info(f"批量修改用量日志状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改用量日志状态成功")
+
 
 @AgUsageLogRouter.post(
     '/export',
@@ -192,6 +198,7 @@ async def export_usage_logs_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_usage_logs.xlsx'}
     )
 
+
 @AgUsageLogRouter.post(
     '/import',
     summary="导入用量日志",
@@ -214,6 +221,7 @@ async def import_usage_logs_list_controller(
     batch_import_result = await AgUsageLogService.batch_import_usage_logs_service(file=file, auth=auth, update_support=True)
     log.info("导入用量日志成功")
     return SuccessResponse(data=batch_import_result, msg="导入用量日志成功")
+
 
 @AgUsageLogRouter.post(
     '/download/template',

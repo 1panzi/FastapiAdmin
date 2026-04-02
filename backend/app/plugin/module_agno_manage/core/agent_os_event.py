@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 AgentOS 事件处理模块。
 

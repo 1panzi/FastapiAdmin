@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Agno Registry 生命周期控制器。
 

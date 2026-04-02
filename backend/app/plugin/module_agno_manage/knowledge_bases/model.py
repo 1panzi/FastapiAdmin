@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import DateTime, JSON, Integer, String, Text
+from sqlalchemy import JSON, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -21,4 +19,3 @@ class AgKnowledgeBaseModel(ModelMixin, UserMixin):
     reader_type: Mapped[str | None] = mapped_column(String(50), nullable=True, comment='文档读取器类型(pdf/web/docx/csv/json/text)')
     reader_config: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='读取器配置参数')
     default_filters: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='默认搜索过滤条件')
-

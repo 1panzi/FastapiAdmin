@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import AgTeamMemberCreateSchema, AgTeamMemberQueryParam, AgTeamMemberUpdateSchema
 from .service import AgTeamMemberService
-from .schema import AgTeamMemberCreateSchema, AgTeamMemberUpdateSchema, AgTeamMemberQueryParam
 
-AgTeamMemberRouter = APIRouter(prefix='/team_members', tags=["Team成员关系模块"]) 
+AgTeamMemberRouter = APIRouter(prefix='/team_members', tags=["Team成员关系模块"])
+
 
 @AgTeamMemberRouter.get(
     "/detail/{id}",
@@ -38,6 +38,7 @@ async def get_team_members_detail_controller(
     result_dict = await AgTeamMemberService.detail_team_members_service(auth=auth, id=id)
     log.info(f"获取Team成员关系详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取Team成员关系详情成功")
+
 
 @AgTeamMemberRouter.get(
     "/list",
@@ -70,6 +71,7 @@ async def get_team_members_list_controller(
     log.info("查询Team成员关系列表成功")
     return SuccessResponse(data=result_dict, msg="查询Team成员关系列表成功")
 
+
 @AgTeamMemberRouter.post(
     "/create",
     summary="创建Team成员关系",
@@ -92,6 +94,7 @@ async def create_team_members_controller(
     result_dict = await AgTeamMemberService.create_team_members_service(auth=auth, data=data)
     log.info("创建Team成员关系成功")
     return SuccessResponse(data=result_dict, msg="创建Team成员关系成功")
+
 
 @AgTeamMemberRouter.put(
     "/update/{id}",
@@ -118,6 +121,7 @@ async def update_team_members_controller(
     log.info("修改Team成员关系成功")
     return SuccessResponse(data=result_dict, msg="修改Team成员关系成功")
 
+
 @AgTeamMemberRouter.delete(
     "/delete",
     summary="删除Team成员关系",
@@ -141,6 +145,7 @@ async def delete_team_members_controller(
     log.info(f"删除Team成员关系成功: {ids}")
     return SuccessResponse(msg="删除Team成员关系成功")
 
+
 @AgTeamMemberRouter.patch(
     "/available/setting",
     summary="批量修改Team成员关系状态",
@@ -163,6 +168,7 @@ async def batch_set_available_team_members_controller(
     await AgTeamMemberService.set_available_team_members_service(auth=auth, data=data)
     log.info(f"批量修改Team成员关系状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改Team成员关系状态成功")
+
 
 @AgTeamMemberRouter.post(
     '/export',
@@ -192,6 +198,7 @@ async def export_team_members_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_team_members.xlsx'}
     )
 
+
 @AgTeamMemberRouter.post(
     '/import',
     summary="导入Team成员关系",
@@ -214,6 +221,7 @@ async def import_team_members_list_controller(
     batch_import_result = await AgTeamMemberService.batch_import_team_members_service(file=file, auth=auth, update_support=True)
     log.info("导入Team成员关系成功")
     return SuccessResponse(data=batch_import_result, msg="导入Team成员关系成功")
+
 
 @AgTeamMemberRouter.post(
     '/download/template',

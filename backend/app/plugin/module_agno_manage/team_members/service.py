@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 
 import io
+
 import pandas as pd
 from fastapi import UploadFile
 
@@ -13,9 +13,9 @@ from app.utils.excel_util import ExcelUtil
 from .crud import AgTeamMemberCRUD
 from .schema import (
     AgTeamMemberCreateSchema,
-    AgTeamMemberUpdateSchema,
     AgTeamMemberOutSchema,
-    AgTeamMemberQueryParam
+    AgTeamMemberQueryParam,
+    AgTeamMemberUpdateSchema,
 )
 
 
@@ -23,7 +23,7 @@ class AgTeamMemberService:
     """
     Team成员关系服务层
     """
-    
+
     @classmethod
     async def detail_team_members_service(cls, auth: AuthSchema, id: int) -> dict:
         """
@@ -40,7 +40,7 @@ class AgTeamMemberService:
         if not obj:
             raise CustomException(msg="该数据不存在")
         return AgTeamMemberOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def list_team_members_service(cls, auth: AuthSchema, search: AgTeamMemberQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
         """
@@ -83,7 +83,7 @@ class AgTeamMemberService:
             search=search_dict
         )
         return result
-    
+
     @classmethod
     async def create_team_members_service(cls, auth: AuthSchema, data: AgTeamMemberCreateSchema) -> dict:
         """
@@ -98,7 +98,7 @@ class AgTeamMemberService:
         """
         obj = await AgTeamMemberCRUD(auth).create_team_members_crud(data=data)
         return AgTeamMemberOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def update_team_members_service(cls, auth: AuthSchema, id: int, data: AgTeamMemberUpdateSchema) -> dict:
         """
@@ -116,12 +116,12 @@ class AgTeamMemberService:
         obj = await AgTeamMemberCRUD(auth).get_by_id_team_members_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
-        
+
         # 检查唯一性约束
-            
+
         obj = await AgTeamMemberCRUD(auth).update_team_members_crud(id=id, data=data)
         return AgTeamMemberOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def delete_team_members_service(cls, auth: AuthSchema, ids: list[int]) -> None:
         """
@@ -141,7 +141,7 @@ class AgTeamMemberService:
             if not obj:
                 raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
         await AgTeamMemberCRUD(auth).delete_team_members_crud(ids=ids)
-    
+
     @classmethod
     async def set_available_team_members_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
         """
@@ -155,7 +155,7 @@ class AgTeamMemberService:
         - None
         """
         await AgTeamMemberCRUD(auth).set_available_team_members_crud(ids=data.ids, status=data.status)
-    
+
     @classmethod
     async def batch_export_team_members_service(cls, obj_list: list[dict]) -> bytes:
         """
@@ -241,13 +241,13 @@ class AgTeamMemberService:
 
             # 重命名列名
             df.rename(columns=header_dict, inplace=True)
-            
+
             # 验证必填字段
-            
+
             error_msgs = []
             success_count = 0
             count = 0
-            
+
             for _index, row in df.iterrows():
                 count += 1
                 try:
@@ -268,9 +268,9 @@ class AgTeamMemberService:
                     }
                     # 使用CreateSchema做校验后入库
                     create_schema = AgTeamMemberCreateSchema.model_validate(data)
-                    
+
                     # 检查唯一性约束
-                    
+
                     await AgTeamMemberCRUD(auth).create_team_members_crud(data=create_schema)
                     success_count += 1
                 except Exception as e:
@@ -281,11 +281,11 @@ class AgTeamMemberService:
             if error_msgs:
                 result += "\n错误信息:\n" + "\n".join(error_msgs)
             return result
-            
+
         except Exception as e:
             log.error(f"批量导入失败: {str(e)}")
             raise CustomException(msg=f"导入失败: {str(e)}")
-    
+
     @classmethod
     async def import_template_download_team_members_service(cls) -> bytes:
         """
@@ -311,8 +311,7 @@ class AgTeamMemberService:
         ]
         selector_header_list = []
         option_list = []
-        
-        
+
         return ExcelUtil.get_excel_template(
             header_list=header_list,
             selector_header_list=selector_header_list,

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Agno 支持的 LLM 提供商元数据，供前端创建模型时选择。"""
 from typing import TypedDict
 

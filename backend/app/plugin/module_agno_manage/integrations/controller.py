@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import AgIntegrationCreateSchema, AgIntegrationQueryParam, AgIntegrationUpdateSchema
 from .service import AgIntegrationService
-from .schema import AgIntegrationCreateSchema, AgIntegrationUpdateSchema, AgIntegrationQueryParam
 
-AgIntegrationRouter = APIRouter(prefix='/integrations', tags=["渠道集成管理模块"]) 
+AgIntegrationRouter = APIRouter(prefix='/integrations', tags=["渠道集成管理模块"])
+
 
 @AgIntegrationRouter.get(
     "/detail/{id}",
@@ -38,6 +38,7 @@ async def get_integrations_detail_controller(
     result_dict = await AgIntegrationService.detail_integrations_service(auth=auth, id=id)
     log.info(f"获取渠道集成管理详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取渠道集成管理详情成功")
+
 
 @AgIntegrationRouter.get(
     "/list",
@@ -70,6 +71,7 @@ async def get_integrations_list_controller(
     log.info("查询渠道集成管理列表成功")
     return SuccessResponse(data=result_dict, msg="查询渠道集成管理列表成功")
 
+
 @AgIntegrationRouter.post(
     "/create",
     summary="创建渠道集成管理",
@@ -92,6 +94,7 @@ async def create_integrations_controller(
     result_dict = await AgIntegrationService.create_integrations_service(auth=auth, data=data)
     log.info("创建渠道集成管理成功")
     return SuccessResponse(data=result_dict, msg="创建渠道集成管理成功")
+
 
 @AgIntegrationRouter.put(
     "/update/{id}",
@@ -118,6 +121,7 @@ async def update_integrations_controller(
     log.info("修改渠道集成管理成功")
     return SuccessResponse(data=result_dict, msg="修改渠道集成管理成功")
 
+
 @AgIntegrationRouter.delete(
     "/delete",
     summary="删除渠道集成管理",
@@ -141,6 +145,7 @@ async def delete_integrations_controller(
     log.info(f"删除渠道集成管理成功: {ids}")
     return SuccessResponse(msg="删除渠道集成管理成功")
 
+
 @AgIntegrationRouter.patch(
     "/available/setting",
     summary="批量修改渠道集成管理状态",
@@ -163,6 +168,7 @@ async def batch_set_available_integrations_controller(
     await AgIntegrationService.set_available_integrations_service(auth=auth, data=data)
     log.info(f"批量修改渠道集成管理状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改渠道集成管理状态成功")
+
 
 @AgIntegrationRouter.post(
     '/export',
@@ -192,6 +198,7 @@ async def export_integrations_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_integrations.xlsx'}
     )
 
+
 @AgIntegrationRouter.post(
     '/import',
     summary="导入渠道集成管理",
@@ -214,6 +221,7 @@ async def import_integrations_list_controller(
     batch_import_result = await AgIntegrationService.batch_import_integrations_service(file=file, auth=auth, update_support=True)
     log.info("导入渠道集成管理成功")
     return SuccessResponse(data=batch_import_result, msg="导入渠道集成管理成功")
+
 
 @AgIntegrationRouter.post(
     '/download/template',

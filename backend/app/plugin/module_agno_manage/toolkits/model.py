@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import String, Boolean, JSON, Text, Integer, DateTime
+from sqlalchemy import JSON, Boolean, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -28,4 +26,3 @@ class AgToolkitModel(ModelMixin, UserMixin):
     show_result: Mapped[bool | None] = mapped_column(Boolean, nullable=True, comment='是否展示结果')
     cache_results: Mapped[bool | None] = mapped_column(Boolean, nullable=True, comment='是否缓存结果')
     cache_ttl: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='缓存TTL秒数')
-

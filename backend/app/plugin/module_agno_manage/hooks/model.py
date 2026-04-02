@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import Boolean, Text, Integer, JSON, String, DateTime
+from sqlalchemy import JSON, Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -21,4 +19,3 @@ class AgHookModel(ModelMixin, UserMixin):
     func_name: Mapped[str | None] = mapped_column(String(255), nullable=True, comment='函数名')
     config: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='额外配置参数')
     run_in_background: Mapped[bool | None] = mapped_column(Boolean, nullable=True, comment='是否后台运行（不阻塞响应）')
-

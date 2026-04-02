@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import String, Integer, Text, JSON, DateTime, Boolean
+from sqlalchemy import JSON, Boolean, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -46,4 +44,3 @@ class AgWorkflowNodeModel(ModelMixin, UserMixin):
     user_input_schema: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='用户输入结构体Schema')
     on_reject: Mapped[str | None] = mapped_column(String(20), nullable=True, comment='用户拒绝时处理策略(skip/abort)')
     on_error: Mapped[str | None] = mapped_column(String(20), nullable=True, comment='节点出错时处理策略(skip/abort)')
-

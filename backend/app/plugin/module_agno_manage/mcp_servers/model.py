@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import DateTime, Boolean, String, Integer, Text, JSON
+from sqlalchemy import JSON, Boolean, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -25,4 +23,3 @@ class AgMcpServerModel(ModelMixin, UserMixin):
     tool_name_prefix: Mapped[str | None] = mapped_column(String(100), nullable=True, comment='工具名称前缀')
     timeout_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='连接超时秒数')
     refresh_connection: Mapped[bool | None] = mapped_column(Boolean, nullable=True, comment='是否刷新连接')
-

@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import AgSkillCreateSchema, AgSkillQueryParam, AgSkillUpdateSchema
 from .service import AgSkillService
-from .schema import AgSkillCreateSchema, AgSkillUpdateSchema, AgSkillQueryParam
 
-AgSkillRouter = APIRouter(prefix='/skills', tags=["技能管理模块"]) 
+AgSkillRouter = APIRouter(prefix='/skills', tags=["技能管理模块"])
+
 
 @AgSkillRouter.get(
     "/detail/{id}",
@@ -38,6 +38,7 @@ async def get_skills_detail_controller(
     result_dict = await AgSkillService.detail_skills_service(auth=auth, id=id)
     log.info(f"获取技能管理详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取技能管理详情成功")
+
 
 @AgSkillRouter.get(
     "/list",
@@ -70,6 +71,7 @@ async def get_skills_list_controller(
     log.info("查询技能管理列表成功")
     return SuccessResponse(data=result_dict, msg="查询技能管理列表成功")
 
+
 @AgSkillRouter.post(
     "/create",
     summary="创建技能管理",
@@ -92,6 +94,7 @@ async def create_skills_controller(
     result_dict = await AgSkillService.create_skills_service(auth=auth, data=data)
     log.info("创建技能管理成功")
     return SuccessResponse(data=result_dict, msg="创建技能管理成功")
+
 
 @AgSkillRouter.put(
     "/update/{id}",
@@ -118,6 +121,7 @@ async def update_skills_controller(
     log.info("修改技能管理成功")
     return SuccessResponse(data=result_dict, msg="修改技能管理成功")
 
+
 @AgSkillRouter.delete(
     "/delete",
     summary="删除技能管理",
@@ -141,6 +145,7 @@ async def delete_skills_controller(
     log.info(f"删除技能管理成功: {ids}")
     return SuccessResponse(msg="删除技能管理成功")
 
+
 @AgSkillRouter.patch(
     "/available/setting",
     summary="批量修改技能管理状态",
@@ -163,6 +168,7 @@ async def batch_set_available_skills_controller(
     await AgSkillService.set_available_skills_service(auth=auth, data=data)
     log.info(f"批量修改技能管理状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改技能管理状态成功")
+
 
 @AgSkillRouter.post(
     '/export',
@@ -192,6 +198,7 @@ async def export_skills_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_skills.xlsx'}
     )
 
+
 @AgSkillRouter.post(
     '/import',
     summary="导入技能管理",
@@ -214,6 +221,7 @@ async def import_skills_list_controller(
     batch_import_result = await AgSkillService.batch_import_skills_service(file=file, auth=auth, update_support=True)
     log.info("导入技能管理成功")
     return SuccessResponse(data=batch_import_result, msg="导入技能管理成功")
+
 
 @AgSkillRouter.post(
     '/download/template',

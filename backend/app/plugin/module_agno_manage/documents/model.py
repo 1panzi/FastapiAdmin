@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import Integer, DateTime, Text, JSON, String
+from sqlalchemy import JSON, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -22,4 +20,3 @@ class AgDocumentModel(ModelMixin, UserMixin):
     doc_status: Mapped[str | None] = mapped_column(String(20), nullable=True, comment='处理状态(pending/processing/indexed/failed)')
     error_msg: Mapped[str | None] = mapped_column(Text, nullable=True, comment='处理失败错误信息')
     metadata_config: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='文档元数据')
-

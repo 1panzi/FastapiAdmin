@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import String, Text, DateTime, Integer, Boolean, JSON
+from sqlalchemy import JSON, Boolean, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -74,4 +72,3 @@ class AgAgentModel(ModelMixin, UserMixin):
     remote_url: Mapped[str | None] = mapped_column(String(500), nullable=True, comment='远程Agent地址')
     remote_agent_id: Mapped[str | None] = mapped_column(String(255), nullable=True, comment='远程Agent标识符')
     metadata_config: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='元数据')
-

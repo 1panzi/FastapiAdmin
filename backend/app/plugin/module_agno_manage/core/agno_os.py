@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 AgentOS 初始化模块。
 
@@ -6,13 +5,14 @@ AgentOS 初始化模块。
 使用 base_app 模式将 AgentOS 路由注入现有 FastAPI 实例，复用其中间件和路由体系。
 """
 
-from fastapi import FastAPI
-
-from app.core.logger import log
-from app.config.setting import settings
 from agno.db.mysql.mysql import MySQLDb
 from agno.db.postgres.postgres import PostgresDb
 from agno.db.sqlite.sqlite import SqliteDb
+from fastapi import FastAPI
+
+from app.config.setting import settings
+from app.core.logger import log
+
 db_uri = settings.DB_URI
 
 db_mapping = {
@@ -20,6 +20,7 @@ db_mapping = {
     "postgres": lambda: PostgresDb(db_url=db_uri),
     "sqlite": lambda: SqliteDb(db_file=db_uri.replace("sqlite:///", "")),
 }
+
 
 def _build_agno_db():
     """根据项目 DATABASE_TYPE 构建对应的 Agno 同步 BaseDb 实例。
@@ -62,7 +63,7 @@ async def init_agent_os(app: FastAPI) -> None:
             workflows=workflows,
             db=db,
             base_app=app,
-            # telemetry=False,
+            telemetry=False,
         )
         agent_os.get_app()
         # 清除 openapi schema 缓存，让 /docs 重新生成包含 AgentOS 路由

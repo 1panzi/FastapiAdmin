@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 
 import io
+
 import pandas as pd
 from fastapi import UploadFile
 
@@ -8,23 +8,18 @@ from app.api.v1.module_system.auth.schema import AuthSchema
 from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
 from app.core.logger import log
+from app.plugin.module_agno_manage.core.registry import get_registry
 from app.utils.excel_util import ExcelUtil
 
-from app.plugin.module_agno_manage.core.registry import get_registry
 from .crud import AgAgentCRUD
-from .schema import (
-    AgAgentCreateSchema,
-    AgAgentUpdateSchema,
-    AgAgentOutSchema,
-    AgAgentQueryParam
-)
+from .schema import AgAgentCreateSchema, AgAgentOutSchema, AgAgentQueryParam, AgAgentUpdateSchema
 
 
 class AgAgentService:
     """
     Agent管理服务层
     """
-    
+
     @classmethod
     async def detail_agents_service(cls, auth: AuthSchema, id: int) -> dict:
         """
@@ -41,7 +36,7 @@ class AgAgentService:
         if not obj:
             raise CustomException(msg="该数据不存在")
         return AgAgentOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def list_agents_service(cls, auth: AuthSchema, search: AgAgentQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
         """
@@ -84,7 +79,7 @@ class AgAgentService:
             search=search_dict
         )
         return result
-    
+
     @classmethod
     async def create_agents_service(cls, auth: AuthSchema, data: AgAgentCreateSchema) -> dict:
         """
@@ -105,7 +100,7 @@ class AgAgentService:
             except Exception as e:
                 log.warning(f"[Agents] registry create_agent failed for id={obj.id}: {e}")
         return AgAgentOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def update_agents_service(cls, auth: AuthSchema, id: int, data: AgAgentUpdateSchema) -> dict:
         """
@@ -123,9 +118,9 @@ class AgAgentService:
         obj = await AgAgentCRUD(auth).get_by_id_agents_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
-        
+
         # 检查唯一性约束
-            
+
         obj = await AgAgentCRUD(auth).update_agents_crud(id=id, data=data)
         # 更新 RuntimeRegistry
         if obj:
@@ -137,7 +132,7 @@ class AgAgentService:
             except Exception as e:
                 log.warning(f"[Agents] registry update failed for id={obj.id}: {e}")
         return AgAgentOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def delete_agents_service(cls, auth: AuthSchema, ids: list[int]) -> None:
         """
@@ -161,7 +156,7 @@ class AgAgentService:
         await AgAgentCRUD(auth).delete_agents_crud(ids=ids)
         for aid in ids_to_remove:
             get_registry().remove_agent(aid)
-    
+
     @classmethod
     async def set_available_agents_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
         """
@@ -188,7 +183,7 @@ class AgAgentService:
                     get_registry().remove_agent(str(obj.id))
             except Exception as e:
                 log.warning(f"[Agents] registry set_available failed for id={obj.id}: {e}")
-    
+
     @classmethod
     async def batch_export_agents_service(cls, obj_list: list[dict]) -> bytes:
         """
@@ -382,13 +377,13 @@ class AgAgentService:
 
             # 重命名列名
             df.rename(columns=header_dict, inplace=True)
-            
+
             # 验证必填字段
-            
+
             error_msgs = []
             success_count = 0
             count = 0
-            
+
             for _index, row in df.iterrows():
                 count += 1
                 try:
@@ -463,9 +458,9 @@ class AgAgentService:
                     }
                     # 使用CreateSchema做校验后入库
                     create_schema = AgAgentCreateSchema.model_validate(data)
-                    
+
                     # 检查唯一性约束
-                    
+
                     await AgAgentCRUD(auth).create_agents_crud(data=create_schema)
                     success_count += 1
                 except Exception as e:
@@ -476,11 +471,11 @@ class AgAgentService:
             if error_msgs:
                 result += "\n错误信息:\n" + "\n".join(error_msgs)
             return result
-            
+
         except Exception as e:
             log.error(f"批量导入失败: {str(e)}")
             raise CustomException(msg=f"导入失败: {str(e)}")
-    
+
     @classmethod
     async def import_template_download_agents_service(cls) -> bytes:
         """
@@ -560,8 +555,7 @@ class AgAgentService:
         ]
         selector_header_list = []
         option_list = []
-        
-        
+
         return ExcelUtil.get_excel_template(
             header_list=header_list,
             selector_header_list=selector_header_list,

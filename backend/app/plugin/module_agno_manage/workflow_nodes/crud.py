@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
 
-from typing import Sequence
+from collections.abc import Sequence
 
-from app.core.base_crud import CRUDBase
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.core.base_crud import CRUDBase
+
 from .model import AgWorkflowNodeModel
-from .schema import AgWorkflowNodeCreateSchema, AgWorkflowNodeUpdateSchema, AgWorkflowNodeOutSchema
+from .schema import AgWorkflowNodeCreateSchema, AgWorkflowNodeOutSchema, AgWorkflowNodeUpdateSchema
 
 
 class AgWorkflowNodeCRUD(CRUDBase[AgWorkflowNodeModel, AgWorkflowNodeCreateSchema, AgWorkflowNodeUpdateSchema]):
@@ -32,7 +32,7 @@ class AgWorkflowNodeCRUD(CRUDBase[AgWorkflowNodeModel, AgWorkflowNodeCreateSchem
         - AgWorkflowNodeModel | None: 模型实例或None
         """
         return await self.get(id=id, preload=preload)
-    
+
     async def list_workflow_nodes_crud(self, search: dict | None = None, order_by: list[dict] | None = None, preload: list | None = None) -> Sequence[AgWorkflowNodeModel]:
         """
         列表查询
@@ -46,7 +46,7 @@ class AgWorkflowNodeCRUD(CRUDBase[AgWorkflowNodeModel, AgWorkflowNodeCreateSchem
         - Sequence[AgWorkflowNodeModel]: 模型实例序列
         """
         return await self.list(search=search, order_by=order_by, preload=preload)
-    
+
     async def create_workflow_nodes_crud(self, data: AgWorkflowNodeCreateSchema) -> AgWorkflowNodeModel | None:
         """
         创建
@@ -58,7 +58,7 @@ class AgWorkflowNodeCRUD(CRUDBase[AgWorkflowNodeModel, AgWorkflowNodeCreateSchem
         - AgWorkflowNodeModel | None: 模型实例或None
         """
         return await self.create(data=data)
-    
+
     async def update_workflow_nodes_crud(self, id: int, data: AgWorkflowNodeUpdateSchema) -> AgWorkflowNodeModel | None:
         """
         更新
@@ -71,7 +71,7 @@ class AgWorkflowNodeCRUD(CRUDBase[AgWorkflowNodeModel, AgWorkflowNodeCreateSchem
         - AgWorkflowNodeModel | None: 模型实例或None
         """
         return await self.update(id=id, data=data)
-    
+
     async def delete_workflow_nodes_crud(self, ids: list[int]) -> None:
         """
         批量删除
@@ -83,7 +83,7 @@ class AgWorkflowNodeCRUD(CRUDBase[AgWorkflowNodeModel, AgWorkflowNodeCreateSchem
         - None
         """
         return await self.delete(ids=ids)
-    
+
     async def set_available_workflow_nodes_crud(self, ids: list[int], status: str) -> None:
         """
         批量设置可用状态
@@ -96,7 +96,7 @@ class AgWorkflowNodeCRUD(CRUDBase[AgWorkflowNodeModel, AgWorkflowNodeCreateSchem
         - None
         """
         return await self.set(ids=ids, status=status)
-    
+
     async def page_workflow_nodes_crud(self, offset: int, limit: int, order_by: list[dict] | None = None, search: dict | None = None, preload: list | None = None) -> dict:
         """
         分页查询

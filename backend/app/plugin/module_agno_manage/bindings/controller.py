@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import AgBindingCreateSchema, AgBindingQueryParam, AgBindingUpdateSchema
 from .service import AgBindingService
-from .schema import AgBindingCreateSchema, AgBindingUpdateSchema, AgBindingQueryParam
 
-AgBindingRouter = APIRouter(prefix='/bindings', tags=["资源绑定关系模块"]) 
+AgBindingRouter = APIRouter(prefix='/bindings', tags=["资源绑定关系模块"])
+
 
 @AgBindingRouter.get(
     "/detail/{id}",
@@ -38,6 +38,7 @@ async def get_bindings_detail_controller(
     result_dict = await AgBindingService.detail_bindings_service(auth=auth, id=id)
     log.info(f"获取资源绑定关系详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取资源绑定关系详情成功")
+
 
 @AgBindingRouter.get(
     "/list",
@@ -70,6 +71,7 @@ async def get_bindings_list_controller(
     log.info("查询资源绑定关系列表成功")
     return SuccessResponse(data=result_dict, msg="查询资源绑定关系列表成功")
 
+
 @AgBindingRouter.post(
     "/create",
     summary="创建资源绑定关系",
@@ -92,6 +94,7 @@ async def create_bindings_controller(
     result_dict = await AgBindingService.create_bindings_service(auth=auth, data=data)
     log.info("创建资源绑定关系成功")
     return SuccessResponse(data=result_dict, msg="创建资源绑定关系成功")
+
 
 @AgBindingRouter.put(
     "/update/{id}",
@@ -118,6 +121,7 @@ async def update_bindings_controller(
     log.info("修改资源绑定关系成功")
     return SuccessResponse(data=result_dict, msg="修改资源绑定关系成功")
 
+
 @AgBindingRouter.delete(
     "/delete",
     summary="删除资源绑定关系",
@@ -141,6 +145,7 @@ async def delete_bindings_controller(
     log.info(f"删除资源绑定关系成功: {ids}")
     return SuccessResponse(msg="删除资源绑定关系成功")
 
+
 @AgBindingRouter.patch(
     "/available/setting",
     summary="批量修改资源绑定关系状态",
@@ -163,6 +168,7 @@ async def batch_set_available_bindings_controller(
     await AgBindingService.set_available_bindings_service(auth=auth, data=data)
     log.info(f"批量修改资源绑定关系状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改资源绑定关系状态成功")
+
 
 @AgBindingRouter.post(
     '/export',
@@ -192,6 +198,7 @@ async def export_bindings_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_bindings.xlsx'}
     )
 
+
 @AgBindingRouter.post(
     '/import',
     summary="导入资源绑定关系",
@@ -214,6 +221,7 @@ async def import_bindings_list_controller(
     batch_import_result = await AgBindingService.batch_import_bindings_service(file=file, auth=auth, update_support=True)
     log.info("导入资源绑定关系成功")
     return SuccessResponse(data=batch_import_result, msg="导入资源绑定关系成功")
+
 
 @AgBindingRouter.post(
     '/download/template',

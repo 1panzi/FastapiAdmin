@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import AgAgentCreateSchema, AgAgentQueryParam, AgAgentUpdateSchema
 from .service import AgAgentService
-from .schema import AgAgentCreateSchema, AgAgentUpdateSchema, AgAgentQueryParam
 
-AgAgentRouter = APIRouter(prefix='/agents', tags=["Agent管理模块"]) 
+AgAgentRouter = APIRouter(prefix='/agents', tags=["Agent管理模块"])
+
 
 @AgAgentRouter.get(
     "/detail/{id}",
@@ -38,6 +38,7 @@ async def get_agents_detail_controller(
     result_dict = await AgAgentService.detail_agents_service(auth=auth, id=id)
     log.info(f"获取Agent管理详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取Agent管理详情成功")
+
 
 @AgAgentRouter.get(
     "/list",
@@ -70,6 +71,7 @@ async def get_agents_list_controller(
     log.info("查询Agent管理列表成功")
     return SuccessResponse(data=result_dict, msg="查询Agent管理列表成功")
 
+
 @AgAgentRouter.post(
     "/create",
     summary="创建Agent管理",
@@ -92,6 +94,7 @@ async def create_agents_controller(
     result_dict = await AgAgentService.create_agents_service(auth=auth, data=data)
     log.info("创建Agent管理成功")
     return SuccessResponse(data=result_dict, msg="创建Agent管理成功")
+
 
 @AgAgentRouter.put(
     "/update/{id}",
@@ -118,6 +121,7 @@ async def update_agents_controller(
     log.info("修改Agent管理成功")
     return SuccessResponse(data=result_dict, msg="修改Agent管理成功")
 
+
 @AgAgentRouter.delete(
     "/delete",
     summary="删除Agent管理",
@@ -141,6 +145,7 @@ async def delete_agents_controller(
     log.info(f"删除Agent管理成功: {ids}")
     return SuccessResponse(msg="删除Agent管理成功")
 
+
 @AgAgentRouter.patch(
     "/available/setting",
     summary="批量修改Agent管理状态",
@@ -163,6 +168,7 @@ async def batch_set_available_agents_controller(
     await AgAgentService.set_available_agents_service(auth=auth, data=data)
     log.info(f"批量修改Agent管理状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改Agent管理状态成功")
+
 
 @AgAgentRouter.post(
     '/export',
@@ -192,6 +198,7 @@ async def export_agents_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_agents.xlsx'}
     )
 
+
 @AgAgentRouter.post(
     '/import',
     summary="导入Agent管理",
@@ -214,6 +221,7 @@ async def import_agents_list_controller(
     batch_import_result = await AgAgentService.batch_import_agents_service(file=file, auth=auth, update_support=True)
     log.info("导入Agent管理成功")
     return SuccessResponse(data=batch_import_result, msg="导入Agent管理成功")
+
 
 @AgAgentRouter.post(
     '/download/template',

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Agno 支持的知识库类型元数据。"""
 from typing import TypedDict
 

@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import Integer, DateTime, Text, Boolean, String, JSON
+from sqlalchemy import JSON, Boolean, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -27,4 +25,3 @@ class AgWorkflowModel(ModelMixin, UserMixin):
     debug_mode: Mapped[bool | None] = mapped_column(Boolean, nullable=True, comment='是否开启调试模式')
     input_schema: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='输入结构体JSON Schema')
     metadata_config: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='元数据')
-

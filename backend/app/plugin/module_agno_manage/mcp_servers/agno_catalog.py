@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """MCP Server 类型元数据。"""
 from typing import TypedDict
 

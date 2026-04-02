@@ -1,20 +1,24 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import (
+    AgMemoryManagerCreateSchema,
+    AgMemoryManagerQueryParam,
+    AgMemoryManagerUpdateSchema,
+)
 from .service import AgMemoryManagerService
-from .schema import AgMemoryManagerCreateSchema, AgMemoryManagerUpdateSchema, AgMemoryManagerQueryParam
 
-AgMemoryManagerRouter = APIRouter(prefix='/memory_managers', tags=["记忆管理模块"]) 
+AgMemoryManagerRouter = APIRouter(prefix='/memory_managers', tags=["记忆管理模块"])
+
 
 @AgMemoryManagerRouter.get(
     "/detail/{id}",
@@ -38,6 +42,7 @@ async def get_memory_managers_detail_controller(
     result_dict = await AgMemoryManagerService.detail_memory_managers_service(auth=auth, id=id)
     log.info(f"获取记忆管理详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取记忆管理详情成功")
+
 
 @AgMemoryManagerRouter.get(
     "/list",
@@ -70,6 +75,7 @@ async def get_memory_managers_list_controller(
     log.info("查询记忆管理列表成功")
     return SuccessResponse(data=result_dict, msg="查询记忆管理列表成功")
 
+
 @AgMemoryManagerRouter.post(
     "/create",
     summary="创建记忆管理",
@@ -92,6 +98,7 @@ async def create_memory_managers_controller(
     result_dict = await AgMemoryManagerService.create_memory_managers_service(auth=auth, data=data)
     log.info("创建记忆管理成功")
     return SuccessResponse(data=result_dict, msg="创建记忆管理成功")
+
 
 @AgMemoryManagerRouter.put(
     "/update/{id}",
@@ -118,6 +125,7 @@ async def update_memory_managers_controller(
     log.info("修改记忆管理成功")
     return SuccessResponse(data=result_dict, msg="修改记忆管理成功")
 
+
 @AgMemoryManagerRouter.delete(
     "/delete",
     summary="删除记忆管理",
@@ -141,6 +149,7 @@ async def delete_memory_managers_controller(
     log.info(f"删除记忆管理成功: {ids}")
     return SuccessResponse(msg="删除记忆管理成功")
 
+
 @AgMemoryManagerRouter.patch(
     "/available/setting",
     summary="批量修改记忆管理状态",
@@ -163,6 +172,7 @@ async def batch_set_available_memory_managers_controller(
     await AgMemoryManagerService.set_available_memory_managers_service(auth=auth, data=data)
     log.info(f"批量修改记忆管理状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改记忆管理状态成功")
+
 
 @AgMemoryManagerRouter.post(
     '/export',
@@ -192,6 +202,7 @@ async def export_memory_managers_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_memory_managers.xlsx'}
     )
 
+
 @AgMemoryManagerRouter.post(
     '/import',
     summary="导入记忆管理",
@@ -214,6 +225,7 @@ async def import_memory_managers_list_controller(
     batch_import_result = await AgMemoryManagerService.batch_import_memory_managers_service(file=file, auth=auth, update_support=True)
     log.info("导入记忆管理成功")
     return SuccessResponse(data=batch_import_result, msg="导入记忆管理成功")
+
 
 @AgMemoryManagerRouter.post(
     '/download/template',

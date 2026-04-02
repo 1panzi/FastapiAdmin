@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import DateTime, Integer, Boolean, Text, String, JSON
+from sqlalchemy import JSON, Boolean, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -46,4 +44,3 @@ class AgTeamModel(ModelMixin, UserMixin):
     stream_events: Mapped[bool | None] = mapped_column(Boolean, nullable=True, comment='是否流式推送事件')
     debug_mode: Mapped[bool | None] = mapped_column(Boolean, nullable=True, comment='是否开启调试模式')
     metadata_config: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='元数据')
-

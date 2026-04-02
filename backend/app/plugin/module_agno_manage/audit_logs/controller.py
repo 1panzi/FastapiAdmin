@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import AgAuditLogCreateSchema, AgAuditLogQueryParam, AgAuditLogUpdateSchema
 from .service import AgAuditLogService
-from .schema import AgAuditLogCreateSchema, AgAuditLogUpdateSchema, AgAuditLogQueryParam
 
-AgAuditLogRouter = APIRouter(prefix='/audit_logs', tags=["审计日志模块"]) 
+AgAuditLogRouter = APIRouter(prefix='/audit_logs', tags=["审计日志模块"])
+
 
 @AgAuditLogRouter.get(
     "/detail/{id}",
@@ -38,6 +38,7 @@ async def get_audit_logs_detail_controller(
     result_dict = await AgAuditLogService.detail_audit_logs_service(auth=auth, id=id)
     log.info(f"获取审计日志详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取审计日志详情成功")
+
 
 @AgAuditLogRouter.get(
     "/list",
@@ -70,6 +71,7 @@ async def get_audit_logs_list_controller(
     log.info("查询审计日志列表成功")
     return SuccessResponse(data=result_dict, msg="查询审计日志列表成功")
 
+
 @AgAuditLogRouter.post(
     "/create",
     summary="创建审计日志",
@@ -92,6 +94,7 @@ async def create_audit_logs_controller(
     result_dict = await AgAuditLogService.create_audit_logs_service(auth=auth, data=data)
     log.info("创建审计日志成功")
     return SuccessResponse(data=result_dict, msg="创建审计日志成功")
+
 
 @AgAuditLogRouter.put(
     "/update/{id}",
@@ -118,6 +121,7 @@ async def update_audit_logs_controller(
     log.info("修改审计日志成功")
     return SuccessResponse(data=result_dict, msg="修改审计日志成功")
 
+
 @AgAuditLogRouter.delete(
     "/delete",
     summary="删除审计日志",
@@ -141,6 +145,7 @@ async def delete_audit_logs_controller(
     log.info(f"删除审计日志成功: {ids}")
     return SuccessResponse(msg="删除审计日志成功")
 
+
 @AgAuditLogRouter.patch(
     "/available/setting",
     summary="批量修改审计日志状态",
@@ -163,6 +168,7 @@ async def batch_set_available_audit_logs_controller(
     await AgAuditLogService.set_available_audit_logs_service(auth=auth, data=data)
     log.info(f"批量修改审计日志状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改审计日志状态成功")
+
 
 @AgAuditLogRouter.post(
     '/export',
@@ -192,6 +198,7 @@ async def export_audit_logs_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_audit_logs.xlsx'}
     )
 
+
 @AgAuditLogRouter.post(
     '/import',
     summary="导入审计日志",
@@ -214,6 +221,7 @@ async def import_audit_logs_list_controller(
     batch_import_result = await AgAuditLogService.batch_import_audit_logs_service(file=file, auth=auth, update_support=True)
     log.info("导入审计日志成功")
     return SuccessResponse(data=batch_import_result, msg="导入审计日志成功")
+
 
 @AgAuditLogRouter.post(
     '/download/template',

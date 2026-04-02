@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import Integer, Numeric, DateTime, BigInteger, String
+
+from sqlalchemy import BigInteger, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -24,4 +23,3 @@ class AgUsageLogModel(ModelMixin, UserMixin):
     output_tokens: Mapped[int | None] = mapped_column(BigInteger, nullable=True, comment='输出Token数')
     cost_usd: Mapped[Decimal | None] = mapped_column(String(255), nullable=True, comment='本次调用费用（美元）')
     latency_ms: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='首Token延迟毫秒数')
-

@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import AgMcpServerCreateSchema, AgMcpServerQueryParam, AgMcpServerUpdateSchema
 from .service import AgMcpServerService
-from .schema import AgMcpServerCreateSchema, AgMcpServerUpdateSchema, AgMcpServerQueryParam
 
-AgMcpServerRouter = APIRouter(prefix='/mcp_servers', tags=["MCP服务模块"]) 
+AgMcpServerRouter = APIRouter(prefix='/mcp_servers', tags=["MCP服务模块"])
+
 
 @AgMcpServerRouter.get(
     "/detail/{id}",
@@ -38,6 +38,7 @@ async def get_mcp_servers_detail_controller(
     result_dict = await AgMcpServerService.detail_mcp_servers_service(auth=auth, id=id)
     log.info(f"获取MCP服务详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取MCP服务详情成功")
+
 
 @AgMcpServerRouter.get(
     "/list",
@@ -70,6 +71,7 @@ async def get_mcp_servers_list_controller(
     log.info("查询MCP服务列表成功")
     return SuccessResponse(data=result_dict, msg="查询MCP服务列表成功")
 
+
 @AgMcpServerRouter.post(
     "/create",
     summary="创建MCP服务",
@@ -92,6 +94,7 @@ async def create_mcp_servers_controller(
     result_dict = await AgMcpServerService.create_mcp_servers_service(auth=auth, data=data)
     log.info("创建MCP服务成功")
     return SuccessResponse(data=result_dict, msg="创建MCP服务成功")
+
 
 @AgMcpServerRouter.put(
     "/update/{id}",
@@ -118,6 +121,7 @@ async def update_mcp_servers_controller(
     log.info("修改MCP服务成功")
     return SuccessResponse(data=result_dict, msg="修改MCP服务成功")
 
+
 @AgMcpServerRouter.delete(
     "/delete",
     summary="删除MCP服务",
@@ -141,6 +145,7 @@ async def delete_mcp_servers_controller(
     log.info(f"删除MCP服务成功: {ids}")
     return SuccessResponse(msg="删除MCP服务成功")
 
+
 @AgMcpServerRouter.patch(
     "/available/setting",
     summary="批量修改MCP服务状态",
@@ -163,6 +168,7 @@ async def batch_set_available_mcp_servers_controller(
     await AgMcpServerService.set_available_mcp_servers_service(auth=auth, data=data)
     log.info(f"批量修改MCP服务状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改MCP服务状态成功")
+
 
 @AgMcpServerRouter.post(
     '/export',
@@ -192,6 +198,7 @@ async def export_mcp_servers_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_mcp_servers.xlsx'}
     )
 
+
 @AgMcpServerRouter.post(
     '/import',
     summary="导入MCP服务",
@@ -215,6 +222,7 @@ async def import_mcp_servers_list_controller(
     log.info("导入MCP服务成功")
     return SuccessResponse(data=batch_import_result, msg="导入MCP服务成功")
 
+
 @AgMcpServerRouter.post(
     '/download/template',
     summary="获取MCP服务导入模板",
@@ -235,6 +243,7 @@ async def export_mcp_servers_template_controller() -> StreamingResponse:
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         headers={'Content-Disposition': 'attachment; filename=ag_mcp_servers_template.xlsx'}
     )
+
 
 @AgMcpServerRouter.get(
     "/agno/server_types",

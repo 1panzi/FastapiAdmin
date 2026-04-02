@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 
 import io
+
 import pandas as pd
 from fastapi import UploadFile
 
@@ -8,24 +8,19 @@ from app.api.v1.module_system.auth.schema import AuthSchema
 from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
 from app.core.logger import log
-from app.utils.excel_util import ExcelUtil
 from app.plugin.module_agno_manage.core.registry import get_registry
+from app.utils.excel_util import ExcelUtil
 
-from .agno_catalog import list_model_providers, get_provider_names, ModelProviderInfo
+from .agno_catalog import ModelProviderInfo, get_provider_names, list_model_providers
 from .crud import AgModelCRUD
-from .schema import (
-    AgModelCreateSchema,
-    AgModelUpdateSchema,
-    AgModelOutSchema,
-    AgModelQueryParam
-)
+from .schema import AgModelCreateSchema, AgModelOutSchema, AgModelQueryParam, AgModelUpdateSchema
 
 
 class AgModelService:
     """
     模型管理服务层
     """
-    
+
     @classmethod
     async def detail_models_service(cls, auth: AuthSchema, id: int) -> dict:
         """
@@ -42,7 +37,7 @@ class AgModelService:
         if not obj:
             raise CustomException(msg="该数据不存在")
         return AgModelOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def list_models_service(cls, auth: AuthSchema, search: AgModelQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
         """
@@ -85,7 +80,7 @@ class AgModelService:
             search=search_dict
         )
         return result
-    
+
     @classmethod
     async def create_models_service(cls, auth: AuthSchema, data: AgModelCreateSchema) -> dict:
         """
@@ -106,7 +101,7 @@ class AgModelService:
             except Exception as e:
                 log.warning(f"[Models] registry register failed for uuid={obj.uuid}: {e}")
         return AgModelOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def update_models_service(cls, auth: AuthSchema, id: int, data: AgModelUpdateSchema) -> dict:
         """
@@ -138,7 +133,7 @@ class AgModelService:
             except Exception as e:
                 log.warning(f"[Models] registry update failed for uuid={obj.uuid}: {e}")
         return AgModelOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def delete_models_service(cls, auth: AuthSchema, ids: list[int]) -> None:
         """
@@ -163,7 +158,7 @@ class AgModelService:
         # 从 RuntimeRegistry 中移除
         for mid in ids_to_remove:
             get_registry().unregister_model(mid)
-    
+
     @classmethod
     async def set_available_models_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
         """
@@ -192,7 +187,7 @@ class AgModelService:
                     get_registry().unregister_model(str(obj.id))
             except Exception as e:
                 log.warning(f"[Models] registry set_available failed for uuid={obj.uuid}: {e}")
-    
+
     @classmethod
     async def batch_export_models_service(cls, obj_list: list[dict]) -> bytes:
         """
@@ -280,13 +275,13 @@ class AgModelService:
 
             # 重命名列名
             df.rename(columns=header_dict, inplace=True)
-            
+
             # 验证必填字段
-            
+
             error_msgs = []
             success_count = 0
             count = 0
-            
+
             for _index, row in df.iterrows():
                 count += 1
                 try:
@@ -308,9 +303,9 @@ class AgModelService:
                     }
                     # 使用CreateSchema做校验后入库
                     create_schema = AgModelCreateSchema.model_validate(data)
-                    
+
                     # 检查唯一性约束
-                    
+
                     await AgModelCRUD(auth).create_models_crud(data=create_schema)
                     success_count += 1
                 except Exception as e:
@@ -321,11 +316,11 @@ class AgModelService:
             if error_msgs:
                 result += "\n错误信息:\n" + "\n".join(error_msgs)
             return result
-            
+
         except Exception as e:
             log.error(f"批量导入失败: {str(e)}")
             raise CustomException(msg=f"导入失败: {str(e)}")
-    
+
     @classmethod
     async def import_template_download_models_service(cls) -> bytes:
         """
@@ -352,8 +347,7 @@ class AgModelService:
         ]
         selector_header_list = []
         option_list = []
-        
-        
+
         return ExcelUtil.get_excel_template(
             header_list=header_list,
             selector_header_list=selector_header_list,

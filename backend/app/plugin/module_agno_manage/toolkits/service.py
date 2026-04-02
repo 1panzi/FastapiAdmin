@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 
 import io
+
 import pandas as pd
 from fastapi import UploadFile
 
@@ -8,24 +8,24 @@ from app.api.v1.module_system.auth.schema import AuthSchema
 from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
 from app.core.logger import log
+from app.plugin.module_agno_manage.core.registry import get_registry
 from app.utils.excel_util import ExcelUtil
 
-from app.plugin.module_agno_manage.core.registry import get_registry
+from .agno_catalog import AgnoToolInfo, get_categories, list_agno_tools
 from .crud import AgToolkitCRUD
 from .schema import (
     AgToolkitCreateSchema,
-    AgToolkitUpdateSchema,
     AgToolkitOutSchema,
-    AgToolkitQueryParam
+    AgToolkitQueryParam,
+    AgToolkitUpdateSchema,
 )
-from .agno_catalog import list_agno_tools, get_categories, AgnoToolInfo
 
 
 class AgToolkitService:
     """
     工具管理服务层
     """
-    
+
     @classmethod
     async def detail_toolkits_service(cls, auth: AuthSchema, id: int) -> dict:
         """
@@ -42,7 +42,7 @@ class AgToolkitService:
         if not obj:
             raise CustomException(msg="该数据不存在")
         return AgToolkitOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def list_toolkits_service(cls, auth: AuthSchema, search: AgToolkitQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
         """
@@ -85,7 +85,7 @@ class AgToolkitService:
             search=search_dict
         )
         return result
-    
+
     @classmethod
     async def create_toolkits_service(cls, auth: AuthSchema, data: AgToolkitCreateSchema) -> dict:
         """
@@ -105,7 +105,7 @@ class AgToolkitService:
             except Exception as e:
                 log.warning(f"[Toolkits] registry register failed for id={obj.id}: {e}")
         return AgToolkitOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def update_toolkits_service(cls, auth: AuthSchema, id: int, data: AgToolkitUpdateSchema) -> dict:
         """
@@ -123,9 +123,9 @@ class AgToolkitService:
         obj = await AgToolkitCRUD(auth).get_by_id_toolkits_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
-        
+
         # 检查唯一性约束
-            
+
         obj = await AgToolkitCRUD(auth).update_toolkits_crud(id=id, data=data)
         if obj:
             try:
@@ -136,7 +136,7 @@ class AgToolkitService:
             except Exception as e:
                 log.warning(f"[Toolkits] registry update failed for id={obj.id}: {e}")
         return AgToolkitOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def delete_toolkits_service(cls, auth: AuthSchema, ids: list[int]) -> None:
         """
@@ -160,7 +160,7 @@ class AgToolkitService:
         await AgToolkitCRUD(auth).delete_toolkits_crud(ids=ids)
         for tid in ids_to_remove:
             get_registry().unregister_toolkit(tid)
-    
+
     @classmethod
     async def set_available_toolkits_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
         """
@@ -187,7 +187,7 @@ class AgToolkitService:
                     get_registry().unregister_toolkit(str(obj.id))
             except Exception as e:
                 log.warning(f"[Toolkits] registry set_available failed for id={obj.id}: {e}")
-    
+
     @classmethod
     async def batch_export_toolkits_service(cls, obj_list: list[dict]) -> bytes:
         """
@@ -289,13 +289,13 @@ class AgToolkitService:
 
             # 重命名列名
             df.rename(columns=header_dict, inplace=True)
-            
+
             # 验证必填字段
-            
+
             error_msgs = []
             success_count = 0
             count = 0
-            
+
             for _index, row in df.iterrows():
                 count += 1
                 try:
@@ -324,9 +324,9 @@ class AgToolkitService:
                     }
                     # 使用CreateSchema做校验后入库
                     create_schema = AgToolkitCreateSchema.model_validate(data)
-                    
+
                     # 检查唯一性约束
-                    
+
                     await AgToolkitCRUD(auth).create_toolkits_crud(data=create_schema)
                     success_count += 1
                 except Exception as e:
@@ -337,11 +337,11 @@ class AgToolkitService:
             if error_msgs:
                 result += "\n错误信息:\n" + "\n".join(error_msgs)
             return result
-            
+
         except Exception as e:
             log.error(f"批量导入失败: {str(e)}")
             raise CustomException(msg=f"导入失败: {str(e)}")
-    
+
     @classmethod
     async def import_template_download_toolkits_service(cls) -> bytes:
         """
@@ -375,8 +375,7 @@ class AgToolkitService:
         ]
         selector_header_list = []
         option_list = []
-        
-        
+
         return ExcelUtil.get_excel_template(
             header_list=header_list,
             selector_header_list=selector_header_list,

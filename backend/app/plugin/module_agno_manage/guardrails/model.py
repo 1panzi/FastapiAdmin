@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import String, JSON, Text, Integer, DateTime
+from sqlalchemy import JSON, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -21,4 +19,3 @@ class AgGuardrailModel(ModelMixin, UserMixin):
     config: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='护栏配置参数')
     module_path: Mapped[str | None] = mapped_column(String(500), nullable=True, comment='自定义护栏模块路径（type=custom时使用）')
     class_name: Mapped[str | None] = mapped_column(String(255), nullable=True, comment='自定义护栏类名（type=custom时使用）')
-

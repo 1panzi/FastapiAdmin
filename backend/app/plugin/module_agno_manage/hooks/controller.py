@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import AgHookCreateSchema, AgHookQueryParam, AgHookUpdateSchema
 from .service import AgHookService
-from .schema import AgHookCreateSchema, AgHookUpdateSchema, AgHookQueryParam
 
-AgHookRouter = APIRouter(prefix='/hooks', tags=["hook模块"]) 
+AgHookRouter = APIRouter(prefix='/hooks', tags=["hook模块"])
+
 
 @AgHookRouter.get(
     "/detail/{id}",
@@ -38,6 +38,7 @@ async def get_hooks_detail_controller(
     result_dict = await AgHookService.detail_hooks_service(auth=auth, id=id)
     log.info(f"获取hook详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取hook详情成功")
+
 
 @AgHookRouter.get(
     "/list",
@@ -70,6 +71,7 @@ async def get_hooks_list_controller(
     log.info("查询hook列表成功")
     return SuccessResponse(data=result_dict, msg="查询hook列表成功")
 
+
 @AgHookRouter.post(
     "/create",
     summary="创建hook",
@@ -92,6 +94,7 @@ async def create_hooks_controller(
     result_dict = await AgHookService.create_hooks_service(auth=auth, data=data)
     log.info("创建hook成功")
     return SuccessResponse(data=result_dict, msg="创建hook成功")
+
 
 @AgHookRouter.put(
     "/update/{id}",
@@ -118,6 +121,7 @@ async def update_hooks_controller(
     log.info("修改hook成功")
     return SuccessResponse(data=result_dict, msg="修改hook成功")
 
+
 @AgHookRouter.delete(
     "/delete",
     summary="删除hook",
@@ -141,6 +145,7 @@ async def delete_hooks_controller(
     log.info(f"删除hook成功: {ids}")
     return SuccessResponse(msg="删除hook成功")
 
+
 @AgHookRouter.patch(
     "/available/setting",
     summary="批量修改hook状态",
@@ -163,6 +168,7 @@ async def batch_set_available_hooks_controller(
     await AgHookService.set_available_hooks_service(auth=auth, data=data)
     log.info(f"批量修改hook状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改hook状态成功")
+
 
 @AgHookRouter.post(
     '/export',
@@ -192,6 +198,7 @@ async def export_hooks_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_hooks.xlsx'}
     )
 
+
 @AgHookRouter.post(
     '/import',
     summary="导入hook",
@@ -215,6 +222,7 @@ async def import_hooks_list_controller(
     log.info("导入hook成功")
     return SuccessResponse(data=batch_import_result, msg="导入hook成功")
 
+
 @AgHookRouter.post(
     '/download/template',
     summary="获取hook导入模板",
@@ -235,6 +243,7 @@ async def export_hooks_template_controller() -> StreamingResponse:
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         headers={'Content-Disposition': 'attachment; filename=ag_hooks_template.xlsx'}
     )
+
 
 @AgHookRouter.get(
     "/agno/hook_types",

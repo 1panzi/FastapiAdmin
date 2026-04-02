@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Agno 支持的 Embedder 提供商元数据。"""
 from typing import TypedDict
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 RuntimeRegistry 预热逻辑。
 
@@ -34,6 +33,7 @@ async def warm_up() -> None:
 async def _do_warm_up() -> None:
     """按依赖顺序将所有启用资源加载到 RuntimeRegistry。"""
     from sqlalchemy import select
+
     from app.core.database import async_db_session
     from app.plugin.module_agno_manage.core.registry import get_registry
 
@@ -126,7 +126,9 @@ async def _do_warm_up() -> None:
         for row in result.scalars().all():
             registry._compression_rows[str(row.id)] = row
 
-        from app.plugin.module_agno_manage.sess_summary_configs.model import AgSessSummaryConfigModel
+        from app.plugin.module_agno_manage.sess_summary_configs.model import (
+            AgSessSummaryConfigModel,
+        )
         result = await db.execute(select(AgSessSummaryConfigModel).where(AgSessSummaryConfigModel.status == "0"))
         for row in result.scalars().all():
             registry._session_summary_rows[str(row.id)] = row
@@ -146,7 +148,7 @@ async def _do_warm_up() -> None:
                 registry.create_agent(row)
             except Exception as e:
                 log.warning(f"[Startup] failed to create agent id={row.id}: {e}")
-        log.info(f"[Startup] agents loaded")
+        log.info("[Startup] agents loaded")
 
         # ── 最后层：Bindings + Integrations（行数据缓存）─────────────────
         from app.plugin.module_agno_manage.bindings.model import AgBindingModel

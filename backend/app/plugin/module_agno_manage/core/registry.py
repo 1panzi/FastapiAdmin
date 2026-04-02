@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 RuntimeRegistry — 内存单例，管理所有 Agno 运行时对象。
 
@@ -15,12 +14,13 @@ AgentOS 路由约定：Agno agent_id = str(row.id)（如 "42"）
 """
 
 from collections import OrderedDict
-from typing import Dict, List, Optional
 
 from app.core.logger import log
+
 from .agno_os import _build_agno_db
 
 # ── LRU 缓存 ──────────────────────────────────────────────────────────────────
+
 
 class LRUCache:
     """带 close() 回调的 LRU 缓存，用于 MCP 和 Knowledge 的冷热管理。"""
@@ -73,33 +73,33 @@ class RuntimeRegistry:
 
     def __init__(self):
         # ── 运行时列表（AgentOS 直接引用，传引用后 append 即时生效） ───────
-        self.agents: List = []
-        self.teams: List = []
-        self.workflows: List = []
-        self._agents_map: Dict[str, object] = {}   # str(id) → Agent
-        self._teams_map: Dict[str, object] = {}
-        self._workflows_map: Dict[str, object] = {}
+        self.agents: list = []
+        self.teams: list = []
+        self.workflows: list = []
+        self._agents_map: dict[str, object] = {}   # str(id) → Agent
+        self._teams_map: dict[str, object] = {}
+        self._workflows_map: dict[str, object] = {}
 
         # ── 构建好的对象缓存（热区） ──────────────────────────────────────
-        self._model_cache: Dict[str, object] = {}      # str(id) → Agno Model
-        self._embedder_cache: Dict[str, object] = {}   # str(id) → Agno Embedder
-        self._toolkit_map: Dict[str, object] = {}      # str(id) → Agno Toolkit
-        self._hook_map: Dict[str, object] = {}         # str(id) → {func, hook_type}
-        self._guardrail_map: Dict[str, object] = {}    # str(id) → {obj, guardrail_type}
+        self._model_cache: dict[str, object] = {}      # str(id) → Agno Model
+        self._embedder_cache: dict[str, object] = {}   # str(id) → Agno Embedder
+        self._toolkit_map: dict[str, object] = {}      # str(id) → Agno Toolkit
+        self._hook_map: dict[str, object] = {}         # str(id) → {func, hook_type}
+        self._guardrail_map: dict[str, object] = {}    # str(id) → {obj, guardrail_type}
 
         # ── 行数据缓存（供 Agent 构建时按需实例化） ──────────────────────
-        self._vectordb_rows: Dict[str, object] = {}
-        self._mcp_rows: Dict[str, object] = {}
-        self._kb_rows: Dict[str, object] = {}
-        self._skill_rows: Dict[str, object] = {}
-        self._memory_manager_rows: Dict[str, object] = {}
-        self._learning_rows: Dict[str, object] = {}
-        self._reasoning_rows: Dict[str, object] = {}
-        self._compression_rows: Dict[str, object] = {}
-        self._session_summary_rows: Dict[str, object] = {}
-        self._culture_rows: Dict[str, object] = {}
-        self._integration_rows: Dict[str, object] = {}
-        self._binding_rows: Dict[str, object] = {}
+        self._vectordb_rows: dict[str, object] = {}
+        self._mcp_rows: dict[str, object] = {}
+        self._kb_rows: dict[str, object] = {}
+        self._skill_rows: dict[str, object] = {}
+        self._memory_manager_rows: dict[str, object] = {}
+        self._learning_rows: dict[str, object] = {}
+        self._reasoning_rows: dict[str, object] = {}
+        self._compression_rows: dict[str, object] = {}
+        self._session_summary_rows: dict[str, object] = {}
+        self._culture_rows: dict[str, object] = {}
+        self._integration_rows: dict[str, object] = {}
+        self._binding_rows: dict[str, object] = {}
 
         # ── 冷区（LRU 按需加载） ──────────────────────────────────────────
         self._knowledge_cache: LRUCache = LRUCache(maxsize=50)
@@ -167,7 +167,7 @@ class RuntimeRegistry:
         self._model_cache.pop(model_id, None)
         log.debug(f"[Registry] model unregistered: id={model_id}")
 
-    def get_model(self, model_id: str) -> Optional[object]:
+    def get_model(self, model_id: str) -> object | None:
         return self._model_cache.get(model_id)
 
     # ── Embedder ─────────────────────────────────────────────────────────────
@@ -217,7 +217,7 @@ class RuntimeRegistry:
     def unregister_embedder(self, embedder_id: str) -> None:
         self._embedder_cache.pop(embedder_id, None)
 
-    def get_embedder(self, embedder_id: str) -> Optional[object]:
+    def get_embedder(self, embedder_id: str) -> object | None:
         return self._embedder_cache.get(embedder_id)
 
     # ── Toolkit ──────────────────────────────────────────────────────────────
@@ -243,7 +243,7 @@ class RuntimeRegistry:
     def unregister_toolkit(self, toolkit_id: str) -> None:
         self._toolkit_map.pop(toolkit_id, None)
 
-    def get_toolkit(self, toolkit_id: str) -> Optional[object]:
+    def get_toolkit(self, toolkit_id: str) -> object | None:
         return self._toolkit_map.get(toolkit_id)
 
     # ── Hook ─────────────────────────────────────────────────────────────────
@@ -418,13 +418,13 @@ class RuntimeRegistry:
                     kbs.append(kb)
         return kbs[0] if kbs else None
 
-    def _build_knowledge(self, kb_id: str, row) -> Optional[object]:
+    def _build_knowledge(self, kb_id: str, row) -> object | None:
         try:
             embedder = self.get_embedder(str(row.embedder_id)) if getattr(row, "embedder_id", None) else None
             kb_type = getattr(row, "knowledge_type", "pdf")
             config = dict(row.config or {})
-            #TODO 此处存在问题，知识库库，不分类型文件类型，只是区分 向量库和readers 以及向量DB  向量DB中才存入 embedder 还没有完全完成
-            if kb_type == "pdf": 
+            # TODO 此处存在问题，知识库库，不分类型文件类型，只是区分 向量库和readers 以及向量DB  向量DB中才存入 embedder 还没有完全完成
+            if kb_type == "pdf":
                 from agno.knowledge.knowledge import Knowledge
                 # vector_db
                 # contents_db: Optional[Union[BaseDb, AsyncBaseDb]] = None  self._agno_db
@@ -603,7 +603,7 @@ class RuntimeRegistry:
 
 # ── 全局单例 ──────────────────────────────────────────────────────────────────
 
-_registry: Optional[RuntimeRegistry] = None
+_registry: RuntimeRegistry | None = None
 
 
 def get_registry() -> RuntimeRegistry:

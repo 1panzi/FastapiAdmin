@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import String, Integer, DateTime, Text
+from sqlalchemy import Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -20,4 +18,3 @@ class AgCompressionConfigModel(ModelMixin, UserMixin):
     compress_tool_results_limit: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='触发工具结果压缩的条数阈值')
     compress_token_limit: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='触发压缩的Token数阈值')
     compress_tool_call_instructions: Mapped[str | None] = mapped_column(Text, nullable=True, comment='工具调用压缩指令')
-

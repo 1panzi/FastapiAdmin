@@ -155,8 +155,6 @@ def register_routers(app: FastAPI) -> None:
     )
 
 
-
-
 def register_files(app: FastAPI) -> None:
     """
     注册静态资源挂载和文件相关配置。

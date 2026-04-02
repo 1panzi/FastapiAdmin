@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import Integer, String, DateTime, Boolean, Text
+from sqlalchemy import Boolean, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -23,4 +21,3 @@ class AgMemoryManagerModel(ModelMixin, UserMixin):
     clear_memories: Mapped[bool | None] = mapped_column(Boolean, nullable=True, comment='是否允许清空记忆')
     memory_capture_instructions: Mapped[str | None] = mapped_column(Text, nullable=True, comment='记忆捕获指令')
     additional_instructions: Mapped[str | None] = mapped_column(Text, nullable=True, comment='附加指令')
-

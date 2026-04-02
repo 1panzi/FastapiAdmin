@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 同步数据库访问层，专供 callable factory 使用。
 

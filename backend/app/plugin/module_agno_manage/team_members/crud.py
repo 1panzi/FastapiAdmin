@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
 
-from typing import Sequence
+from collections.abc import Sequence
 
-from app.core.base_crud import CRUDBase
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.core.base_crud import CRUDBase
+
 from .model import AgTeamMemberModel
-from .schema import AgTeamMemberCreateSchema, AgTeamMemberUpdateSchema, AgTeamMemberOutSchema
+from .schema import AgTeamMemberCreateSchema, AgTeamMemberOutSchema, AgTeamMemberUpdateSchema
 
 
 class AgTeamMemberCRUD(CRUDBase[AgTeamMemberModel, AgTeamMemberCreateSchema, AgTeamMemberUpdateSchema]):
@@ -32,7 +32,7 @@ class AgTeamMemberCRUD(CRUDBase[AgTeamMemberModel, AgTeamMemberCreateSchema, AgT
         - AgTeamMemberModel | None: 模型实例或None
         """
         return await self.get(id=id, preload=preload)
-    
+
     async def list_team_members_crud(self, search: dict | None = None, order_by: list[dict] | None = None, preload: list | None = None) -> Sequence[AgTeamMemberModel]:
         """
         列表查询
@@ -46,7 +46,7 @@ class AgTeamMemberCRUD(CRUDBase[AgTeamMemberModel, AgTeamMemberCreateSchema, AgT
         - Sequence[AgTeamMemberModel]: 模型实例序列
         """
         return await self.list(search=search, order_by=order_by, preload=preload)
-    
+
     async def create_team_members_crud(self, data: AgTeamMemberCreateSchema) -> AgTeamMemberModel | None:
         """
         创建
@@ -58,7 +58,7 @@ class AgTeamMemberCRUD(CRUDBase[AgTeamMemberModel, AgTeamMemberCreateSchema, AgT
         - AgTeamMemberModel | None: 模型实例或None
         """
         return await self.create(data=data)
-    
+
     async def update_team_members_crud(self, id: int, data: AgTeamMemberUpdateSchema) -> AgTeamMemberModel | None:
         """
         更新
@@ -71,7 +71,7 @@ class AgTeamMemberCRUD(CRUDBase[AgTeamMemberModel, AgTeamMemberCreateSchema, AgT
         - AgTeamMemberModel | None: 模型实例或None
         """
         return await self.update(id=id, data=data)
-    
+
     async def delete_team_members_crud(self, ids: list[int]) -> None:
         """
         批量删除
@@ -83,7 +83,7 @@ class AgTeamMemberCRUD(CRUDBase[AgTeamMemberModel, AgTeamMemberCreateSchema, AgT
         - None
         """
         return await self.delete(ids=ids)
-    
+
     async def set_available_team_members_crud(self, ids: list[int], status: str) -> None:
         """
         批量设置可用状态
@@ -96,7 +96,7 @@ class AgTeamMemberCRUD(CRUDBase[AgTeamMemberModel, AgTeamMemberCreateSchema, AgT
         - None
         """
         return await self.set(ids=ids, status=status)
-    
+
     async def page_team_members_crud(self, offset: int, limit: int, order_by: list[dict] | None = None, search: dict | None = None, preload: list | None = None) -> dict:
         """
         分页查询

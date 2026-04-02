@@ -1,20 +1,24 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import (
+    AgReasoningConfigCreateSchema,
+    AgReasoningConfigQueryParam,
+    AgReasoningConfigUpdateSchema,
+)
 from .service import AgReasoningConfigService
-from .schema import AgReasoningConfigCreateSchema, AgReasoningConfigUpdateSchema, AgReasoningConfigQueryParam
 
-AgReasoningConfigRouter = APIRouter(prefix='/reasoning_configs', tags=["推理配置模块"]) 
+AgReasoningConfigRouter = APIRouter(prefix='/reasoning_configs', tags=["推理配置模块"])
+
 
 @AgReasoningConfigRouter.get(
     "/detail/{id}",
@@ -38,6 +42,7 @@ async def get_reasoning_configs_detail_controller(
     result_dict = await AgReasoningConfigService.detail_reasoning_configs_service(auth=auth, id=id)
     log.info(f"获取推理配置详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取推理配置详情成功")
+
 
 @AgReasoningConfigRouter.get(
     "/list",
@@ -70,6 +75,7 @@ async def get_reasoning_configs_list_controller(
     log.info("查询推理配置列表成功")
     return SuccessResponse(data=result_dict, msg="查询推理配置列表成功")
 
+
 @AgReasoningConfigRouter.post(
     "/create",
     summary="创建推理配置",
@@ -92,6 +98,7 @@ async def create_reasoning_configs_controller(
     result_dict = await AgReasoningConfigService.create_reasoning_configs_service(auth=auth, data=data)
     log.info("创建推理配置成功")
     return SuccessResponse(data=result_dict, msg="创建推理配置成功")
+
 
 @AgReasoningConfigRouter.put(
     "/update/{id}",
@@ -118,6 +125,7 @@ async def update_reasoning_configs_controller(
     log.info("修改推理配置成功")
     return SuccessResponse(data=result_dict, msg="修改推理配置成功")
 
+
 @AgReasoningConfigRouter.delete(
     "/delete",
     summary="删除推理配置",
@@ -141,6 +149,7 @@ async def delete_reasoning_configs_controller(
     log.info(f"删除推理配置成功: {ids}")
     return SuccessResponse(msg="删除推理配置成功")
 
+
 @AgReasoningConfigRouter.patch(
     "/available/setting",
     summary="批量修改推理配置状态",
@@ -163,6 +172,7 @@ async def batch_set_available_reasoning_configs_controller(
     await AgReasoningConfigService.set_available_reasoning_configs_service(auth=auth, data=data)
     log.info(f"批量修改推理配置状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改推理配置状态成功")
+
 
 @AgReasoningConfigRouter.post(
     '/export',
@@ -192,6 +202,7 @@ async def export_reasoning_configs_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_reasoning_configs.xlsx'}
     )
 
+
 @AgReasoningConfigRouter.post(
     '/import',
     summary="导入推理配置",
@@ -214,6 +225,7 @@ async def import_reasoning_configs_list_controller(
     batch_import_result = await AgReasoningConfigService.batch_import_reasoning_configs_service(file=file, auth=auth, update_support=True)
     log.info("导入推理配置成功")
     return SuccessResponse(data=batch_import_result, msg="导入推理配置成功")
+
 
 @AgReasoningConfigRouter.post(
     '/download/template',

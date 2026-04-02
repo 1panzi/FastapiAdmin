@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 
 import io
+
 import pandas as pd
 from fastapi import UploadFile
 
@@ -8,23 +8,18 @@ from app.api.v1.module_system.auth.schema import AuthSchema
 from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
 from app.core.logger import log
+from app.plugin.module_agno_manage.core.registry import get_registry
 from app.utils.excel_util import ExcelUtil
 
-from app.plugin.module_agno_manage.core.registry import get_registry
 from .crud import AgSkillCRUD
-from .schema import (
-    AgSkillCreateSchema,
-    AgSkillUpdateSchema,
-    AgSkillOutSchema,
-    AgSkillQueryParam
-)
+from .schema import AgSkillCreateSchema, AgSkillOutSchema, AgSkillQueryParam, AgSkillUpdateSchema
 
 
 class AgSkillService:
     """
     技能管理服务层
     """
-    
+
     @classmethod
     async def detail_skills_service(cls, auth: AuthSchema, id: int) -> dict:
         """
@@ -41,7 +36,7 @@ class AgSkillService:
         if not obj:
             raise CustomException(msg="该数据不存在")
         return AgSkillOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def list_skills_service(cls, auth: AuthSchema, search: AgSkillQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
         """
@@ -84,7 +79,7 @@ class AgSkillService:
             search=search_dict
         )
         return result
-    
+
     @classmethod
     async def create_skills_service(cls, auth: AuthSchema, data: AgSkillCreateSchema) -> dict:
         """
@@ -101,7 +96,7 @@ class AgSkillService:
         if obj and obj.status == "0":
             get_registry().update_skill_row(str(obj.id), obj)
         return AgSkillOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def update_skills_service(cls, auth: AuthSchema, id: int, data: AgSkillUpdateSchema) -> dict:
         """
@@ -119,9 +114,9 @@ class AgSkillService:
         obj = await AgSkillCRUD(auth).get_by_id_skills_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
-        
+
         # 检查唯一性约束
-            
+
         obj = await AgSkillCRUD(auth).update_skills_crud(id=id, data=data)
         if obj:
             if obj.status == "0":
@@ -129,7 +124,7 @@ class AgSkillService:
             else:
                 get_registry().remove_skill_row(str(obj.id))
         return AgSkillOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def delete_skills_service(cls, auth: AuthSchema, ids: list[int]) -> None:
         """
@@ -153,7 +148,7 @@ class AgSkillService:
         await AgSkillCRUD(auth).delete_skills_crud(ids=ids)
         for rid in ids_to_remove:
             get_registry().remove_skill_row(rid)
-    
+
     @classmethod
     async def set_available_skills_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
         """
@@ -177,7 +172,7 @@ class AgSkillService:
                 get_registry().update_skill_row(str(obj.id), obj)
             else:
                 get_registry().remove_skill_row(str(obj.id))
-    
+
     @classmethod
     async def batch_export_skills_service(cls, obj_list: list[dict]) -> bytes:
         """
@@ -267,13 +262,13 @@ class AgSkillService:
 
             # 重命名列名
             df.rename(columns=header_dict, inplace=True)
-            
+
             # 验证必填字段
-            
+
             error_msgs = []
             success_count = 0
             count = 0
-            
+
             for _index, row in df.iterrows():
                 count += 1
                 try:
@@ -296,9 +291,9 @@ class AgSkillService:
                     }
                     # 使用CreateSchema做校验后入库
                     create_schema = AgSkillCreateSchema.model_validate(data)
-                    
+
                     # 检查唯一性约束
-                    
+
                     await AgSkillCRUD(auth).create_skills_crud(data=create_schema)
                     success_count += 1
                 except Exception as e:
@@ -309,11 +304,11 @@ class AgSkillService:
             if error_msgs:
                 result += "\n错误信息:\n" + "\n".join(error_msgs)
             return result
-            
+
         except Exception as e:
             log.error(f"批量导入失败: {str(e)}")
             raise CustomException(msg=f"导入失败: {str(e)}")
-    
+
     @classmethod
     async def import_template_download_skills_service(cls) -> bytes:
         """
@@ -341,8 +336,7 @@ class AgSkillService:
         ]
         selector_header_list = []
         option_list = []
-        
-        
+
         return ExcelUtil.get_excel_template(
             header_list=header_list,
             selector_header_list=selector_header_list,

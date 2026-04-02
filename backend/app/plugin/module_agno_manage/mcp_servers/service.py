@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 
 import io
+
 import pandas as pd
 from fastapi import UploadFile
 
@@ -8,16 +8,16 @@ from app.api.v1.module_system.auth.schema import AuthSchema
 from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
 from app.core.logger import log
+from app.plugin.module_agno_manage.core.registry import get_registry
 from app.utils.excel_util import ExcelUtil
 
-from app.plugin.module_agno_manage.core.registry import get_registry
-from .agno_catalog import list_mcp_server_types, McpServerTypeInfo
+from .agno_catalog import McpServerTypeInfo, list_mcp_server_types
 from .crud import AgMcpServerCRUD
 from .schema import (
     AgMcpServerCreateSchema,
-    AgMcpServerUpdateSchema,
     AgMcpServerOutSchema,
-    AgMcpServerQueryParam
+    AgMcpServerQueryParam,
+    AgMcpServerUpdateSchema,
 )
 
 
@@ -25,7 +25,7 @@ class AgMcpServerService:
     """
     MCP服务服务层
     """
-    
+
     @classmethod
     async def detail_mcp_servers_service(cls, auth: AuthSchema, id: int) -> dict:
         """
@@ -42,7 +42,7 @@ class AgMcpServerService:
         if not obj:
             raise CustomException(msg="该数据不存在")
         return AgMcpServerOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def list_mcp_servers_service(cls, auth: AuthSchema, search: AgMcpServerQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
         """
@@ -85,7 +85,7 @@ class AgMcpServerService:
             search=search_dict
         )
         return result
-    
+
     @classmethod
     async def create_mcp_servers_service(cls, auth: AuthSchema, data: AgMcpServerCreateSchema) -> dict:
         """
@@ -102,7 +102,7 @@ class AgMcpServerService:
         if obj and obj.status == "0":
             get_registry().update_mcp_row(str(obj.id), obj)
         return AgMcpServerOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def update_mcp_servers_service(cls, auth: AuthSchema, id: int, data: AgMcpServerUpdateSchema) -> dict:
         """
@@ -120,9 +120,9 @@ class AgMcpServerService:
         obj = await AgMcpServerCRUD(auth).get_by_id_mcp_servers_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
-        
+
         # 检查唯一性约束
-            
+
         obj = await AgMcpServerCRUD(auth).update_mcp_servers_crud(id=id, data=data)
         if obj:
             if obj.status == "0":
@@ -130,7 +130,7 @@ class AgMcpServerService:
             else:
                 get_registry().remove_mcp_row(str(obj.id))
         return AgMcpServerOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def delete_mcp_servers_service(cls, auth: AuthSchema, ids: list[int]) -> None:
         """
@@ -154,7 +154,7 @@ class AgMcpServerService:
         await AgMcpServerCRUD(auth).delete_mcp_servers_crud(ids=ids)
         for rid in ids_to_remove:
             get_registry().remove_mcp_row(rid)
-    
+
     @classmethod
     async def set_available_mcp_servers_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
         """
@@ -178,7 +178,7 @@ class AgMcpServerService:
                 get_registry().update_mcp_row(str(obj.id), obj)
             else:
                 get_registry().remove_mcp_row(str(obj.id))
-    
+
     @classmethod
     async def batch_export_mcp_servers_service(cls, obj_list: list[dict]) -> bytes:
         """
@@ -274,13 +274,13 @@ class AgMcpServerService:
 
             # 重命名列名
             df.rename(columns=header_dict, inplace=True)
-            
+
             # 验证必填字段
-            
+
             error_msgs = []
             success_count = 0
             count = 0
-            
+
             for _index, row in df.iterrows():
                 count += 1
                 try:
@@ -306,9 +306,9 @@ class AgMcpServerService:
                     }
                     # 使用CreateSchema做校验后入库
                     create_schema = AgMcpServerCreateSchema.model_validate(data)
-                    
+
                     # 检查唯一性约束
-                    
+
                     await AgMcpServerCRUD(auth).create_mcp_servers_crud(data=create_schema)
                     success_count += 1
                 except Exception as e:
@@ -319,11 +319,11 @@ class AgMcpServerService:
             if error_msgs:
                 result += "\n错误信息:\n" + "\n".join(error_msgs)
             return result
-            
+
         except Exception as e:
             log.error(f"批量导入失败: {str(e)}")
             raise CustomException(msg=f"导入失败: {str(e)}")
-    
+
     @classmethod
     async def import_template_download_mcp_servers_service(cls) -> bytes:
         """
@@ -354,8 +354,7 @@ class AgMcpServerService:
         ]
         selector_header_list = []
         option_list = []
-        
-        
+
         return ExcelUtil.get_excel_template(
             header_list=header_list,
             selector_header_list=selector_header_list,

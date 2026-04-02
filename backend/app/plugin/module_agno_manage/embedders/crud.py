@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
 
-from typing import Sequence
+from collections.abc import Sequence
 
-from app.core.base_crud import CRUDBase
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.core.base_crud import CRUDBase
+
 from .model import AgEmbedderModel
-from .schema import AgEmbedderCreateSchema, AgEmbedderUpdateSchema, AgEmbedderOutSchema
+from .schema import AgEmbedderCreateSchema, AgEmbedderOutSchema, AgEmbedderUpdateSchema
 
 
 class AgEmbedderCRUD(CRUDBase[AgEmbedderModel, AgEmbedderCreateSchema, AgEmbedderUpdateSchema]):
@@ -32,7 +32,7 @@ class AgEmbedderCRUD(CRUDBase[AgEmbedderModel, AgEmbedderCreateSchema, AgEmbedde
         - AgEmbedderModel | None: 模型实例或None
         """
         return await self.get(id=id, preload=preload)
-    
+
     async def list_embedders_crud(self, search: dict | None = None, order_by: list[dict] | None = None, preload: list | None = None) -> Sequence[AgEmbedderModel]:
         """
         列表查询
@@ -46,7 +46,7 @@ class AgEmbedderCRUD(CRUDBase[AgEmbedderModel, AgEmbedderCreateSchema, AgEmbedde
         - Sequence[AgEmbedderModel]: 模型实例序列
         """
         return await self.list(search=search, order_by=order_by, preload=preload)
-    
+
     async def create_embedders_crud(self, data: AgEmbedderCreateSchema) -> AgEmbedderModel | None:
         """
         创建
@@ -58,7 +58,7 @@ class AgEmbedderCRUD(CRUDBase[AgEmbedderModel, AgEmbedderCreateSchema, AgEmbedde
         - AgEmbedderModel | None: 模型实例或None
         """
         return await self.create(data=data)
-    
+
     async def update_embedders_crud(self, id: int, data: AgEmbedderUpdateSchema) -> AgEmbedderModel | None:
         """
         更新
@@ -71,7 +71,7 @@ class AgEmbedderCRUD(CRUDBase[AgEmbedderModel, AgEmbedderCreateSchema, AgEmbedde
         - AgEmbedderModel | None: 模型实例或None
         """
         return await self.update(id=id, data=data)
-    
+
     async def delete_embedders_crud(self, ids: list[int]) -> None:
         """
         批量删除
@@ -83,7 +83,7 @@ class AgEmbedderCRUD(CRUDBase[AgEmbedderModel, AgEmbedderCreateSchema, AgEmbedde
         - None
         """
         return await self.delete(ids=ids)
-    
+
     async def set_available_embedders_crud(self, ids: list[int], status: str) -> None:
         """
         批量设置可用状态
@@ -96,7 +96,7 @@ class AgEmbedderCRUD(CRUDBase[AgEmbedderModel, AgEmbedderCreateSchema, AgEmbedde
         - None
         """
         return await self.set(ids=ids, status=status)
-    
+
     async def page_embedders_crud(self, offset: int, limit: int, order_by: list[dict] | None = None, search: dict | None = None, preload: list | None = None) -> dict:
         """
         分页查询

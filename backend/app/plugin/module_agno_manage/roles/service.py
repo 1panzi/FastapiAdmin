@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 
 import io
+
 import pandas as pd
 from fastapi import UploadFile
 
@@ -11,19 +11,14 @@ from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
 
 from .crud import AgRoleCRUD
-from .schema import (
-    AgRoleCreateSchema,
-    AgRoleUpdateSchema,
-    AgRoleOutSchema,
-    AgRoleQueryParam
-)
+from .schema import AgRoleCreateSchema, AgRoleOutSchema, AgRoleQueryParam, AgRoleUpdateSchema
 
 
 class AgRoleService:
     """
     agno角色管理服务层
     """
-    
+
     @classmethod
     async def detail_roles_service(cls, auth: AuthSchema, id: int) -> dict:
         """
@@ -40,7 +35,7 @@ class AgRoleService:
         if not obj:
             raise CustomException(msg="该数据不存在")
         return AgRoleOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def list_roles_service(cls, auth: AuthSchema, search: AgRoleQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
         """
@@ -83,7 +78,7 @@ class AgRoleService:
             search=search_dict
         )
         return result
-    
+
     @classmethod
     async def create_roles_service(cls, auth: AuthSchema, data: AgRoleCreateSchema) -> dict:
         """
@@ -98,7 +93,7 @@ class AgRoleService:
         """
         obj = await AgRoleCRUD(auth).create_roles_crud(data=data)
         return AgRoleOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def update_roles_service(cls, auth: AuthSchema, id: int, data: AgRoleUpdateSchema) -> dict:
         """
@@ -116,12 +111,12 @@ class AgRoleService:
         obj = await AgRoleCRUD(auth).get_by_id_roles_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
-        
+
         # 检查唯一性约束
-            
+
         obj = await AgRoleCRUD(auth).update_roles_crud(id=id, data=data)
         return AgRoleOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def delete_roles_service(cls, auth: AuthSchema, ids: list[int]) -> None:
         """
@@ -141,7 +136,7 @@ class AgRoleService:
             if not obj:
                 raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
         await AgRoleCRUD(auth).delete_roles_crud(ids=ids)
-    
+
     @classmethod
     async def set_available_roles_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
         """
@@ -155,7 +150,7 @@ class AgRoleService:
         - None
         """
         await AgRoleCRUD(auth).set_available_roles_crud(ids=data.ids, status=data.status)
-    
+
     @classmethod
     async def batch_export_roles_service(cls, obj_list: list[dict]) -> bytes:
         """
@@ -235,13 +230,13 @@ class AgRoleService:
 
             # 重命名列名
             df.rename(columns=header_dict, inplace=True)
-            
+
             # 验证必填字段
-            
+
             error_msgs = []
             success_count = 0
             count = 0
-            
+
             for _index, row in df.iterrows():
                 count += 1
                 try:
@@ -259,9 +254,9 @@ class AgRoleService:
                     }
                     # 使用CreateSchema做校验后入库
                     create_schema = AgRoleCreateSchema.model_validate(data)
-                    
+
                     # 检查唯一性约束
-                    
+
                     await AgRoleCRUD(auth).create_roles_crud(data=create_schema)
                     success_count += 1
                 except Exception as e:
@@ -272,11 +267,11 @@ class AgRoleService:
             if error_msgs:
                 result += "\n错误信息:\n" + "\n".join(error_msgs)
             return result
-            
+
         except Exception as e:
             log.error(f"批量导入失败: {str(e)}")
             raise CustomException(msg=f"导入失败: {str(e)}")
-    
+
     @classmethod
     async def import_template_download_roles_service(cls) -> bytes:
         """
@@ -299,8 +294,7 @@ class AgRoleService:
         ]
         selector_header_list = []
         option_list = []
-        
-        
+
         return ExcelUtil.get_excel_template(
             header_list=header_list,
             selector_header_list=selector_header_list,

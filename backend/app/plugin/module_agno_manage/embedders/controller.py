@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import AgEmbedderCreateSchema, AgEmbedderQueryParam, AgEmbedderUpdateSchema
 from .service import AgEmbedderService
-from .schema import AgEmbedderCreateSchema, AgEmbedderUpdateSchema, AgEmbedderQueryParam
 
-AgEmbedderRouter = APIRouter(prefix='/embedders', tags=["嵌入模型模块"]) 
+AgEmbedderRouter = APIRouter(prefix='/embedders', tags=["嵌入模型模块"])
+
 
 @AgEmbedderRouter.get(
     "/detail/{id}",
@@ -38,6 +38,7 @@ async def get_embedders_detail_controller(
     result_dict = await AgEmbedderService.detail_embedders_service(auth=auth, id=id)
     log.info(f"获取嵌入模型详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取嵌入模型详情成功")
+
 
 @AgEmbedderRouter.get(
     "/list",
@@ -70,6 +71,7 @@ async def get_embedders_list_controller(
     log.info("查询嵌入模型列表成功")
     return SuccessResponse(data=result_dict, msg="查询嵌入模型列表成功")
 
+
 @AgEmbedderRouter.post(
     "/create",
     summary="创建嵌入模型",
@@ -92,6 +94,7 @@ async def create_embedders_controller(
     result_dict = await AgEmbedderService.create_embedders_service(auth=auth, data=data)
     log.info("创建嵌入模型成功")
     return SuccessResponse(data=result_dict, msg="创建嵌入模型成功")
+
 
 @AgEmbedderRouter.put(
     "/update/{id}",
@@ -118,6 +121,7 @@ async def update_embedders_controller(
     log.info("修改嵌入模型成功")
     return SuccessResponse(data=result_dict, msg="修改嵌入模型成功")
 
+
 @AgEmbedderRouter.delete(
     "/delete",
     summary="删除嵌入模型",
@@ -141,6 +145,7 @@ async def delete_embedders_controller(
     log.info(f"删除嵌入模型成功: {ids}")
     return SuccessResponse(msg="删除嵌入模型成功")
 
+
 @AgEmbedderRouter.patch(
     "/available/setting",
     summary="批量修改嵌入模型状态",
@@ -163,6 +168,7 @@ async def batch_set_available_embedders_controller(
     await AgEmbedderService.set_available_embedders_service(auth=auth, data=data)
     log.info(f"批量修改嵌入模型状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改嵌入模型状态成功")
+
 
 @AgEmbedderRouter.post(
     '/export',
@@ -192,6 +198,7 @@ async def export_embedders_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_embedders.xlsx'}
     )
 
+
 @AgEmbedderRouter.post(
     '/import',
     summary="导入嵌入模型",
@@ -215,6 +222,7 @@ async def import_embedders_list_controller(
     log.info("导入嵌入模型成功")
     return SuccessResponse(data=batch_import_result, msg="导入嵌入模型成功")
 
+
 @AgEmbedderRouter.post(
     '/download/template',
     summary="获取嵌入模型导入模板",
@@ -235,6 +243,7 @@ async def export_embedders_template_controller() -> StreamingResponse:
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         headers={'Content-Disposition': 'attachment; filename=ag_embedders_template.xlsx'}
     )
+
 
 @AgEmbedderRouter.get(
     "/agno/providers",

@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import AgUserRoleCreateSchema, AgUserRoleQueryParam, AgUserRoleUpdateSchema
 from .service import AgUserRoleService
-from .schema import AgUserRoleCreateSchema, AgUserRoleUpdateSchema, AgUserRoleQueryParam
 
-AgUserRoleRouter = APIRouter(prefix='/user_roles', tags=["用户角色关联模块"]) 
+AgUserRoleRouter = APIRouter(prefix='/user_roles', tags=["用户角色关联模块"])
+
 
 @AgUserRoleRouter.get(
     "/detail/{id}",
@@ -38,6 +38,7 @@ async def get_user_roles_detail_controller(
     result_dict = await AgUserRoleService.detail_user_roles_service(auth=auth, id=id)
     log.info(f"获取用户角色关联详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取用户角色关联详情成功")
+
 
 @AgUserRoleRouter.get(
     "/list",
@@ -70,6 +71,7 @@ async def get_user_roles_list_controller(
     log.info("查询用户角色关联列表成功")
     return SuccessResponse(data=result_dict, msg="查询用户角色关联列表成功")
 
+
 @AgUserRoleRouter.post(
     "/create",
     summary="创建用户角色关联",
@@ -92,6 +94,7 @@ async def create_user_roles_controller(
     result_dict = await AgUserRoleService.create_user_roles_service(auth=auth, data=data)
     log.info("创建用户角色关联成功")
     return SuccessResponse(data=result_dict, msg="创建用户角色关联成功")
+
 
 @AgUserRoleRouter.put(
     "/update/{id}",
@@ -118,6 +121,7 @@ async def update_user_roles_controller(
     log.info("修改用户角色关联成功")
     return SuccessResponse(data=result_dict, msg="修改用户角色关联成功")
 
+
 @AgUserRoleRouter.delete(
     "/delete",
     summary="删除用户角色关联",
@@ -141,6 +145,7 @@ async def delete_user_roles_controller(
     log.info(f"删除用户角色关联成功: {ids}")
     return SuccessResponse(msg="删除用户角色关联成功")
 
+
 @AgUserRoleRouter.patch(
     "/available/setting",
     summary="批量修改用户角色关联状态",
@@ -163,6 +168,7 @@ async def batch_set_available_user_roles_controller(
     await AgUserRoleService.set_available_user_roles_service(auth=auth, data=data)
     log.info(f"批量修改用户角色关联状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改用户角色关联状态成功")
+
 
 @AgUserRoleRouter.post(
     '/export',
@@ -192,6 +198,7 @@ async def export_user_roles_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_user_roles.xlsx'}
     )
 
+
 @AgUserRoleRouter.post(
     '/import',
     summary="导入用户角色关联",
@@ -214,6 +221,7 @@ async def import_user_roles_list_controller(
     batch_import_result = await AgUserRoleService.batch_import_user_roles_service(file=file, auth=auth, update_support=True)
     log.info("导入用户角色关联成功")
     return SuccessResponse(data=batch_import_result, msg="导入用户角色关联成功")
+
 
 @AgUserRoleRouter.post(
     '/download/template',

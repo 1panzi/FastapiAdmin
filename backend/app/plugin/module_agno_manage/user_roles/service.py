@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 
 import io
+
 import pandas as pd
 from fastapi import UploadFile
 
@@ -13,9 +13,9 @@ from app.utils.excel_util import ExcelUtil
 from .crud import AgUserRoleCRUD
 from .schema import (
     AgUserRoleCreateSchema,
-    AgUserRoleUpdateSchema,
     AgUserRoleOutSchema,
-    AgUserRoleQueryParam
+    AgUserRoleQueryParam,
+    AgUserRoleUpdateSchema,
 )
 
 
@@ -23,7 +23,7 @@ class AgUserRoleService:
     """
     用户角色关联服务层
     """
-    
+
     @classmethod
     async def detail_user_roles_service(cls, auth: AuthSchema, id: int) -> dict:
         """
@@ -40,7 +40,7 @@ class AgUserRoleService:
         if not obj:
             raise CustomException(msg="该数据不存在")
         return AgUserRoleOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def list_user_roles_service(cls, auth: AuthSchema, search: AgUserRoleQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
         """
@@ -83,7 +83,7 @@ class AgUserRoleService:
             search=search_dict
         )
         return result
-    
+
     @classmethod
     async def create_user_roles_service(cls, auth: AuthSchema, data: AgUserRoleCreateSchema) -> dict:
         """
@@ -98,7 +98,7 @@ class AgUserRoleService:
         """
         obj = await AgUserRoleCRUD(auth).create_user_roles_crud(data=data)
         return AgUserRoleOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def update_user_roles_service(cls, auth: AuthSchema, id: int, data: AgUserRoleUpdateSchema) -> dict:
         """
@@ -116,12 +116,12 @@ class AgUserRoleService:
         obj = await AgUserRoleCRUD(auth).get_by_id_user_roles_crud(id=id)
         if not obj:
             raise CustomException(msg='更新失败，该数据不存在')
-        
+
         # 检查唯一性约束
-            
+
         obj = await AgUserRoleCRUD(auth).update_user_roles_crud(id=id, data=data)
         return AgUserRoleOutSchema.model_validate(obj).model_dump()
-    
+
     @classmethod
     async def delete_user_roles_service(cls, auth: AuthSchema, ids: list[int]) -> None:
         """
@@ -141,7 +141,7 @@ class AgUserRoleService:
             if not obj:
                 raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
         await AgUserRoleCRUD(auth).delete_user_roles_crud(ids=ids)
-    
+
     @classmethod
     async def set_available_user_roles_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
         """
@@ -155,7 +155,7 @@ class AgUserRoleService:
         - None
         """
         await AgUserRoleCRUD(auth).set_available_user_roles_crud(ids=data.ids, status=data.status)
-    
+
     @classmethod
     async def batch_export_user_roles_service(cls, obj_list: list[dict]) -> bytes:
         """
@@ -231,13 +231,13 @@ class AgUserRoleService:
 
             # 重命名列名
             df.rename(columns=header_dict, inplace=True)
-            
+
             # 验证必填字段
-            
+
             error_msgs = []
             success_count = 0
             count = 0
-            
+
             for _index, row in df.iterrows():
                 count += 1
                 try:
@@ -253,9 +253,9 @@ class AgUserRoleService:
                     }
                     # 使用CreateSchema做校验后入库
                     create_schema = AgUserRoleCreateSchema.model_validate(data)
-                    
+
                     # 检查唯一性约束
-                    
+
                     await AgUserRoleCRUD(auth).create_user_roles_crud(data=create_schema)
                     success_count += 1
                 except Exception as e:
@@ -266,11 +266,11 @@ class AgUserRoleService:
             if error_msgs:
                 result += "\n错误信息:\n" + "\n".join(error_msgs)
             return result
-            
+
         except Exception as e:
             log.error(f"批量导入失败: {str(e)}")
             raise CustomException(msg=f"导入失败: {str(e)}")
-    
+
     @classmethod
     async def import_template_download_user_roles_service(cls) -> bytes:
         """
@@ -291,8 +291,7 @@ class AgUserRoleService:
         ]
         selector_header_list = []
         option_list = []
-        
-        
+
         return ExcelUtil.get_excel_template(
             header_list=header_list,
             selector_header_list=selector_header_list,

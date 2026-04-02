@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, Query, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import AgToolkitCreateSchema, AgToolkitQueryParam, AgToolkitUpdateSchema
 from .service import AgToolkitService
-from .schema import AgToolkitCreateSchema, AgToolkitUpdateSchema, AgToolkitQueryParam
 
-AgToolkitRouter = APIRouter(prefix='/toolkits', tags=["工具管理模块"]) 
+AgToolkitRouter = APIRouter(prefix='/toolkits', tags=["工具管理模块"])
+
 
 @AgToolkitRouter.get(
     "/detail/{id}",
@@ -38,6 +38,7 @@ async def get_toolkits_detail_controller(
     result_dict = await AgToolkitService.detail_toolkits_service(auth=auth, id=id)
     log.info(f"获取工具管理详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取工具管理详情成功")
+
 
 @AgToolkitRouter.get(
     "/list",
@@ -70,6 +71,7 @@ async def get_toolkits_list_controller(
     log.info("查询工具管理列表成功")
     return SuccessResponse(data=result_dict, msg="查询工具管理列表成功")
 
+
 @AgToolkitRouter.post(
     "/create",
     summary="创建工具管理",
@@ -92,6 +94,7 @@ async def create_toolkits_controller(
     result_dict = await AgToolkitService.create_toolkits_service(auth=auth, data=data)
     log.info("创建工具管理成功")
     return SuccessResponse(data=result_dict, msg="创建工具管理成功")
+
 
 @AgToolkitRouter.put(
     "/update/{id}",
@@ -118,6 +121,7 @@ async def update_toolkits_controller(
     log.info("修改工具管理成功")
     return SuccessResponse(data=result_dict, msg="修改工具管理成功")
 
+
 @AgToolkitRouter.delete(
     "/delete",
     summary="删除工具管理",
@@ -141,6 +145,7 @@ async def delete_toolkits_controller(
     log.info(f"删除工具管理成功: {ids}")
     return SuccessResponse(msg="删除工具管理成功")
 
+
 @AgToolkitRouter.patch(
     "/available/setting",
     summary="批量修改工具管理状态",
@@ -163,6 +168,7 @@ async def batch_set_available_toolkits_controller(
     await AgToolkitService.set_available_toolkits_service(auth=auth, data=data)
     log.info(f"批量修改工具管理状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改工具管理状态成功")
+
 
 @AgToolkitRouter.post(
     '/export',
@@ -192,6 +198,7 @@ async def export_toolkits_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_toolkits.xlsx'}
     )
 
+
 @AgToolkitRouter.post(
     '/import',
     summary="导入工具管理",
@@ -215,6 +222,7 @@ async def import_toolkits_list_controller(
     log.info("导入工具管理成功")
     return SuccessResponse(data=batch_import_result, msg="导入工具管理成功")
 
+
 @AgToolkitRouter.post(
     '/download/template',
     summary="获取工具管理导入模板",
@@ -235,6 +243,7 @@ async def export_toolkits_template_controller() -> StreamingResponse:
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         headers={'Content-Disposition': 'attachment; filename=ag_toolkits_template.xlsx'}
     )
+
 
 @AgToolkitRouter.get(
     "/agno/catalog",

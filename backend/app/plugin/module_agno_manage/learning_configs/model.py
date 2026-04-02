@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import DateTime, Text, Integer, JSON, String
+from sqlalchemy import JSON, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -24,4 +22,3 @@ class AgLearningConfigModel(ModelMixin, UserMixin):
     entity_memory: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='实体记忆配置（EntityMemoryConfig JSON）')
     learned_knowledge: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='学习知识配置（LearnedKnowledgeConfig JSON）')
     decision_log: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='决策日志配置（DecisionLogConfig JSON）')
-

@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
 
-from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.common.response import SuccessResponse, StreamResponse
-from app.core.dependencies import AuthPermission
 from app.api.v1.module_system.auth.schema import AuthSchema
+from app.common.response import StreamResponse, SuccessResponse
 from app.core.base_params import PaginationQueryParam
-from app.utils.common_util import bytes2file_response
-from app.core.logger import log
 from app.core.base_schema import BatchSetAvailable
+from app.core.dependencies import AuthPermission
+from app.core.logger import log
+from app.utils.common_util import bytes2file_response
 
+from .schema import AgScheduleCreateSchema, AgScheduleQueryParam, AgScheduleUpdateSchema
 from .service import AgScheduleService
-from .schema import AgScheduleCreateSchema, AgScheduleUpdateSchema, AgScheduleQueryParam
 
-AgScheduleRouter = APIRouter(prefix='/schedules', tags=["定时任务管理模块"]) 
+AgScheduleRouter = APIRouter(prefix='/schedules', tags=["定时任务管理模块"])
+
 
 @AgScheduleRouter.get(
     "/detail/{id}",
@@ -38,6 +38,7 @@ async def get_schedules_detail_controller(
     result_dict = await AgScheduleService.detail_schedules_service(auth=auth, id=id)
     log.info(f"获取定时任务管理详情成功 {id}")
     return SuccessResponse(data=result_dict, msg="获取定时任务管理详情成功")
+
 
 @AgScheduleRouter.get(
     "/list",
@@ -70,6 +71,7 @@ async def get_schedules_list_controller(
     log.info("查询定时任务管理列表成功")
     return SuccessResponse(data=result_dict, msg="查询定时任务管理列表成功")
 
+
 @AgScheduleRouter.post(
     "/create",
     summary="创建定时任务管理",
@@ -92,6 +94,7 @@ async def create_schedules_controller(
     result_dict = await AgScheduleService.create_schedules_service(auth=auth, data=data)
     log.info("创建定时任务管理成功")
     return SuccessResponse(data=result_dict, msg="创建定时任务管理成功")
+
 
 @AgScheduleRouter.put(
     "/update/{id}",
@@ -118,6 +121,7 @@ async def update_schedules_controller(
     log.info("修改定时任务管理成功")
     return SuccessResponse(data=result_dict, msg="修改定时任务管理成功")
 
+
 @AgScheduleRouter.delete(
     "/delete",
     summary="删除定时任务管理",
@@ -141,6 +145,7 @@ async def delete_schedules_controller(
     log.info(f"删除定时任务管理成功: {ids}")
     return SuccessResponse(msg="删除定时任务管理成功")
 
+
 @AgScheduleRouter.patch(
     "/available/setting",
     summary="批量修改定时任务管理状态",
@@ -163,6 +168,7 @@ async def batch_set_available_schedules_controller(
     await AgScheduleService.set_available_schedules_service(auth=auth, data=data)
     log.info(f"批量修改定时任务管理状态成功: {data.ids}")
     return SuccessResponse(msg="批量修改定时任务管理状态成功")
+
 
 @AgScheduleRouter.post(
     '/export',
@@ -192,6 +198,7 @@ async def export_schedules_list_controller(
         headers={'Content-Disposition': 'attachment; filename=ag_schedules.xlsx'}
     )
 
+
 @AgScheduleRouter.post(
     '/import',
     summary="导入定时任务管理",
@@ -214,6 +221,7 @@ async def import_schedules_list_controller(
     batch_import_result = await AgScheduleService.batch_import_schedules_service(file=file, auth=auth, update_support=True)
     log.info("导入定时任务管理成功")
     return SuccessResponse(data=batch_import_result, msg="导入定时任务管理成功")
+
 
 @AgScheduleRouter.post(
     '/download/template',

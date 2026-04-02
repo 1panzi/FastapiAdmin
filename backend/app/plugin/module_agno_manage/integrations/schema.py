@@ -1,12 +1,12 @@
-# -*- coding: utf-8 -*-
 
-from pydantic import BaseModel, ConfigDict, Field
+
 from fastapi import Query
-from app.core.validator import DateTimeStr
-from datetime import datetime
-from app.core.validator import DateTimeStr
+from pydantic import BaseModel, ConfigDict, Field
+
 from app.common.enums import QueueEnum
 from app.core.base_schema import BaseSchema, UserBySchema
+from app.core.validator import DateTimeStr
+
 
 class AgIntegrationCreateSchema(BaseModel):
     """

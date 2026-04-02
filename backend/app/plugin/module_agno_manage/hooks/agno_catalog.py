@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Agno Agent Hook 类型元数据。"""
 from typing import TypedDict
 
