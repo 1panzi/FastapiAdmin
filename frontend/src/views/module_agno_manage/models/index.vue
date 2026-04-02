@@ -28,8 +28,15 @@
             <el-form-item label="模型标识符" prop="model_id">
               <el-input v-model="queryFormData.model_id" placeholder="请输入模型标识符" clearable />
             </el-form-item>
-            <el-form-item label="模型提供商(openai/anthropic/google/ollama/deepseek)" prop="provider">
-              <el-input v-model="queryFormData.provider" placeholder="请输入模型提供商(openai/anthropic/google/ollama/deepseek)" clearable />
+            <el-form-item label="模型提供商" prop="provider">
+              <el-select v-model="queryFormData.provider" placeholder="请选择模型提供商" clearable style="width: 170px">
+                <el-option
+                  v-for="provider in providerList"
+                  :key="provider.provider"
+                  :label="provider.label"
+                  :value="provider.provider"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item label="API密钥" prop="api_key">
               <el-input v-model="queryFormData.api_key" placeholder="请输入API密钥" clearable />
@@ -270,11 +277,15 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'provider')?.show"
-          label="模型提供商(openai/anthropic/google/ollama/deepseek)"
+          label="模型提供商"
           prop="provider"
           min-width="140"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            {{ providerList.find(p => p.provider === scope.row.provider)?.label || scope.row.provider }}
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'api_key')?.show"
           label="API密钥"
@@ -447,8 +458,8 @@
           <el-descriptions-item label="模型标识符" :span="2">
             {{ detailFormData.model_id }}
           </el-descriptions-item>
-          <el-descriptions-item label="模型提供商(openai/anthropic/google/ollama/deepseek)" :span="2">
-            {{ detailFormData.provider }}
+          <el-descriptions-item label="模型提供商" :span="2">
+            {{ providerList.find(p => p.provider === detailFormData.provider)?.label || detailFormData.provider }}
           </el-descriptions-item>
           <el-descriptions-item label="API密钥" :span="2">
             {{ detailFormData.api_key }}
@@ -498,8 +509,15 @@
           <el-form-item label="模型标识符" prop="model_id" :required="false">
             <el-input v-model="formData.model_id" placeholder="请输入模型标识符" />
           </el-form-item>
-          <el-form-item label="模型提供商(openai/anthropic/google/ollama/deepseek)" prop="provider" :required="false">
-            <el-input v-model="formData.provider" placeholder="请输入模型提供商(openai/anthropic/google/ollama/deepseek)" />
+          <el-form-item label="模型提供商" prop="provider" :required="false">
+            <el-select v-model="formData.provider" placeholder="请选择模型提供商" style="width: 100%">
+              <el-option
+                v-for="provider in providerList"
+                :key="provider.provider"
+                :label="provider.label"
+                :value="provider.provider"
+              />
+            </el-select>
           </el-form-item>
           <el-form-item label="API密钥" prop="api_key" :required="false">
             <el-input v-model="formData.api_key" placeholder="请输入API密钥" />
@@ -581,6 +599,7 @@ import AgModelAPI, {
   AgModelTable,
   AgModelForm,
 } from "@/api/module_agno_manage/models";
+import ProviderAPI, { Provider } from "@/api/module_agno_manage/provider";
 
 const visible = ref(true);
 const queryFormRef = ref();
@@ -592,6 +611,9 @@ const loading = ref(false);
 const isExpand = ref(false);
 const isExpandable = ref(true);
 
+// 模型提供商列表
+const providerList = ref<Provider[]>([]);
+
 // 分页表单
 const pageTableData = ref<AgModelTable[]>([]);
 
@@ -601,7 +623,7 @@ const tableColumns = ref([
   { prop: "index", label: "序号", show: true },
   { prop: "name", label: "模型名称", show: true },
   { prop: "model_id", label: "模型标识符（传给Agno Model的id参数）", show: true },
-  { prop: "provider", label: "模型提供商(openai/anthropic/google/ollama/deepseek)", show: true },
+  { prop: "provider", label: "模型提供商", show: true },
   { prop: "api_key", label: "API密钥（明文存储）", show: true },
   { prop: "base_url", label: "自定义API地址（用于ollama/vllm/lmstudio）", show: true },
   { prop: "config", label: "模型配置参数（temperature/max_tokens/top_p等）", show: true },
@@ -618,7 +640,7 @@ const tableColumns = ref([
 const exportColumns = [
   { prop: "name", label: "模型名称" },
   { prop: "model_id", label: "模型标识符（传给Agno Model的id参数）" },
-  { prop: "provider", label: "模型提供商(openai/anthropic/google/ollama/deepseek)" },
+  { prop: "provider", label: "模型提供商" },
   { prop: "api_key", label: "API密钥（明文存储）" },
   { prop: "base_url", label: "自定义API地址（用于ollama/vllm/lmstudio）" },
   { prop: "config", label: "模型配置参数（temperature/max_tokens/top_p等）" },
@@ -964,11 +986,23 @@ const handleUpload = async (formData: FormData) => {
   }
 };
 
+// 获取模型提供商列表
+async function getProviderList() {
+  try {
+    const response = await ProviderAPI.listProvider({});
+    providerList.value = response.data.data;
+  } catch (error: any) {
+    console.error('获取提供商列表失败:', error);
+  }
+}
+
 onMounted(async () => {
   // 预加载字典数据
   if (dictTypes.length > 0) {
     await dictStore.getDict(dictTypes);
   }
+  // 获取提供商列表
+  await getProviderList();
   loadingData();
 });
 </script>
