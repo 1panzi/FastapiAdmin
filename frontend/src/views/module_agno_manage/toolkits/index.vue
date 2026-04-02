@@ -679,7 +679,7 @@
             <el-select v-model="formData.requires_confirmation" placeholder="请选择" clearable>
               <el-option :value="true" label="是" />
               <el-option :value="false" label="否" />
-              <el-option :value="null" label="默认" />
+              <el-option value="default" label="默认" />
             </el-select>
           </el-form-item>
           <el-form-item label="审批类型" prop="approval_type">
@@ -692,21 +692,21 @@
             <el-select v-model="formData.stop_after_call" placeholder="请选择" clearable>
               <el-option :value="true" label="是" />
               <el-option :value="false" label="否" />
-              <el-option :value="null" label="默认" />
+              <el-option value="default" label="默认" />
             </el-select>
           </el-form-item>
           <el-form-item label="展示结果" prop="show_result">
             <el-select v-model="formData.show_result" placeholder="请选择" clearable>
               <el-option :value="true" label="是" />
               <el-option :value="false" label="否" />
-              <el-option :value="null" label="默认" />
+              <el-option value="default" label="默认" />
             </el-select>
           </el-form-item>
           <el-form-item label="缓存结果" prop="cache_results">
             <el-select v-model="formData.cache_results" placeholder="请选择" clearable>
               <el-option :value="true" label="是" />
               <el-option :value="false" label="否" />
-              <el-option :value="null" label="默认" />
+              <el-option value="default" label="默认" />
             </el-select>
           </el-form-item>
           <el-form-item v-if="formData.cache_results" label="缓存TTL(秒)" prop="cache_ttl">
@@ -932,11 +932,11 @@ const formData = reactive<AgToolkitForm>({
   func_name: undefined,
   config: undefined,
   instructions: undefined,
-  requires_confirmation: null,
+  requires_confirmation: "default" as any,
   approval_type: undefined,
-  stop_after_call: null,
-  show_result: null,
-  cache_results: null,
+  stop_after_call: "default" as any,
+  show_result: "default" as any,
+  cache_results: "default" as any,
   cache_ttl: undefined,
   source_code: undefined,
   param_schema: undefined,
@@ -1053,11 +1053,11 @@ const initialFormData: AgToolkitForm = {
   func_name: undefined,
   config: undefined,
   instructions: undefined,
-  requires_confirmation: null,
+  requires_confirmation: "default" as any,
   approval_type: undefined,
-  stop_after_call: null,
-  show_result: null,
-  cache_results: null,
+  stop_after_call: "default" as any,
+  show_result: "default" as any,
+  cache_results: "default" as any,
   cache_ttl: undefined,
   source_code: undefined,
   param_schema: undefined,
@@ -1112,11 +1112,11 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     formData.func_name = undefined;
     formData.config = undefined;
     formData.instructions = undefined;
-    formData.requires_confirmation = null;
+    formData.requires_confirmation = "default" as any;
     formData.approval_type = undefined;
-    formData.stop_after_call = null;
-    formData.show_result = null;
-    formData.cache_results = null;
+    formData.stop_after_call = "default" as any;
+    formData.show_result = "default" as any;
+    formData.cache_results = "default" as any;
     formData.cache_ttl = undefined;
     formData.source_code = undefined;
     formData.param_schema = undefined;
@@ -1133,9 +1133,9 @@ async function handleSubmit() {
     if (valid) {
       loading.value = true;
       // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
-      // 过滤 null/undefined 字段，不传递给接口（null 表示"使用默认值"）
+      // 过滤 null/undefined/"default" 字段，不传递给接口（表示"使用默认值"）
       const submitData = Object.fromEntries(
-        Object.entries({ ...formData }).filter(([, v]) => v !== null && v !== undefined)
+        Object.entries({ ...formData }).filter(([, v]) => v !== null && v !== undefined && v !== "default")
       ) as AgToolkitForm;
       const id = formData.id;
       if (id) {
