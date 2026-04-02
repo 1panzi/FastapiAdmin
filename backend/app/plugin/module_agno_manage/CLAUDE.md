@@ -81,23 +81,23 @@ Agno 原生表（agno_sessions / agno_user_memory / agno_traces）
 | models | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
 | toolkits | ✅ | ✅ | ✅ | ✅+Registry+Catalog | ✅+Catalog | ✅ |
 | agents | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
-| embedders | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
-| vectordbs | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
-| knowledge_bases | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
-| mcp_servers | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
+| embedders | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
+| vectordbs | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
+| knowledge_bases | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
+| mcp_servers | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
 | toolkits | ✅ | ✅ | ✅ | ✅+Registry+Catalog | ✅+Catalog | ✅ |
-| skills | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
-| hooks | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
-| guardrails | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
-| memory_managers | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
-| learning_configs | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
-| reasoning_configs | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
-| compression_configs | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
-| sess_summary_configs | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
-| culture_configs | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
+| skills | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
+| hooks | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
+| guardrails | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
+| memory_managers | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
+| learning_configs | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
+| reasoning_configs | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
+| compression_configs | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
+| sess_summary_configs | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
+| culture_configs | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
 | agents | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
-| teams | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
-| workflows | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
+| teams | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
+| workflows | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
 | bindings | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
 | schedules | ✅ | ✅ | ✅ | — 无 | ✅ | — |
 | roles | ✅ | ✅ | ✅ | — 无 | ✅ | — |
