@@ -20,17 +20,17 @@ def _build_agno_db():
     from app.config.setting import settings
 
     db_type = settings.DATABASE_TYPE
-    db_url = settings.DB_URI
+    db_uri = settings.DB_URI
 
     if db_type == "postgres":
         from agno.db.postgres.postgres import PostgresDb
-        return PostgresDb(db_url=db_url)
+        return PostgresDb(db_url=db_uri)
     elif db_type == "mysql":
         from agno.db.mysql.mysql import MySQLDb
-        return MySQLDb(db_url=db_url)
+        return MySQLDb(db_url=db_uri)
     else:
         from agno.db.sqlite.sqlite import SqliteDb
-        return SqliteDb(db_url=db_url)
+        return SqliteDb(db_file=db_uri.replace("sqlite:///", ""))
 
 
 async def init_agent_os(app: FastAPI) -> None:
