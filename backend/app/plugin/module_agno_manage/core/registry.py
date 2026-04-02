@@ -18,7 +18,7 @@ from collections import OrderedDict
 from typing import Dict, List, Optional
 
 from app.core.logger import log
-
+from .agno_os import _build_agno_db
 
 # ── LRU 缓存 ──────────────────────────────────────────────────────────────────
 
@@ -106,7 +106,7 @@ class RuntimeRegistry:
         self._mcp_cache: LRUCache = LRUCache(maxsize=20)
 
         # ── 共享资源（lifespan 注入） ──────────────────────────────────────
-        self._agno_db = None
+        self._agno_db = _build_agno_db()
 
     # ── Model ────────────────────────────────────────────────────────────────
 
@@ -184,25 +184,25 @@ class RuntimeRegistry:
 
         try:
             if provider == "openai":
-                from agno.embedder.openai import OpenAIEmbedder
+                from agno.knowledge.embedder.openai import OpenAIEmbedder
                 obj = OpenAIEmbedder(id=mid, api_key=api_key, **config)
             elif provider == "azure":
-                from agno.embedder.azure import AzureOpenAIEmbedder
+                from agno.knowledge.embedder.azure_openai import AzureOpenAIEmbedder
                 obj = AzureOpenAIEmbedder(id=mid, api_key=api_key, azure_endpoint=base_url, **config)
             elif provider == "ollama":
-                from agno.embedder.ollama import OllamaEmbedder
+                from agno.knowledge.embedder.ollama import OllamaEmbedder
                 obj = OllamaEmbedder(id=mid, host=base_url, **config)
             elif provider == "cohere":
-                from agno.embedder.cohere import CohereEmbedder
+                from agno.knowledge.embedder.cohere import CohereEmbedder
                 obj = CohereEmbedder(id=mid, api_key=api_key, **config)
             elif provider == "google":
-                from agno.embedder.google import GeminiEmbedder
+                from agno.knowledge.embedder.google import GeminiEmbedder
                 obj = GeminiEmbedder(id=mid, api_key=api_key, **config)
             elif provider == "huggingface":
-                from agno.embedder.huggingface import HuggingfaceCustomEmbedder
+                from agno.knowledge.embedder.huggingface import HuggingfaceCustomEmbedder
                 obj = HuggingfaceCustomEmbedder(id=mid, **config)
             elif provider == "openai_like":
-                from agno.embedder.openai import OpenAIEmbedder
+                from agno.knowledge.embedder.openai import OpenAIEmbedder
                 obj = OpenAIEmbedder(id=mid, api_key=api_key, base_url=base_url, **config)
             else:
                 raise ValueError(f"Unsupported embedder provider: {provider}")
@@ -361,6 +361,7 @@ class RuntimeRegistry:
             tools=_tools,
             knowledge=_knowledge,
             cache_callables=False,   # ⚠️ 必须关闭，热插拔绑定时无需重建 AgnoAgent
+            db=self._agno_db,
             **kwargs,
         )
 
@@ -422,15 +423,15 @@ class RuntimeRegistry:
             embedder = self.get_embedder(str(row.embedder_id)) if getattr(row, "embedder_id", None) else None
             kb_type = getattr(row, "knowledge_type", "pdf")
             config = dict(row.config or {})
-            if kb_type == "pdf":
-                from agno.knowledge.pdf import PDFKnowledgeBase
-                return PDFKnowledgeBase(embedder=embedder, **config)
-            elif kb_type == "text":
-                from agno.knowledge.text import TextKnowledgeBase
-                return TextKnowledgeBase(embedder=embedder, **config)
-            elif kb_type == "url":
-                from agno.knowledge.url import UrlKnowledgeBase
-                return UrlKnowledgeBase(embedder=embedder, **config)
+            #TODO 此处存在问题，知识库库，不分类型文件类型，只是区分 向量库和readers 以及向量DB  向量DB中才存入 embedder 还没有完全完成
+            if kb_type == "pdf": 
+                from agno.knowledge.knowledge import Knowledge
+                # vector_db
+                # contents_db: Optional[Union[BaseDb, AsyncBaseDb]] = None  self._agno_db
+                return Knowledge(**config)
+            if kb_type == "filesystem":
+                from agno.knowledge.filesystem import FileSystemKnowledge
+                return FileSystemKnowledge(**config)
             else:
                 log.warning(f"[Registry] unknown knowledge type: {kb_type}")
                 return None

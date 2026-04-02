@@ -9,7 +9,17 @@ AgentOS 初始化模块。
 from fastapi import FastAPI
 
 from app.core.logger import log
+from app.config.setting import settings
+from agno.db.mysql.mysql import MySQLDb
+from agno.db.postgres.postgres import PostgresDb
+from agno.db.sqlite.sqlite import SqliteDb
+db_uri = settings.DB_URI
 
+db_mapping = {
+    "mysql": lambda: MySQLDb(db_url=db_uri),
+    "postgres": lambda: PostgresDb(db_url=db_uri),
+    "sqlite": lambda: SqliteDb(db_file=db_uri.replace("sqlite:///", "")),
+}
 
 def _build_agno_db():
     """根据项目 DATABASE_TYPE 构建对应的 Agno 同步 BaseDb 实例。
@@ -17,19 +27,6 @@ def _build_agno_db():
     使用同步 BaseDb（非 AsyncBaseDb），以支持 AgentOS 全部功能（含 components 路由）。
     复用项目 settings.DB_URI（同步驱动：pymysql / psycopg / sqlite）。
     """
-    from agno.db.mysql.mysql import MySQLDb
-    from agno.db.postgres.postgres import PostgresDb
-    from agno.db.sqlite.sqlite import SqliteDb
-
-    from app.config.setting import settings
-
-    db_uri = settings.DB_URI
-
-    db_mapping = {
-        "mysql": lambda: MySQLDb(db_url=db_uri),
-        "postgres": lambda: PostgresDb(db_url=db_uri),
-        "sqlite": lambda: SqliteDb(db_file=db_uri.replace("sqlite:///", "")),
-    }
 
     db_type = settings.DATABASE_TYPE
     if db_type not in db_mapping:
@@ -65,7 +62,7 @@ async def init_agent_os(app: FastAPI) -> None:
             workflows=workflows,
             db=db,
             base_app=app,
-            telemetry=False,
+            # telemetry=False,
         )
         agent_os.get_app()
         # 清除 openapi schema 缓存，让 /docs 重新生成包含 AgentOS 路由
