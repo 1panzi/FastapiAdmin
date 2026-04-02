@@ -154,7 +154,7 @@ def register_routers(app: FastAPI) -> None:
         dependencies=[Depends(RateLimiter(times=5, seconds=10))],
     )
 
-    # AgentOS startup hook：warm_up() 之后执行，通过闭包捕获 app 引用
+    # AgentOS：startup 时初始化，传入 app 引用（与 warm_up 无顺序依赖）
     async def _agno_os_startup() -> None:
         from app.plugin.module_agno_manage.core.agno_os import init_agent_os
         await init_agent_os(app)
