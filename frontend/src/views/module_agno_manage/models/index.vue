@@ -467,8 +467,18 @@
           <el-descriptions-item label="自定义API地址" :span="2">
             {{ detailFormData.base_url }}
           </el-descriptions-item>
-          <el-descriptions-item label="模型配置参数" :span="2">
-            {{ detailFormData.config }}
+          <el-descriptions-item label="模型配置参数" :span="4">
+            <template v-if="detailFormData.config && Object.keys(detailFormData.config).length">
+              <el-tag
+                v-for="(val, key) in detailFormData.config"
+                :key="key"
+                class="mr-1 mb-1"
+                type="info"
+              >
+                {{ key }}: {{ JSON.stringify(val) }}
+              </el-tag>
+            </template>
+            <el-text v-else type="info">—</el-text>
           </el-descriptions-item>
           <el-descriptions-item label="状态" :span="2">
             <el-tag :type="detailFormData.status == '0' ? 'success' : 'danger'">
@@ -526,7 +536,7 @@
             <el-input v-model="formData.base_url" placeholder="请输入自定义API地址" />
           </el-form-item>
           <el-form-item label="模型配置参数" prop="config" :required="false">
-            <el-input v-model="formData.config" placeholder="请输入模型配置参数" />
+            <DictEditor v-model="formData.config" />
           </el-form-item>
           <el-form-item label="状态" prop="status" :required="true">
             <el-radio-group v-model="formData.status">
@@ -600,6 +610,7 @@ import AgModelAPI, {
   AgModelForm,
 } from "@/api/module_agno_manage/models";
 import ProviderAPI, { Provider } from "@/api/module_agno_manage/provider";
+import DictEditor from "../components/DictEditor/index.vue";
 
 const visible = ref(false);
 const queryFormRef = ref();

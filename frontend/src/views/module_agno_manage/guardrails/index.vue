@@ -502,7 +502,7 @@
             <el-input v-model="formData.hook_type" placeholder="请输入作用阶段(pre/post)" />
           </el-form-item>
           <el-form-item label="护栏配置参数" prop="config" :required="false">
-            <el-input v-model="formData.config" placeholder="请输入护栏配置参数" />
+            <DictEditor v-model="formData.config" />
           </el-form-item>
           <el-form-item label="自定义护栏模块路径" prop="module_path" :required="false">
             <el-input v-model="formData.module_path" placeholder="请输入自定义护栏模块路径" />

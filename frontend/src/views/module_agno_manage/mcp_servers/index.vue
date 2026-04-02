@@ -557,7 +557,7 @@
             <el-input v-model="formData.url" placeholder="请输入HTTP/SSE服务地址" />
           </el-form-item>
           <el-form-item label="环境变量配置" prop="env_config" :required="false">
-            <el-input v-model="formData.env_config" placeholder="请输入环境变量配置" />
+            <DictEditor v-model="formData.env_config" />
           </el-form-item>
           <el-form-item label="仅包含的工具列表" prop="include_tools" :required="false">
             <el-input v-model="formData.include_tools" placeholder="请输入仅包含的工具列表" />

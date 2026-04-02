@@ -98,7 +98,7 @@ export interface AgHookPageQuery extends PageQuery {
   hook_type?: string;
   module_path?: string;
   func_name?: string;
-  config?: Record<string, any>;
+  config?: string;
   run_in_background?: string;
   status?: string;
   created_id?: number;

@@ -556,7 +556,7 @@
             <el-input v-model="formData.prefix" placeholder="请输入路由前缀" />
           </el-form-item>
           <el-form-item label="渠道扩展配置" prop="config" :required="false">
-            <el-input v-model="formData.config" placeholder="请输入渠道扩展配置" />
+            <DictEditor v-model="formData.config" />
           </el-form-item>
           <el-form-item label="状态" prop="status" :required="true">
             <el-radio-group v-model="formData.status">

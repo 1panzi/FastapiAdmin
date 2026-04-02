@@ -505,7 +505,7 @@
             <el-input v-model="formData.func_name" placeholder="请输入函数名" />
           </el-form-item>
           <el-form-item label="额外配置参数" prop="config" :required="false">
-            <el-input v-model="formData.config" placeholder="请输入额外配置参数" />
+            <DictEditor v-model="formData.config" />
           </el-form-item>
           <el-form-item label="是否后台运行" prop="run_in_background" :required="false">
             <el-input v-model="formData.run_in_background" placeholder="请输入是否后台运行" />

@@ -599,7 +599,7 @@
             <el-input v-model="formData.func_name" placeholder="请输入函数名" />
           </el-form-item>
           <el-form-item label="初始化参数" prop="config" :required="false">
-            <el-input v-model="formData.config" placeholder="请输入初始化参数" />
+            <DictEditor v-model="formData.config" />
           </el-form-item>
           <el-form-item label="工具使用说明" prop="instructions" :required="false">
             <el-input v-model="formData.instructions" placeholder="请输入工具使用说明" />

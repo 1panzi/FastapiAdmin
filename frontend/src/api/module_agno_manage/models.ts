@@ -99,7 +99,7 @@ export interface AgModelPageQuery extends PageQuery {
   provider?: string;
   api_key?: string;
   base_url?: string;
-  config?: Record<string, any>;
+  config?: string;
   status?: string;
   created_id?: number;
   updated_id?: number;

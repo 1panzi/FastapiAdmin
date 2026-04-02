@@ -99,7 +99,7 @@ export interface AgToolkitPageQuery extends PageQuery {
   module_path?: string;
   class_name?: string;
   func_name?: string;
-  config?: Record<string, any>;
+  config?: string;
   instructions?: string;
   requires_confirmation?: string;
   approval_type?: string;
