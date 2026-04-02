@@ -59,12 +59,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, Any]:
         )
         log.info("✅ 请求限流器初始化完成")
 
-        from app.plugin.module_agno_manage.core.startup import warm_up
-        from app.plugin.module_agno_manage.core.agno_os import init_agent_os
-        await warm_up()
-        await init_agent_os(app)
-        log.info("✅ AgentOS 初始化完成")
-
         # 导入并显示最终的启动信息面板
         from app.common.enums import EnvironmentEnum
 
@@ -91,10 +85,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, Any]:
         log.info("✅ 定时任务调度器已关闭")
         await FastAPILimiter.close()
         log.info("✅ 请求限制器已关闭")
-
-        from app.plugin.module_agno_manage.core.controller import on_shutdown
-        await on_shutdown()
-
         console_close()
 
     except Exception as e:
@@ -163,6 +153,13 @@ def register_routers(app: FastAPI) -> None:
         router=get_dynamic_router(),
         dependencies=[Depends(RateLimiter(times=5, seconds=10))],
     )
+
+    # AgentOS startup hook：warm_up() 之后执行，通过闭包捕获 app 引用
+    async def _agno_os_startup() -> None:
+        from app.plugin.module_agno_manage.core.agno_os import init_agent_os
+        await init_agent_os(app)
+
+    app.router.add_event_handler("startup", _agno_os_startup)
 
 
 def register_files(app: FastAPI) -> None:
