@@ -235,3 +235,13 @@ async def export_embedders_template_controller() -> StreamingResponse:
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         headers={'Content-Disposition': 'attachment; filename=ag_embedders_template.xlsx'}
     )
+
+@AgEmbedderRouter.get(
+    "/agno/providers",
+    summary="获取 Agno 支持的嵌入模型提供商列表",
+)
+async def get_agno_embedder_providers_controller(
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:embedders:query"]))
+):
+    result = AgEmbedderService.list_agno_providers_service()
+    return SuccessResponse(data=result, msg="获取嵌入模型提供商列表成功")

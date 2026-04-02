@@ -11,6 +11,7 @@ from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
 
 from app.plugin.module_agno_manage.core.registry import get_registry
+from .agno_catalog import list_vectordb_types, VectorDbTypeInfo
 from .crud import AgVectordbCRUD
 from .schema import (
     AgVectordbCreateSchema,
@@ -336,3 +337,8 @@ class AgVectordbService:
             selector_header_list=selector_header_list,
             option_list=option_list
         )
+
+    @classmethod
+    def list_agno_types_service(cls) -> list[VectorDbTypeInfo]:
+        """返回 Agno 支持的向量数据库类型列表。"""
+        return list_vectordb_types()

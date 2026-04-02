@@ -235,3 +235,13 @@ async def export_knowledge_bases_template_controller() -> StreamingResponse:
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         headers={'Content-Disposition': 'attachment; filename=ag_knowledge_bases_template.xlsx'}
     )
+
+@AgKnowledgeBaseRouter.get(
+    "/agno/types",
+    summary="获取 Agno 支持的知识库类型列表",
+)
+async def get_agno_kb_types_controller(
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:knowledge_bases:query"]))
+):
+    result = AgKnowledgeBaseService.list_agno_types_service()
+    return SuccessResponse(data=result, msg="获取知识库类型列表成功")

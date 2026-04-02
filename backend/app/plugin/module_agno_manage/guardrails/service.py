@@ -11,6 +11,7 @@ from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
 
 from app.plugin.module_agno_manage.core.registry import get_registry
+from .agno_catalog import list_guardrail_types, GuardrailTypeInfo
 from .crud import AgGuardrailCRUD
 from .schema import (
     AgGuardrailCreateSchema,
@@ -353,3 +354,8 @@ class AgGuardrailService:
             selector_header_list=selector_header_list,
             option_list=option_list
         )
+
+    @classmethod
+    def list_agno_guardrail_types_service(cls) -> list[GuardrailTypeInfo]:
+        """返回 Agno Guardrail 类型列表。"""
+        return list_guardrail_types()

@@ -11,6 +11,7 @@ from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
 
 from app.plugin.module_agno_manage.core.registry import get_registry
+from .agno_catalog import list_hook_types, HookTypeInfo
 from .crud import AgHookCRUD
 from .schema import (
     AgHookCreateSchema,
@@ -353,3 +354,8 @@ class AgHookService:
             selector_header_list=selector_header_list,
             option_list=option_list
         )
+
+    @classmethod
+    def list_agno_hook_types_service(cls) -> list[HookTypeInfo]:
+        """返回 Agno Hook 类型列表。"""
+        return list_hook_types()

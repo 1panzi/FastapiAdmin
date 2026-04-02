@@ -235,3 +235,13 @@ async def export_models_template_controller() -> StreamingResponse:
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         headers={'Content-Disposition': 'attachment; filename=ag_models_template.xlsx'}
     )
+
+@AgModelRouter.get(
+    "/agno/providers",
+    summary="获取 Agno 支持的模型提供商列表",
+)
+async def get_agno_providers_controller(
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:models:query"]))
+):
+    result = AgModelService.list_agno_providers_service()
+    return SuccessResponse(data=result, msg="获取模型提供商列表成功")

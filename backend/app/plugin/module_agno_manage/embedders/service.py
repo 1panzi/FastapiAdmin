@@ -11,6 +11,7 @@ from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
 
 from app.plugin.module_agno_manage.core.registry import get_registry
+from .agno_catalog import list_embedder_providers, get_embedder_provider_names, EmbedderProviderInfo
 from .crud import AgEmbedderCRUD
 from .schema import (
     AgEmbedderCreateSchema,
@@ -357,3 +358,8 @@ class AgEmbedderService:
             selector_header_list=selector_header_list,
             option_list=option_list
         )
+
+    @classmethod
+    def list_agno_providers_service(cls) -> list[EmbedderProviderInfo]:
+        """返回 Agno 支持的嵌入模型提供商列表。"""
+        return list_embedder_providers()

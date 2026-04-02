@@ -11,6 +11,7 @@ from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
 
 from app.plugin.module_agno_manage.core.registry import get_registry
+from .agno_catalog import list_mcp_server_types, McpServerTypeInfo
 from .crud import AgMcpServerCRUD
 from .schema import (
     AgMcpServerCreateSchema,
@@ -360,3 +361,8 @@ class AgMcpServerService:
             selector_header_list=selector_header_list,
             option_list=option_list
         )
+
+    @classmethod
+    def list_agno_server_types_service(cls) -> list[McpServerTypeInfo]:
+        """返回 MCP Server 类型列表。"""
+        return list_mcp_server_types()

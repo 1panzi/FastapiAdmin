@@ -235,3 +235,13 @@ async def export_mcp_servers_template_controller() -> StreamingResponse:
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         headers={'Content-Disposition': 'attachment; filename=ag_mcp_servers_template.xlsx'}
     )
+
+@AgMcpServerRouter.get(
+    "/agno/server_types",
+    summary="获取 MCP Server 类型列表",
+)
+async def get_agno_mcp_server_types_controller(
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:mcp_servers:query"]))
+):
+    result = AgMcpServerService.list_agno_server_types_service()
+    return SuccessResponse(data=result, msg="获取 MCP Server 类型列表成功")

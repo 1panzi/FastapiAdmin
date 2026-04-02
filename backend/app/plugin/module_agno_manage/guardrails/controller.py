@@ -235,3 +235,13 @@ async def export_guardrails_template_controller() -> StreamingResponse:
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         headers={'Content-Disposition': 'attachment; filename=ag_guardrails_template.xlsx'}
     )
+
+@AgGuardrailRouter.get(
+    "/agno/guardrail_types",
+    summary="获取 Agno Guardrail 类型列表",
+)
+async def get_agno_guardrail_types_controller(
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:guardrails:query"]))
+):
+    result = AgGuardrailService.list_agno_guardrail_types_service()
+    return SuccessResponse(data=result, msg="获取 Guardrail 类型列表成功")

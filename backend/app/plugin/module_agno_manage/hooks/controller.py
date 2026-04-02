@@ -235,3 +235,13 @@ async def export_hooks_template_controller() -> StreamingResponse:
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         headers={'Content-Disposition': 'attachment; filename=ag_hooks_template.xlsx'}
     )
+
+@AgHookRouter.get(
+    "/agno/hook_types",
+    summary="获取 Agno Hook 类型列表",
+)
+async def get_agno_hook_types_controller(
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:hooks:query"]))
+):
+    result = AgHookService.list_agno_hook_types_service()
+    return SuccessResponse(data=result, msg="获取 Hook 类型列表成功")

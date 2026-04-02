@@ -11,6 +11,7 @@ from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
 from app.plugin.module_agno_manage.core.registry import get_registry
 
+from .agno_catalog import list_model_providers, get_provider_names, ModelProviderInfo
 from .crud import AgModelCRUD
 from .schema import (
     AgModelCreateSchema,
@@ -358,3 +359,13 @@ class AgModelService:
             selector_header_list=selector_header_list,
             option_list=option_list
         )
+
+    @classmethod
+    def list_agno_providers_service(cls) -> list[ModelProviderInfo]:
+        """返回 Agno 支持的 LLM 提供商列表。"""
+        return list_model_providers()
+
+    @classmethod
+    def list_agno_provider_names_service(cls) -> list[str]:
+        """返回提供商 key 列表。"""
+        return get_provider_names()
