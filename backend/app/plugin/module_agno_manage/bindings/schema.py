@@ -12,8 +12,8 @@ class AgBindingCreateSchema(BaseModel):
     """
     资源绑定关系新增模型
     """
-    owner_type: str = Field(default=..., description='拥有者类型(agent/team)')
-    owner_id: int = Field(default=..., description='拥有者ID')
+    owner_type: str = Field(default=..., description='拥有者类型(agent/team/user)')
+    owner_id: int = Field(default=..., description='拥有者ID（user时为user_id）')
     resource_type: str = Field(default=..., description='资源类型(toolkit/skill/mcp/knowledge/hook/guardrail)')
     resource_id: int = Field(default=..., description='资源ID')
     priority: int | None = Field(default=None, description='优先级（数字小优先）')

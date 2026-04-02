@@ -52,16 +52,19 @@ class AgToolkitService:
     async def list_toolkits_service(cls, auth: AuthSchema, search: AgToolkitQueryParam | None = None, order_by: list[dict] | None = None) -> list[dict]:
         """
         列表查询
-        
+
         参数:
         - auth: AuthSchema - 认证信息
         - search: AgToolkitQueryParam | None - 查询参数
         - order_by: list[dict] | None - 排序参数
-        
+
         返回:
         - list[dict] - 数据列表
         """
-        search_dict = search.__dict__ if search else None
+        search_dict = search.__dict__ if search else {}
+        # 普通用户只能看 global_enabled=True 的工具（超管能看全部）
+        if not cls._is_super_admin(auth):
+            search_dict["global_enabled"] = ("eq", True)
         obj_list = await AgToolkitCRUD(auth).list_toolkits_crud(search=search_dict, order_by=order_by)
         return [AgToolkitOutSchema.model_validate(obj).model_dump() for obj in obj_list]
 
@@ -69,18 +72,21 @@ class AgToolkitService:
     async def page_toolkits_service(cls, auth: AuthSchema, page_no: int, page_size: int, search: AgToolkitQueryParam | None = None, order_by: list[dict] | None = None) -> dict:
         """
         分页查询（数据库分页）
-        
+
         参数:
         - auth: AuthSchema - 认证信息
         - page_no: int - 页码
         - page_size: int - 每页数量
         - search: AgToolkitQueryParam | None - 查询参数
         - order_by: list[dict] | None - 排序参数
-        
+
         返回:
         - dict - 分页查询结果
         """
         search_dict = search.__dict__ if search else {}
+        # 普通用户只能看 global_enabled=True 的工具（超管能看全部）
+        if not cls._is_super_admin(auth):
+            search_dict["global_enabled"] = ("eq", True)
         order_by_list = order_by or [{'id': 'asc'}]
         offset = (page_no - 1) * page_size
         result = await AgToolkitCRUD(auth).page_toolkits_crud(
@@ -90,6 +96,12 @@ class AgToolkitService:
             search=search_dict
         )
         return result
+
+    @staticmethod
+    def _is_super_admin(auth: AuthSchema) -> bool:
+        """判断是否为超管（简化版，实际应该查角色表）。"""
+        # TODO: 根据实际权限系统判断，这里暂时用 user_id=1 作为超管
+        return auth.user_id == 1
 
     @classmethod
     async def create_toolkits_service(cls, auth: AuthSchema, data: AgToolkitCreateSchema) -> dict:

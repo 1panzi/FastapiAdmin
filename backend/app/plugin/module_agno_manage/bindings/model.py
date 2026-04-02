@@ -13,8 +13,8 @@ class AgBindingModel(ModelMixin, UserMixin):
     __table_args__: dict[str, str] = {'comment': '资源绑定关系'}
     __loader_options__: list[str] = ["created_by", "updated_by"]
 
-    owner_type: Mapped[str | None] = mapped_column(String(50), nullable=True, comment='拥有者类型(agent/team)')
-    owner_id: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='拥有者ID')
+    owner_type: Mapped[str | None] = mapped_column(String(50), nullable=True, comment='拥有者类型(agent/team/user)')
+    owner_id: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='拥有者ID（user时为user_id）')
     resource_type: Mapped[str | None] = mapped_column(String(50), nullable=True, comment='资源类型(toolkit/skill/mcp/knowledge/hook/guardrail)')
     resource_id: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='资源ID')
     priority: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='优先级（数字小优先）')

@@ -266,12 +266,13 @@ class RuntimeRegistry:
             if not source_code:
                 raise ValueError(f"code toolkit id={row.id} source_code 为空")
 
-            namespace: dict = {}
+            # 注入 CONFIG 到 namespace，用户代码可通过 CONFIG 访问配置
+            namespace: dict = {"CONFIG": config}
             exec(compile(source_code, f"<toolkit:{row.id}>", "exec"), namespace)
 
             tools = []
             for name, obj in namespace.items():
-                if name.startswith("_"):
+                if name.startswith("_") or name == "CONFIG":
                     continue
                 if isinstance(obj, Function):
                     tools.append(obj)
