@@ -173,7 +173,7 @@ async def _do_warm_up() -> None:
         f"[Registry] warm-up complete — "
         f"models={len(registry._model_cache)}, "
         f"embedders={len(registry._embedder_cache)}, "
-        f"toolkits={len(registry._toolkit_map)}, "
+        f"toolkits={len(registry._toolkit_rows)}, "
         f"hooks={len(registry._hook_map)}, "
         f"guardrails={len(registry._guardrail_map)}"
     )

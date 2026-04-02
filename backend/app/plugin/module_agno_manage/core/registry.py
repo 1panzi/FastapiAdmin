@@ -83,7 +83,7 @@ class RuntimeRegistry:
         # ── 构建好的对象缓存（热区） ──────────────────────────────────────
         self._model_cache: dict[str, object] = {}      # str(id) → Agno Model
         self._embedder_cache: dict[str, object] = {}   # str(id) → Agno Embedder
-        self._toolkit_map: dict[str, object] = {}      # str(id) → Agno Toolkit
+        self._toolkit_rows: dict[str, object] = {}     # str(id) → row（懒加载，不预实例化）
         self._hook_map: dict[str, object] = {}         # str(id) → {func, hook_type}
         self._guardrail_map: dict[str, object] = {}    # str(id) → {obj, guardrail_type}
 
@@ -223,7 +223,7 @@ class RuntimeRegistry:
     # ── Toolkit ──────────────────────────────────────────────────────────────
 
     def register_toolkit(self, toolkit_id: str, row) -> None:
-        """动态 import module_path.class_name（或 func_name）并实例化。"""
+        """注册工具行数据，不实例化（懒加载，在 resolve_tools 时按需实例化）。"""
         import importlib
 
         # 全局禁用直接跳过
@@ -231,65 +231,67 @@ class RuntimeRegistry:
             log.debug(f"[Registry] toolkit id={toolkit_id} global_enabled=False, skip")
             return
 
-        if getattr(row, "type", None) == "code":
-            self._register_code_toolkit(toolkit_id, row)
-            return
+        # 验证能否导入（type=code 跳过验证，exec 在运行时做）
+        if getattr(row, "type", None) != "code":
+            try:
+                mod = importlib.import_module(row.module_path)
+                if row.type == "toolkit":
+                    getattr(mod, row.class_name)  # 验证类存在
+                elif row.type == "function":
+                    getattr(mod, row.func_name)   # 验证函数存在
+            except Exception as e:
+                log.error(f"[Registry] toolkit id={toolkit_id} 导入失败: {e}")
+                raise
 
-        config = dict(row.config or {})
-        try:
-            mod = importlib.import_module(row.module_path)
-            if row.type == "toolkit":
-                cls = getattr(mod, row.class_name)
-                obj = cls(**config)
-            else:
-                # type == "function"：直接取函数
-                obj = getattr(mod, row.func_name)
-            self._toolkit_map[toolkit_id] = obj
-            log.debug(f"[Registry] toolkit registered: id={toolkit_id}, type={row.type}")
-        except Exception as e:
-            log.error(f"[Registry] failed to register toolkit id={toolkit_id}: {e}")
-            raise
+        # 只存 row，不实例化
+        self._toolkit_rows[toolkit_id] = row
+        log.debug(f"[Registry] toolkit registered (lazy): id={toolkit_id}, type={row.type}")
 
-    def _register_code_toolkit(self, toolkit_id: str, row) -> None:
-        """执行 source_code，提取函数，包装成 Toolkit 注入 registry。"""
+    def unregister_toolkit(self, toolkit_id: str) -> None:
+        self._toolkit_rows.pop(toolkit_id, None)
+
+    def get_toolkit_row(self, toolkit_id: str) -> object | None:
+        """获取工具行数据（用于 resolve_tools 懒加载）。"""
+        return self._toolkit_rows.get(toolkit_id)
+
+    def _build_toolkit(self, row, config: dict) -> object:
+        """根据 row + config 实例化工具（懒加载时调用）。"""
+        import importlib
         from agno.tools import Function
         from agno.tools.toolkit import Toolkit
 
-        source_code = getattr(row, "source_code", None)
-        if not source_code:
-            log.warning(f"[Registry] code toolkit id={toolkit_id} source_code 为空，跳过")
-            return
+        if row.type == "code":
+            # 执行 source_code，提取函数，包装成 Toolkit
+            source_code = getattr(row, "source_code", None)
+            if not source_code:
+                raise ValueError(f"code toolkit id={row.id} source_code 为空")
 
-        namespace: dict = {}
-        try:
-            exec(compile(source_code, f"<toolkit:{toolkit_id}>", "exec"), namespace)
-        except Exception as e:
-            log.error(f"[Registry] code toolkit id={toolkit_id} exec 失败: {e}")
-            raise
+            namespace: dict = {}
+            exec(compile(source_code, f"<toolkit:{row.id}>", "exec"), namespace)
 
-        # 收集 @tool 装饰的 Function 对象 + 普通函数（排除内置、类、下划线开头）
-        tools = []
-        for name, obj in namespace.items():
-            if name.startswith("_"):
-                continue
-            if isinstance(obj, Function):
-                tools.append(obj)
-            elif callable(obj) and not isinstance(obj, type) and getattr(obj, "__module__", None) is None:
-                tools.append(obj)
+            tools = []
+            for name, obj in namespace.items():
+                if name.startswith("_"):
+                    continue
+                if isinstance(obj, Function):
+                    tools.append(obj)
+                elif callable(obj) and not isinstance(obj, type) and getattr(obj, "__module__", None) is None:
+                    tools.append(obj)
 
-        if not tools:
-            log.warning(f"[Registry] code toolkit id={toolkit_id} 未找到任何可用函数")
-            return
+            if not tools:
+                raise ValueError(f"code toolkit id={row.id} 未找到任何可用函数")
 
-        toolkit = Toolkit(name=row.name or f"code_toolkit_{toolkit_id}", tools=tools)
-        self._toolkit_map[toolkit_id] = toolkit
-        log.info(f"[Registry] code toolkit registered: id={toolkit_id}, functions={[t.name if isinstance(t, Function) else t.__name__ for t in tools]}")
+            return Toolkit(name=row.name or f"code_toolkit_{row.id}", tools=tools)
 
-    def unregister_toolkit(self, toolkit_id: str) -> None:
-        self._toolkit_map.pop(toolkit_id, None)
-
-    def get_toolkit(self, toolkit_id: str) -> object | None:
-        return self._toolkit_map.get(toolkit_id)
+        else:
+            # 普通 toolkit/function
+            mod = importlib.import_module(row.module_path)
+            if row.type == "toolkit":
+                cls = getattr(mod, row.class_name)
+                return cls(**config)
+            else:
+                # type == "function"：直接返回函数
+                return getattr(mod, row.func_name)
 
     # ── Hook ─────────────────────────────────────────────────────────────────
 
@@ -432,14 +434,20 @@ class RuntimeRegistry:
     # ── resolve（callable factory，同步调用）─────────────────────────────────
 
     def resolve_tools(self, agent_id: str) -> list:
-        """每次 Agno run() 时被 callable factory 同步调用，读最新绑定。"""
+        """每次 Agno run() 时被 callable factory 同步调用，读最新绑定并懒加载实例化。"""
         from app.plugin.module_agno_manage.core.sync_db import SyncBindingRepo
         tools = []
         for b in SyncBindingRepo.get_active(agent_id, "agent"):
             if b.resource_type == "toolkit":
-                t = self._toolkit_map.get(b.resource_id)
-                if t:
-                    tools.append(t)
+                row = self._toolkit_rows.get(b.resource_id)
+                if row:
+                    # 合并 config：系统默认 + 用户覆盖
+                    merged_config = {**(row.config or {}), **(b.config_override or {})}
+                    try:
+                        toolkit = self._build_toolkit(row, merged_config)
+                        tools.append(toolkit)
+                    except Exception as e:
+                        log.warning(f"[Registry] resolve_tools 实例化 toolkit id={b.resource_id} 失败: {e}")
             elif b.resource_type == "mcp":
                 mcp_row = self._mcp_rows.get(b.resource_id)
                 if mcp_row:
