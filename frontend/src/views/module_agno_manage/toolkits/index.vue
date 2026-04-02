@@ -1098,6 +1098,19 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     } else if (type === "update") {
       dialogVisible.title = "修改";
       Object.assign(formData, response.data.data);
+      // 将后端返回的 null 值转换为 "default"，以便在表单中正确显示
+      if (formData.requires_confirmation === null || formData.requires_confirmation === undefined) {
+        formData.requires_confirmation = "default" as any;
+      }
+      if (formData.stop_after_call === null || formData.stop_after_call === undefined) {
+        formData.stop_after_call = "default" as any;
+      }
+      if (formData.show_result === null || formData.show_result === undefined) {
+        formData.show_result = "default" as any;
+      }
+      if (formData.cache_results === null || formData.cache_results === undefined) {
+        formData.cache_results = "default" as any;
+      }
     }
   } else {
     dialogVisible.title = "新增AgToolkit";
