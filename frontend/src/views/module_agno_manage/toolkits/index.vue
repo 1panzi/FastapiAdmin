@@ -25,41 +25,22 @@
             <el-form-item label="工具包名称" prop="name">
               <el-input v-model="queryFormData.name" placeholder="请输入工具包名称" clearable />
             </el-form-item>
-            <el-form-item label="类型(toolkit:整个类 function:单个函数)" prop="type">
-              <el-input v-model="queryFormData.type" placeholder="请输入类型(toolkit:整个类 function:单个函数)" clearable />
+            <el-form-item label="类型" prop="type">
+              <el-select v-model="queryFormData.type" placeholder="请选择类型" clearable>
+                <el-option value="toolkit" label="toolkit" />
+                <el-option value="function" label="function" />
+                <el-option value="code" label="code" />
+              </el-select>
             </el-form-item>
-            <el-form-item label="Python模块路径" prop="module_path">
-              <el-input v-model="queryFormData.module_path" placeholder="请输入Python模块路径" clearable />
+            <el-form-item label="工具来源" prop="tool_from">
+              <el-select v-model="queryFormData.tool_from" placeholder="请选择工具来源" clearable>
+                <el-option value="agno" label="agno" />
+                <el-option value="custom" label="custom" />
+                <el-option value="code" label="code" />
+              </el-select>
             </el-form-item>
-            <el-form-item label="类名" prop="class_name">
-              <el-input v-model="queryFormData.class_name" placeholder="请输入类名" clearable />
-            </el-form-item>
-            <el-form-item label="函数名" prop="func_name">
-              <el-input v-model="queryFormData.func_name" placeholder="请输入函数名" clearable />
-            </el-form-item>
-            <el-form-item label="初始化参数" prop="config">
-              <el-input v-model="queryFormData.config" placeholder="请输入初始化参数" clearable />
-            </el-form-item>
-            <el-form-item label="工具使用说明" prop="instructions">
-              <el-input v-model="queryFormData.instructions" placeholder="请输入工具使用说明" clearable />
-            </el-form-item>
-            <el-form-item label="是否需要确认" prop="requires_confirmation">
-              <el-input v-model="queryFormData.requires_confirmation" placeholder="请输入是否需要确认" clearable />
-            </el-form-item>
-            <el-form-item label="审批类型(NULL/required/audit)" prop="approval_type">
-              <el-input v-model="queryFormData.approval_type" placeholder="请输入审批类型(NULL/required/audit)" clearable />
-            </el-form-item>
-            <el-form-item label="调用后是否停止" prop="stop_after_call">
-              <el-input v-model="queryFormData.stop_after_call" placeholder="请输入调用后是否停止" clearable />
-            </el-form-item>
-            <el-form-item label="是否展示结果" prop="show_result">
-              <el-input v-model="queryFormData.show_result" placeholder="请输入是否展示结果" clearable />
-            </el-form-item>
-            <el-form-item label="是否缓存结果" prop="cache_results">
-              <el-input v-model="queryFormData.cache_results" placeholder="请输入是否缓存结果" clearable />
-            </el-form-item>
-            <el-form-item label="缓存TTL秒数" prop="cache_ttl">
-              <el-input v-model="queryFormData.cache_ttl" placeholder="请输入缓存TTL秒数" clearable />
+            <el-form-item label="分类" prop="category">
+              <el-input v-model="queryFormData.category" placeholder="请输入分类" clearable />
             </el-form-item>
             <el-form-item prop="status" label="状态">
               <el-select
@@ -284,11 +265,38 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'type')?.show"
-          label="类型(toolkit:整个类 function:单个函数)"
+          label="类型"
           prop="type"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
+        <el-table-column
+          v-if="tableColumns.find((col) => col.prop === 'tool_from')?.show"
+          label="工具来源"
+          prop="tool_from"
+          min-width="100"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          v-if="tableColumns.find((col) => col.prop === 'category')?.show"
+          label="分类"
+          prop="category"
+          min-width="100"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          v-if="tableColumns.find((col) => col.prop === 'global_enabled')?.show"
+          label="全局开关"
+          prop="global_enabled"
+          min-width="100"
+          align="center"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.global_enabled ? 'success' : 'danger'">
+              {{ scope.row.global_enabled ? "启用" : "禁用" }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'module_path')?.show"
           label="Python模块路径"
@@ -300,14 +308,14 @@
           v-if="tableColumns.find((col) => col.prop === 'class_name')?.show"
           label="类名"
           prop="class_name"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'func_name')?.show"
           label="函数名"
           prop="func_name"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
@@ -316,7 +324,11 @@
           prop="config"
           min-width="140"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            {{ scope.row.config ? JSON.stringify(scope.row.config) : '-' }}
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'instructions')?.show"
           label="工具使用说明"
@@ -326,59 +338,76 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'requires_confirmation')?.show"
-          label="是否需要确认"
+          label="需要确认"
           prop="requires_confirmation"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="100"
+          align="center"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.requires_confirmation === true ? 'success' : scope.row.requires_confirmation === false ? 'danger' : ''">
+              {{ scope.row.requires_confirmation === true ? '是' : scope.row.requires_confirmation === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'approval_type')?.show"
-          label="审批类型(NULL/required/audit)"
+          label="审批类型"
           prop="approval_type"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'stop_after_call')?.show"
-          label="调用后是否停止"
+          label="调用后停止"
           prop="stop_after_call"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="100"
+          align="center"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.stop_after_call === true ? 'success' : scope.row.stop_after_call === false ? 'danger' : ''">
+              {{ scope.row.stop_after_call === true ? '是' : scope.row.stop_after_call === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'show_result')?.show"
-          label="是否展示结果"
+          label="展示结果"
           prop="show_result"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="100"
+          align="center"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.show_result === true ? 'success' : scope.row.show_result === false ? 'danger' : ''">
+              {{ scope.row.show_result === true ? '是' : scope.row.show_result === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'cache_results')?.show"
-          label="是否缓存结果"
+          label="缓存结果"
           prop="cache_results"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="100"
+          align="center"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.cache_results === true ? 'success' : scope.row.cache_results === false ? 'danger' : ''">
+              {{ scope.row.cache_results === true ? '是' : scope.row.cache_results === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'cache_ttl')?.show"
-          label="缓存TTL秒数"
+          label="缓存TTL(秒)"
           prop="cache_ttl"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
-          prop="status"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="80"
+          align="center"
         >
           <template #default="scope">
             <el-tag :type="scope.row.status == '0' ? 'success' : 'info'">
@@ -388,38 +417,31 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'description')?.show"
-          label=""
+          label="描述"
           prop="description"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
-          label=""
+          label="创建时间"
           prop="created_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
-          label=""
+          label="更新时间"
           prop="updated_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人"
           prop="created_id"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
-          prop="created_id"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="100"
+          align="center"
         >
           <template #default="scope">
             <el-tag>{{ scope.row.created_by?.name }}</el-tag>
@@ -427,17 +449,10 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人"
           prop="updated_id"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
-          prop="updated_id"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="100"
+          align="center"
         >
           <template #default="scope">
             <el-tag>{{ scope.row.updated_by?.name }}</el-tag>
@@ -505,63 +520,88 @@
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="UUID" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
           <el-descriptions-item label="工具包名称" :span="2">
             {{ detailFormData.name }}
           </el-descriptions-item>
-          <el-descriptions-item label="类型(toolkit:整个类 function:单个函数)" :span="2">
+          <el-descriptions-item label="类型" :span="2">
             {{ detailFormData.type }}
           </el-descriptions-item>
-          <el-descriptions-item label="Python模块路径" :span="2">
+          <el-descriptions-item label="工具来源" :span="2">
+            {{ detailFormData.tool_from }}
+          </el-descriptions-item>
+          <el-descriptions-item label="分类" :span="2">
+            {{ detailFormData.category }}
+          </el-descriptions-item>
+          <el-descriptions-item label="全局开关" :span="2">
+            <el-tag :type="detailFormData.global_enabled ? 'success' : 'danger'">
+              {{ detailFormData.global_enabled ? "启用" : "禁用" }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item v-if="detailFormData.type !== 'code'" label="Python模块路径" :span="4">
             {{ detailFormData.module_path }}
           </el-descriptions-item>
-          <el-descriptions-item label="类名" :span="2">
+          <el-descriptions-item v-if="detailFormData.type === 'toolkit'" label="类名" :span="2">
             {{ detailFormData.class_name }}
           </el-descriptions-item>
-          <el-descriptions-item label="函数名" :span="2">
+          <el-descriptions-item v-if="detailFormData.type === 'function'" label="函数名" :span="2">
             {{ detailFormData.func_name }}
           </el-descriptions-item>
-          <el-descriptions-item label="初始化参数" :span="2">
-            {{ detailFormData.config }}
+          <el-descriptions-item v-if="detailFormData.type === 'code'" label="源代码" :span="4">
+            <pre style="max-height: 300px; overflow: auto;">{{ detailFormData.source_code }}</pre>
           </el-descriptions-item>
-          <el-descriptions-item label="工具使用说明" :span="2">
+          <el-descriptions-item label="初始化参数" :span="4">
+            <pre>{{ JSON.stringify(detailFormData.config, null, 2) }}</pre>
+          </el-descriptions-item>
+          <el-descriptions-item label="工具使用说明" :span="4">
             {{ detailFormData.instructions }}
           </el-descriptions-item>
-          <el-descriptions-item label="是否需要确认" :span="2">
-            {{ detailFormData.requires_confirmation }}
+          <el-descriptions-item label="需要确认" :span="2">
+            <el-tag :type="detailFormData.requires_confirmation === true ? 'success' : detailFormData.requires_confirmation === false ? 'danger' : ''">
+              {{ detailFormData.requires_confirmation === true ? '是' : detailFormData.requires_confirmation === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="审批类型(NULL/required/audit)" :span="2">
-            {{ detailFormData.approval_type }}
+          <el-descriptions-item label="审批类型" :span="2">
+            {{ detailFormData.approval_type || "无" }}
           </el-descriptions-item>
-          <el-descriptions-item label="调用后是否停止" :span="2">
-            {{ detailFormData.stop_after_call }}
+          <el-descriptions-item label="调用后停止" :span="2">
+            <el-tag :type="detailFormData.stop_after_call === true ? 'success' : detailFormData.stop_after_call === false ? 'danger' : ''">
+              {{ detailFormData.stop_after_call === true ? '是' : detailFormData.stop_after_call === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否展示结果" :span="2">
-            {{ detailFormData.show_result }}
+          <el-descriptions-item label="展示结果" :span="2">
+            <el-tag :type="detailFormData.show_result === true ? 'success' : detailFormData.show_result === false ? 'danger' : ''">
+              {{ detailFormData.show_result === true ? '是' : detailFormData.show_result === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否缓存结果" :span="2">
-            {{ detailFormData.cache_results }}
+          <el-descriptions-item label="缓存结果" :span="2">
+            <el-tag :type="detailFormData.cache_results === true ? 'success' : detailFormData.cache_results === false ? 'danger' : ''">
+              {{ detailFormData.cache_results === true ? '是' : detailFormData.cache_results === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="缓存TTL秒数" :span="2">
+          <el-descriptions-item v-if="detailFormData.cache_results" label="缓存TTL(秒)" :span="2">
             {{ detailFormData.cache_ttl }}
+          </el-descriptions-item>
+          <el-descriptions-item v-if="detailFormData.param_schema" label="参数描述" :span="4">
+            <pre>{{ JSON.stringify(detailFormData.param_schema, null, 2) }}</pre>
           </el-descriptions-item>
           <el-descriptions-item label="状态" :span="2">
             <el-tag :type="detailFormData.status == '0' ? 'success' : 'danger'">
               {{ detailFormData.status == "0" ? "启用" : "停用" }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="描述" :span="4">
             {{ detailFormData.description }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="创建时间" :span="2">
             {{ detailFormData.created_time }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="更新时间" :span="2">
             {{ detailFormData.updated_time }}
           </el-descriptions-item>
           <el-descriptions-item label="创建人" :span="2">
@@ -583,44 +623,94 @@
           label-width="auto"
           label-position="right"
         >
-          <el-form-item label="工具包名称" prop="name" :required="false">
+          <el-form-item label="工具包名称" prop="name">
             <el-input v-model="formData.name" placeholder="请输入工具包名称" />
           </el-form-item>
-          <el-form-item label="类型(toolkit:整个类 function:单个函数)" prop="type" :required="false">
-            <el-input v-model="formData.type" placeholder="请输入类型(toolkit:整个类 function:单个函数)" />
+          <el-form-item label="类型" prop="type">
+            <el-select v-model="formData.type" placeholder="请选择类型" clearable>
+              <el-option value="toolkit" label="toolkit - 整个工具类" />
+              <el-option value="function" label="function - 单个函数" />
+              <el-option value="code" label="code - 自定义代码" />
+            </el-select>
           </el-form-item>
-          <el-form-item label="Python模块路径" prop="module_path" :required="false">
-            <el-input v-model="formData.module_path" placeholder="请输入Python模块路径" />
+          <el-form-item label="工具来源" prop="tool_from">
+            <el-select v-model="formData.tool_from" placeholder="请选择工具来源" clearable>
+              <el-option value="agno" label="agno - Agno内置" />
+              <el-option value="custom" label="custom - 自定义包" />
+              <el-option value="code" label="code - 代码实现" />
+            </el-select>
           </el-form-item>
-          <el-form-item label="类名" prop="class_name" :required="false">
-            <el-input v-model="formData.class_name" placeholder="请输入类名" />
+          <el-form-item label="分类" prop="category">
+            <el-input v-model="formData.category" placeholder="请输入工具分类" />
           </el-form-item>
-          <el-form-item label="函数名" prop="func_name" :required="false">
-            <el-input v-model="formData.func_name" placeholder="请输入函数名" />
+          <el-form-item label="全局开关" prop="global_enabled">
+            <el-switch v-model="formData.global_enabled" />
+            <span class="ml-2 text-sm text-gray-500">关闭后所有用户不可见不可用</span>
           </el-form-item>
-          <el-form-item label="初始化参数" prop="config" :required="false">
+          <el-form-item v-if="formData.type !== 'code'" label="Python模块路径" prop="module_path">
+            <el-input v-model="formData.module_path" placeholder="如: agno.tools.duckduckgo" />
+          </el-form-item>
+          <el-form-item v-if="formData.type === 'toolkit'" label="类名" prop="class_name">
+            <el-input v-model="formData.class_name" placeholder="如: DuckDuckGo" />
+          </el-form-item>
+          <el-form-item v-if="formData.type === 'function'" label="函数名" prop="func_name">
+            <el-input v-model="formData.func_name" placeholder="如: search_web" />
+          </el-form-item>
+          <el-form-item v-if="formData.type === 'code'" label="源代码" prop="source_code">
+            <el-input
+              v-model="formData.source_code"
+              type="textarea"
+              :rows="10"
+              placeholder="请输入Python代码，可使用CONFIG变量访问配置"
+            />
+          </el-form-item>
+          <el-form-item label="初始化参数" prop="config">
             <DictEditor v-model="formData.config" />
           </el-form-item>
-          <el-form-item label="工具使用说明" prop="instructions" :required="false">
-            <el-input v-model="formData.instructions" placeholder="请输入工具使用说明" />
+          <el-form-item label="工具使用说明" prop="instructions">
+            <el-input
+              v-model="formData.instructions"
+              type="textarea"
+              :rows="3"
+              placeholder="请输入工具使用说明"
+            />
           </el-form-item>
-          <el-form-item label="是否需要确认" prop="requires_confirmation" :required="false">
-            <el-input v-model="formData.requires_confirmation" placeholder="请输入是否需要确认" />
+          <el-form-item label="需要确认" prop="requires_confirmation">
+            <el-select v-model="formData.requires_confirmation" placeholder="请选择" clearable>
+              <el-option :value="true" label="是" />
+              <el-option :value="false" label="否" />
+              <el-option :value="null" label="默认" />
+            </el-select>
           </el-form-item>
-          <el-form-item label="审批类型(NULL/required/audit)" prop="approval_type" :required="false">
-            <el-input v-model="formData.approval_type" placeholder="请输入审批类型(NULL/required/audit)" />
+          <el-form-item label="审批类型" prop="approval_type">
+            <el-select v-model="formData.approval_type" placeholder="请选择审批类型" clearable>
+              <el-option value="required" label="required - 必须审批" />
+              <el-option value="audit" label="audit - 审计模式" />
+            </el-select>
           </el-form-item>
-          <el-form-item label="调用后是否停止" prop="stop_after_call" :required="false">
-            <el-input v-model="formData.stop_after_call" placeholder="请输入调用后是否停止" />
+          <el-form-item label="调用后停止" prop="stop_after_call">
+            <el-select v-model="formData.stop_after_call" placeholder="请选择" clearable>
+              <el-option :value="true" label="是" />
+              <el-option :value="false" label="否" />
+              <el-option :value="null" label="默认" />
+            </el-select>
           </el-form-item>
-          <el-form-item label="是否展示结果" prop="show_result" :required="false">
-            <el-input v-model="formData.show_result" placeholder="请输入是否展示结果" />
+          <el-form-item label="展示结果" prop="show_result">
+            <el-select v-model="formData.show_result" placeholder="请选择" clearable>
+              <el-option :value="true" label="是" />
+              <el-option :value="false" label="否" />
+              <el-option :value="null" label="默认" />
+            </el-select>
           </el-form-item>
-          <el-form-item label="是否缓存结果" prop="cache_results" :required="false">
-            <el-input v-model="formData.cache_results" placeholder="请输入是否缓存结果" />
+          <el-form-item label="缓存结果" prop="cache_results">
+            <el-select v-model="formData.cache_results" placeholder="请选择" clearable>
+              <el-option :value="true" label="是" />
+              <el-option :value="false" label="否" />
+              <el-option :value="null" label="默认" />
+            </el-select>
           </el-form-item>
-          <el-form-item label="缓存TTL秒数" prop="cache_ttl" :required="false">
-            <el-input v-model="formData.cache_ttl" placeholder="请输入缓存TTL秒数" />
+          <el-form-item v-if="formData.cache_results" label="缓存TTL(秒)" prop="cache_ttl">
+            <el-input-number v-model="formData.cache_ttl" :min="0" placeholder="缓存时间" />
           </el-form-item>
           <el-form-item label="状态" prop="status" :required="true">
             <el-radio-group v-model="formData.status">
@@ -688,6 +778,8 @@ import DatePicker from "@/components/DatePicker/index.vue";
 import type { IContentConfig } from "@/components/CURD/types";
 import ImportModal from "@/components/CURD/ImportModal.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
+import DictEditor from "@/views/module_agno_manage/components/DictEditor/index.vue";
+import UserTableSelect from "@/components/UserTableSelect/index.vue";
 import AgToolkitAPI, {
   AgToolkitPageQuery,
   AgToolkitTable,
@@ -712,48 +804,54 @@ const tableColumns = ref([
   { prop: "selection", label: "选择框", show: true },
   { prop: "index", label: "序号", show: true },
   { prop: "name", label: "工具包名称", show: true },
-  { prop: "type", label: "类型(toolkit:整个类 function:单个函数)", show: true },
-  { prop: "module_path", label: "Python模块路径", show: true },
-  { prop: "class_name", label: "类名（type=toolkit时使用）", show: true },
-  { prop: "func_name", label: "函数名（type=function时使用）", show: true },
-  { prop: "config", label: "初始化参数", show: true },
+  { prop: "type", label: "类型", show: true },
+  { prop: "tool_from", label: "工具来源", show: true },
+  { prop: "category", label: "分类", show: true },
+  { prop: "global_enabled", label: "全局开关", show: true },
+  { prop: "module_path", label: "Python模块路径", show: false },
+  { prop: "class_name", label: "类名", show: false },
+  { prop: "func_name", label: "函数名", show: false },
+  { prop: "config", label: "初始化参数", show: false },
   { prop: "instructions", label: "工具使用说明", show: true },
-  { prop: "requires_confirmation", label: "是否需要确认", show: true },
-  { prop: "approval_type", label: "审批类型(NULL/required/audit)", show: true },
-  { prop: "stop_after_call", label: "调用后是否停止", show: true },
-  { prop: "show_result", label: "是否展示结果", show: true },
-  { prop: "cache_results", label: "是否缓存结果", show: true },
-  { prop: "cache_ttl", label: "缓存TTL秒数", show: true },
-  { prop: "status", label: "status", show: true },
-  { prop: "description", label: "description", show: true },
-  { prop: "created_time", label: "created_time", show: true },
-  { prop: "updated_time", label: "updated_time", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "requires_confirmation", label: "需要确认", show: false },
+  { prop: "approval_type", label: "审批类型", show: false },
+  { prop: "stop_after_call", label: "调用后停止", show: false },
+  { prop: "show_result", label: "展示结果", show: false },
+  { prop: "cache_results", label: "缓存结果", show: false },
+  { prop: "cache_ttl", label: "缓存TTL秒数", show: false },
+  { prop: "status", label: "状态", show: true },
+  { prop: "description", label: "描述", show: true },
+  { prop: "created_time", label: "创建时间", show: false },
+  { prop: "updated_time", label: "更新时间", show: false },
+  { prop: "created_id", label: "创建人", show: false },
+  { prop: "updated_id", label: "更新人", show: false },
   { prop: "operation", label: "操作", show: true },
 ]);
 
 // 导出列（不含选择/序号/操作）
 const exportColumns = [
   { prop: "name", label: "工具包名称" },
-  { prop: "type", label: "类型(toolkit:整个类 function:单个函数)" },
+  { prop: "type", label: "类型" },
+  { prop: "tool_from", label: "工具来源" },
+  { prop: "category", label: "分类" },
+  { prop: "global_enabled", label: "全局开关" },
   { prop: "module_path", label: "Python模块路径" },
-  { prop: "class_name", label: "类名（type=toolkit时使用）" },
-  { prop: "func_name", label: "函数名（type=function时使用）" },
+  { prop: "class_name", label: "类名" },
+  { prop: "func_name", label: "函数名" },
   { prop: "config", label: "初始化参数" },
   { prop: "instructions", label: "工具使用说明" },
-  { prop: "requires_confirmation", label: "是否需要确认" },
-  { prop: "approval_type", label: "审批类型(NULL/required/audit)" },
-  { prop: "stop_after_call", label: "调用后是否停止" },
-  { prop: "show_result", label: "是否展示结果" },
-  { prop: "cache_results", label: "是否缓存结果" },
+  { prop: "requires_confirmation", label: "需要确认" },
+  { prop: "approval_type", label: "审批类型" },
+  { prop: "stop_after_call", label: "调用后停止" },
+  { prop: "show_result", label: "展示结果" },
+  { prop: "cache_results", label: "缓存结果" },
   { prop: "cache_ttl", label: "缓存TTL秒数" },
-  { prop: "status", label: "status" },
-  { prop: "description", label: "description" },
-  { prop: "created_time", label: "created_time" },
-  { prop: "updated_time", label: "updated_time" },
-  { prop: "created_id", label: "created_id" },
-  { prop: "updated_id", label: "updated_id" },
+  { prop: "status", label: "状态" },
+  { prop: "description", label: "描述" },
+  { prop: "created_time", label: "创建时间" },
+  { prop: "updated_time", label: "更新时间" },
+  { prop: "created_id", label: "创建人ID" },
+  { prop: "updated_id", label: "更新人ID" },
 ];
 
 // 导入/导出配置
@@ -812,17 +910,8 @@ const queryFormData = reactive<AgToolkitPageQuery>({
   page_size: 10,
   name: undefined,
   type: undefined,
-  module_path: undefined,
-  class_name: undefined,
-  func_name: undefined,
-  config: undefined,
-  instructions: undefined,
-  requires_confirmation: undefined,
-  approval_type: undefined,
-  stop_after_call: undefined,
-  show_result: undefined,
-  cache_results: undefined,
-  cache_ttl: undefined,
+  tool_from: undefined,
+  category: undefined,
   status: undefined,
   created_time: undefined,
   updated_time: undefined,
@@ -835,17 +924,22 @@ const formData = reactive<AgToolkitForm>({
   id: undefined,
   name: undefined,
   type: undefined,
+  tool_from: undefined,
+  category: undefined,
+  global_enabled: true,
   module_path: undefined,
   class_name: undefined,
   func_name: undefined,
   config: undefined,
   instructions: undefined,
-  requires_confirmation: undefined,
+  requires_confirmation: null,
   approval_type: undefined,
-  stop_after_call: undefined,
-  show_result: undefined,
-  cache_results: undefined,
+  stop_after_call: null,
+  show_result: null,
+  cache_results: null,
   cache_ttl: undefined,
+  source_code: undefined,
+  param_schema: undefined,
   status: "0",
   description: undefined,
 });
@@ -951,17 +1045,22 @@ const initialFormData: AgToolkitForm = {
   id: undefined,
   name: undefined,
   type: undefined,
+  tool_from: undefined,
+  category: undefined,
+  global_enabled: true,
   module_path: undefined,
   class_name: undefined,
   func_name: undefined,
   config: undefined,
   instructions: undefined,
-  requires_confirmation: undefined,
+  requires_confirmation: null,
   approval_type: undefined,
-  stop_after_call: undefined,
-  show_result: undefined,
-  cache_results: undefined,
+  stop_after_call: null,
+  show_result: null,
+  cache_results: null,
   cache_ttl: undefined,
+  source_code: undefined,
+  param_schema: undefined,
   status: "0",
   description: undefined,
 };
@@ -1005,17 +1104,22 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     formData.id = undefined;
     formData.name = undefined;
     formData.type = undefined;
+    formData.tool_from = undefined;
+    formData.category = undefined;
+    formData.global_enabled = true;
     formData.module_path = undefined;
     formData.class_name = undefined;
     formData.func_name = undefined;
     formData.config = undefined;
     formData.instructions = undefined;
-    formData.requires_confirmation = undefined;
+    formData.requires_confirmation = null;
     formData.approval_type = undefined;
-    formData.stop_after_call = undefined;
-    formData.show_result = undefined;
-    formData.cache_results = undefined;
+    formData.stop_after_call = null;
+    formData.show_result = null;
+    formData.cache_results = null;
     formData.cache_ttl = undefined;
+    formData.source_code = undefined;
+    formData.param_schema = undefined;
     formData.status = "0";
     formData.description = undefined;
   }
@@ -1029,7 +1133,10 @@ async function handleSubmit() {
     if (valid) {
       loading.value = true;
       // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
-      const submitData = { ...formData };
+      // 过滤 null/undefined 字段，不传递给接口（null 表示"使用默认值"）
+      const submitData = Object.fromEntries(
+        Object.entries({ ...formData }).filter(([, v]) => v !== null && v !== undefined)
+      ) as AgToolkitForm;
       const id = formData.id;
       if (id) {
         try {
