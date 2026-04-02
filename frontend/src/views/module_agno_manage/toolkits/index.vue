@@ -344,9 +344,9 @@
           align="center"
         >
           <template #default="scope">
-            <el-tag :type="scope.row.requires_confirmation === true ? 'success' : scope.row.requires_confirmation === false ? 'danger' : ''">
-              {{ scope.row.requires_confirmation === true ? '是' : scope.row.requires_confirmation === false ? '否' : '默认' }}
-            </el-tag>
+            <el-tag v-if="scope.row.requires_confirmation === true" type="success">是</el-tag>
+            <el-tag v-else-if="scope.row.requires_confirmation === false" type="danger">否</el-tag>
+            <el-tag v-else type="info">默认</el-tag>
           </template>
         </el-table-column>
         <el-table-column
@@ -364,9 +364,9 @@
           align="center"
         >
           <template #default="scope">
-            <el-tag :type="scope.row.stop_after_call === true ? 'success' : scope.row.stop_after_call === false ? 'danger' : ''">
-              {{ scope.row.stop_after_call === true ? '是' : scope.row.stop_after_call === false ? '否' : '默认' }}
-            </el-tag>
+            <el-tag v-if="scope.row.stop_after_call === true" type="success">是</el-tag>
+            <el-tag v-else-if="scope.row.stop_after_call === false" type="danger">否</el-tag>
+            <el-tag v-else type="info">默认</el-tag>
           </template>
         </el-table-column>
         <el-table-column
@@ -377,9 +377,9 @@
           align="center"
         >
           <template #default="scope">
-            <el-tag :type="scope.row.show_result === true ? 'success' : scope.row.show_result === false ? 'danger' : ''">
-              {{ scope.row.show_result === true ? '是' : scope.row.show_result === false ? '否' : '默认' }}
-            </el-tag>
+            <el-tag v-if="scope.row.show_result === true" type="success">是</el-tag>
+            <el-tag v-else-if="scope.row.show_result === false" type="danger">否</el-tag>
+            <el-tag v-else type="info">默认</el-tag>
           </template>
         </el-table-column>
         <el-table-column
@@ -390,9 +390,9 @@
           align="center"
         >
           <template #default="scope">
-            <el-tag :type="scope.row.cache_results === true ? 'success' : scope.row.cache_results === false ? 'danger' : ''">
-              {{ scope.row.cache_results === true ? '是' : scope.row.cache_results === false ? '否' : '默认' }}
-            </el-tag>
+            <el-tag v-if="scope.row.cache_results === true" type="success">是</el-tag>
+            <el-tag v-else-if="scope.row.cache_results === false" type="danger">否</el-tag>
+            <el-tag v-else type="info">默认</el-tag>
           </template>
         </el-table-column>
         <el-table-column
@@ -562,27 +562,27 @@
             {{ detailFormData.instructions }}
           </el-descriptions-item>
           <el-descriptions-item label="需要确认" :span="2">
-            <el-tag :type="detailFormData.requires_confirmation === true ? 'success' : detailFormData.requires_confirmation === false ? 'danger' : ''">
-              {{ detailFormData.requires_confirmation === true ? '是' : detailFormData.requires_confirmation === false ? '否' : '默认' }}
-            </el-tag>
+            <el-tag v-if="detailFormData.requires_confirmation === true" type="success">是</el-tag>
+            <el-tag v-else-if="detailFormData.requires_confirmation === false" type="danger">否</el-tag>
+            <el-tag v-else type="info">默认</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="审批类型" :span="2">
             {{ detailFormData.approval_type || "无" }}
           </el-descriptions-item>
           <el-descriptions-item label="调用后停止" :span="2">
-            <el-tag :type="detailFormData.stop_after_call === true ? 'success' : detailFormData.stop_after_call === false ? 'danger' : ''">
-              {{ detailFormData.stop_after_call === true ? '是' : detailFormData.stop_after_call === false ? '否' : '默认' }}
-            </el-tag>
+            <el-tag v-if="detailFormData.stop_after_call === true" type="success">是</el-tag>
+            <el-tag v-else-if="detailFormData.stop_after_call === false" type="danger">否</el-tag>
+            <el-tag v-else type="info">默认</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="展示结果" :span="2">
-            <el-tag :type="detailFormData.show_result === true ? 'success' : detailFormData.show_result === false ? 'danger' : ''">
-              {{ detailFormData.show_result === true ? '是' : detailFormData.show_result === false ? '否' : '默认' }}
-            </el-tag>
+            <el-tag v-if="detailFormData.show_result === true" type="success">是</el-tag>
+            <el-tag v-else-if="detailFormData.show_result === false" type="danger">否</el-tag>
+            <el-tag v-else type="info">默认</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="缓存结果" :span="2">
-            <el-tag :type="detailFormData.cache_results === true ? 'success' : detailFormData.cache_results === false ? 'danger' : ''">
-              {{ detailFormData.cache_results === true ? '是' : detailFormData.cache_results === false ? '否' : '默认' }}
-            </el-tag>
+            <el-tag v-if="detailFormData.cache_results === true" type="success">是</el-tag>
+            <el-tag v-else-if="detailFormData.cache_results === false" type="danger">否</el-tag>
+            <el-tag v-else type="info">默认</el-tag>
           </el-descriptions-item>
           <el-descriptions-item v-if="detailFormData.cache_results" label="缓存TTL(秒)" :span="2">
             {{ detailFormData.cache_ttl }}
