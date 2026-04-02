@@ -614,7 +614,7 @@ import AgMemoryManagerAPI, {
   AgMemoryManagerForm,
 } from "@/api/module_agno_manage/memory_managers";
 
-const visible = ref(true);
+const visible = ref(false);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
@@ -746,7 +746,7 @@ const formData = reactive<AgMemoryManagerForm>({
   clear_memories: undefined,
   memory_capture_instructions: undefined,
   additional_instructions: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 });
 
@@ -775,7 +775,7 @@ const rules = reactive({
   memory_capture_instructions: [{ required: true, message: "请输入记忆捕获指令", trigger: "blur" }],
   additional_instructions: [{ required: true, message: "请输入附加指令", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: true, message: "请输入description", trigger: "blur" }],
+  description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
   created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
@@ -852,7 +852,7 @@ const initialFormData: AgMemoryManagerForm = {
   clear_memories: undefined,
   memory_capture_instructions: undefined,
   additional_instructions: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 };
 

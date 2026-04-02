@@ -582,7 +582,7 @@ import AgGuardrailAPI, {
   AgGuardrailForm,
 } from "@/api/module_agno_manage/guardrails";
 
-const visible = ref(true);
+const visible = ref(false);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
@@ -706,7 +706,7 @@ const formData = reactive<AgGuardrailForm>({
   config: undefined,
   module_path: undefined,
   class_name: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 });
 
@@ -733,7 +733,7 @@ const rules = reactive({
   module_path: [{ required: true, message: "请输入自定义护栏模块路径（type=custom时使用）", trigger: "blur" }],
   class_name: [{ required: true, message: "请输入自定义护栏类名（type=custom时使用）", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: true, message: "请输入description", trigger: "blur" }],
+  description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
   created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
@@ -808,7 +808,7 @@ const initialFormData: AgGuardrailForm = {
   config: undefined,
   module_path: undefined,
   class_name: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 };
 

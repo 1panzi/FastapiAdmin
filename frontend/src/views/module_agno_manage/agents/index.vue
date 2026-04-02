@@ -1430,7 +1430,7 @@ import AgAgentAPI, {
   AgAgentForm,
 } from "@/api/module_agno_manage/agents";
 
-const visible = ref(true);
+const visible = ref(false);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
@@ -1766,7 +1766,7 @@ const formData = reactive<AgAgentForm>({
   remote_url: undefined,
   remote_agent_id: undefined,
   metadata: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 });
 
@@ -1846,7 +1846,7 @@ const rules = reactive({
   remote_agent_id: [{ required: true, message: "请输入远程Agent标识符", trigger: "blur" }],
   metadata: [{ required: false, message: "请输入元数据", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: true, message: "请输入description", trigger: "blur" }],
+  description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
   created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
@@ -1974,7 +1974,7 @@ const initialFormData: AgAgentForm = {
   remote_url: undefined,
   remote_agent_id: undefined,
   metadata: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 };
 

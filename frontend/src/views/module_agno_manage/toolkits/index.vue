@@ -694,7 +694,7 @@ import AgToolkitAPI, {
   AgToolkitForm,
 } from "@/api/module_agno_manage/toolkits";
 
-const visible = ref(true);
+const visible = ref(false);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
@@ -846,7 +846,7 @@ const formData = reactive<AgToolkitForm>({
   show_result: undefined,
   cache_results: undefined,
   cache_ttl: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 });
 
@@ -880,7 +880,7 @@ const rules = reactive({
   cache_results: [{ required: false, message: "请输入是否缓存结果", trigger: "blur" }],
   cache_ttl: [{ required: false, message: "请输入缓存TTL秒数", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: true, message: "请输入description", trigger: "blur" }],
+  description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
   created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
@@ -962,7 +962,7 @@ const initialFormData: AgToolkitForm = {
   show_result: undefined,
   cache_results: undefined,
   cache_ttl: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 };
 
@@ -1016,7 +1016,7 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     formData.show_result = undefined;
     formData.cache_results = undefined;
     formData.cache_ttl = undefined;
-    formData.status = undefined;
+    formData.status = "0";
     formData.description = undefined;
   }
   dialogVisible.visible = true;

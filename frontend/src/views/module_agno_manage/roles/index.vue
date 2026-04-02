@@ -518,7 +518,7 @@ import AgRoleAPI, {
   AgRoleForm,
 } from "@/api/module_agno_manage/roles";
 
-const visible = ref(true);
+const visible = ref(false);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
@@ -626,7 +626,7 @@ const formData = reactive<AgRoleForm>({
   id: undefined,
   name: undefined,
   scopes: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 });
 
@@ -649,7 +649,7 @@ const rules = reactive({
   name: [{ required: false, message: "请输入角色名称（唯一，如admin/operator/viewer）", trigger: "blur" }],
   scopes: [{ required: false, message: "请输入gentOS权限范围列表（JSON数组）", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: true, message: "请输入description", trigger: "blur" }],
+  description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
   created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
@@ -720,7 +720,7 @@ const initialFormData: AgRoleForm = {
   id: undefined,
   name: undefined,
   scopes: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 };
 

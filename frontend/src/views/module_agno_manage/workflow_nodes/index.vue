@@ -982,7 +982,7 @@ import AgWorkflowNodeAPI, {
   AgWorkflowNodeForm,
 } from "@/api/module_agno_manage/workflow_nodes";
 
-const visible = ref(true);
+const visible = ref(false);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
@@ -1206,7 +1206,7 @@ const formData = reactive<AgWorkflowNodeForm>({
   user_input_schema: undefined,
   on_reject: undefined,
   on_error: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 });
 
@@ -1258,7 +1258,7 @@ const rules = reactive({
   on_reject: [{ required: false, message: "请输入用户拒绝时处理策略(skip/abort)", trigger: "blur" }],
   on_error: [{ required: false, message: "请输入节点出错时处理策略(skip/abort)", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: true, message: "请输入description", trigger: "blur" }],
+  description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
   created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
@@ -1358,7 +1358,7 @@ const initialFormData: AgWorkflowNodeForm = {
   user_input_schema: undefined,
   on_reject: undefined,
   on_error: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 };
 

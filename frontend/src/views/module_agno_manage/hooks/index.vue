@@ -582,7 +582,7 @@ import AgHookAPI, {
   AgHookForm,
 } from "@/api/module_agno_manage/hooks";
 
-const visible = ref(true);
+const visible = ref(false);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
@@ -706,7 +706,7 @@ const formData = reactive<AgHookForm>({
   func_name: undefined,
   config: undefined,
   run_in_background: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 });
 
@@ -733,7 +733,7 @@ const rules = reactive({
   config: [{ required: false, message: "请输入额外配置参数", trigger: "blur" }],
   run_in_background: [{ required: false, message: "请输入是否后台运行（不阻塞响应）", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: true, message: "请输入description", trigger: "blur" }],
+  description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
   created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
@@ -808,7 +808,7 @@ const initialFormData: AgHookForm = {
   func_name: undefined,
   config: undefined,
   run_in_background: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 };
 

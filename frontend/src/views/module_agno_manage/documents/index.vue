@@ -598,7 +598,7 @@ import AgDocumentAPI, {
   AgDocumentForm,
 } from "@/api/module_agno_manage/documents";
 
-const visible = ref(true);
+const visible = ref(false);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
@@ -723,10 +723,10 @@ const formData = reactive<AgDocumentForm>({
   name: undefined,
   storage_type: undefined,
   storage_path: undefined,
-  doc_status: undefined,
+  doc_status: "0",
   error_msg: undefined,
   metadata: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 });
 
@@ -754,7 +754,7 @@ const rules = reactive({
   error_msg: [{ required: true, message: "请输入处理失败错误信息", trigger: "blur" }],
   metadata: [{ required: false, message: "请输入文档元数据", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: true, message: "请输入description", trigger: "blur" }],
+  description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
   created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
@@ -827,10 +827,10 @@ const initialFormData: AgDocumentForm = {
   name: undefined,
   storage_type: undefined,
   storage_path: undefined,
-  doc_status: undefined,
+  doc_status: "0",
   error_msg: undefined,
   metadata: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 };
 
@@ -878,7 +878,7 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     formData.doc_status = undefined;
     formData.error_msg = undefined;
     formData.metadata = undefined;
-    formData.status = undefined;
+    formData.status = "0";
     formData.description = undefined;
   }
   dialogVisible.visible = true;

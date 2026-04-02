@@ -448,7 +448,7 @@ import AgAuditLogAPI, {
   AgAuditLogForm,
 } from "@/api/module_agno_manage/audit_logs";
 
-const visible = ref(true);
+const visible = ref(false);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);

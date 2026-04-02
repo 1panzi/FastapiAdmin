@@ -503,13 +503,13 @@
           label-width="auto"
           label-position="right"
         >
-          <el-form-item label="模型名称" prop="name" :required="false">
+          <el-form-item label="模型名称" prop="name" :required="true">
             <el-input v-model="formData.name" placeholder="请输入模型名称" />
           </el-form-item>
-          <el-form-item label="模型标识符" prop="model_id" :required="false">
+          <el-form-item label="模型标识符" prop="model_id" :required="true">
             <el-input v-model="formData.model_id" placeholder="请输入模型标识符" />
           </el-form-item>
-          <el-form-item label="模型提供商" prop="provider" :required="false">
+          <el-form-item label="模型提供商" prop="provider" :required="true">
             <el-select v-model="formData.provider" placeholder="请选择模型提供商" style="width: 100%">
               <el-option
                 v-for="provider in providerList"
@@ -601,7 +601,7 @@ import AgModelAPI, {
 } from "@/api/module_agno_manage/models";
 import ProviderAPI, { Provider } from "@/api/module_agno_manage/provider";
 
-const visible = ref(true);
+const visible = ref(false);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
@@ -728,7 +728,7 @@ const formData = reactive<AgModelForm>({
   api_key: undefined,
   base_url: undefined,
   config: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 });
 
@@ -755,7 +755,7 @@ const rules = reactive({
   base_url: [{ required: true, message: "请输入自定义API地址（用于ollama/vllm/lmstudio）", trigger: "blur" }],
   config: [{ required: false, message: "请输入模型配置参数（temperature/max_tokens/top_p等）", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: true, message: "请输入description", trigger: "blur" }],
+  description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
   created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
@@ -830,7 +830,7 @@ const initialFormData: AgModelForm = {
   api_key: undefined,
   base_url: undefined,
   config: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 };
 
@@ -877,7 +877,7 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     formData.api_key = undefined;
     formData.base_url = undefined;
     formData.config = undefined;
-    formData.status = undefined;
+    formData.status = "0";
     formData.description = undefined;
   }
   dialogVisible.visible = true;

@@ -598,7 +598,7 @@ import AgEmbedderAPI, {
   AgEmbedderForm,
 } from "@/api/module_agno_manage/embedders";
 
-const visible = ref(true);
+const visible = ref(false);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
@@ -726,7 +726,7 @@ const formData = reactive<AgEmbedderForm>({
   base_url: undefined,
   dimensions: undefined,
   config: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 });
 
@@ -754,7 +754,7 @@ const rules = reactive({
   dimensions: [{ required: true, message: "请输入向量维度", trigger: "blur" }],
   config: [{ required: false, message: "请输入其他构造参数", trigger: "blur" }],
   status: [{ required: false, message: "请输入是否启用", trigger: "blur" }],
-  description: [{ required: true, message: "请输入备注/描述", trigger: "blur" }],
+  description: [{ required: false, message: "请输入备注/描述", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入创建时间", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入更新时间", trigger: "blur" }],
   created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
@@ -830,7 +830,7 @@ const initialFormData: AgEmbedderForm = {
   base_url: undefined,
   dimensions: undefined,
   config: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 };
 
@@ -878,7 +878,7 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     formData.base_url = undefined;
     formData.dimensions = undefined;
     formData.config = undefined;
-    formData.status = undefined;
+    formData.status = "0";
     formData.description = undefined;
   }
   dialogVisible.visible = true;

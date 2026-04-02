@@ -566,7 +566,7 @@ import AgTeamMemberAPI, {
   AgTeamMemberForm,
 } from "@/api/module_agno_manage/team_members";
 
-const visible = ref(true);
+const visible = ref(false);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
@@ -686,7 +686,7 @@ const formData = reactive<AgTeamMemberForm>({
   member_id: undefined,
   role: undefined,
   member_order: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 });
 
@@ -712,7 +712,7 @@ const rules = reactive({
   role: [{ required: true, message: "请输入成员角色描述", trigger: "blur" }],
   member_order: [{ required: false, message: "请输入成员排序（数字小优先）", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: true, message: "请输入description", trigger: "blur" }],
+  description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
   created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
@@ -786,7 +786,7 @@ const initialFormData: AgTeamMemberForm = {
   member_id: undefined,
   role: undefined,
   member_order: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 };
 

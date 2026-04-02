@@ -456,7 +456,7 @@ import AgUserRoleAPI, {
   AgUserRoleForm,
 } from "@/api/module_agno_manage/user_roles";
 
-const visible = ref(true);
+const visible = ref(false);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);

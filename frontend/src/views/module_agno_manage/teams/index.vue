@@ -982,7 +982,7 @@ import AgTeamAPI, {
   AgTeamForm,
 } from "@/api/module_agno_manage/teams";
 
-const visible = ref(true);
+const visible = ref(false);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
@@ -1206,7 +1206,7 @@ const formData = reactive<AgTeamForm>({
   stream_events: undefined,
   debug_mode: undefined,
   metadata: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 });
 
@@ -1258,7 +1258,7 @@ const rules = reactive({
   debug_mode: [{ required: false, message: "请输入是否开启调试模式", trigger: "blur" }],
   metadata: [{ required: false, message: "请输入元数据", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: true, message: "请输入description", trigger: "blur" }],
+  description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
   created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
@@ -1358,7 +1358,7 @@ const initialFormData: AgTeamForm = {
   stream_events: undefined,
   debug_mode: undefined,
   metadata: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 };
 

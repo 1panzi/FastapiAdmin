@@ -630,7 +630,7 @@ import AgScheduleAPI, {
   AgScheduleForm,
 } from "@/api/module_agno_manage/schedules";
 
-const visible = ref(true);
+const visible = ref(false);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
@@ -766,7 +766,7 @@ const formData = reactive<AgScheduleForm>({
   timeout_seconds: undefined,
   max_retries: undefined,
   retry_delay_seconds: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 });
 
@@ -796,7 +796,7 @@ const rules = reactive({
   max_retries: [{ required: false, message: "请输入失败最大重试次数", trigger: "blur" }],
   retry_delay_seconds: [{ required: false, message: "请输入重试间隔秒数", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: true, message: "请输入description", trigger: "blur" }],
+  description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
   created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
@@ -874,7 +874,7 @@ const initialFormData: AgScheduleForm = {
   timeout_seconds: undefined,
   max_retries: undefined,
   retry_delay_seconds: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 };
 

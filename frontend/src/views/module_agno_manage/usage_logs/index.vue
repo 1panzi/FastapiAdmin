@@ -480,7 +480,7 @@ import AgUsageLogAPI, {
   AgUsageLogForm,
 } from "@/api/module_agno_manage/usage_logs";
 
-const visible = ref(true);
+const visible = ref(false);
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
