@@ -98,6 +98,8 @@ class RuntimeRegistry:
         self._compression_rows: Dict[str, object] = {}
         self._session_summary_rows: Dict[str, object] = {}
         self._culture_rows: Dict[str, object] = {}
+        self._integration_rows: Dict[str, object] = {}
+        self._binding_rows: Dict[str, object] = {}
 
         # ── 冷区（LRU 按需加载） ──────────────────────────────────────────
         self._knowledge_cache: LRUCache = LRUCache(maxsize=50)
@@ -506,6 +508,20 @@ class RuntimeRegistry:
 
     def remove_culture_row(self, cid: str) -> None:
         self._culture_rows.pop(cid, None)
+
+    def update_integration_row(self, iid: str, row) -> None:
+        self._integration_rows[iid] = row
+        log.debug(f"[Registry] integration row updated: id={iid}")
+
+    def remove_integration_row(self, iid: str) -> None:
+        self._integration_rows.pop(iid, None)
+
+    def update_binding_row(self, bid: str, row) -> None:
+        self._binding_rows[bid] = row
+        log.debug(f"[Registry] binding row updated: id={bid}")
+
+    def remove_binding_row(self, bid: str) -> None:
+        self._binding_rows.pop(bid, None)
 
     # ── Team ─────────────────────────────────────────────────────────────────
 

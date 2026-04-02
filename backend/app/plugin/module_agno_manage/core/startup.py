@@ -147,6 +147,17 @@ async def _do_warm_up() -> None:
                 log.warning(f"[Startup] failed to create agent id={row.id}: {e}")
         log.info(f"[Startup] agents loaded")
 
+        # ── 最后层：Bindings + Integrations（行数据缓存）─────────────────
+        from app.plugin.module_agno_manage.bindings.model import AgBindingModel
+        result = await db.execute(select(AgBindingModel).where(AgBindingModel.status == "0"))
+        for row in result.scalars().all():
+            registry._binding_rows[str(row.uuid)] = row
+
+        from app.plugin.module_agno_manage.integrations.model import AgIntegrationModel
+        result = await db.execute(select(AgIntegrationModel).where(AgIntegrationModel.status == "0"))
+        for row in result.scalars().all():
+            registry._integration_rows[str(row.uuid)] = row
+
     set_registry(registry)
     log.info(
         f"[Registry] warm-up complete — "

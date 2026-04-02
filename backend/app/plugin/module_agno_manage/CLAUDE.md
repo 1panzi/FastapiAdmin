@@ -98,13 +98,13 @@ Agno 原生表（agno_sessions / agno_user_memory / agno_traces）
 | agents | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
 | teams | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
 | workflows | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
-| bindings | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
+| bindings | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
 | schedules | ✅ | ✅ | ✅ | — 无 | ✅ | — |
 | roles | ✅ | ✅ | ✅ | — 无 | ✅ | — |
 | user_roles | ✅ | ✅ | ✅ | — 无 | ✅ | — |
 | audit_logs | ✅ | ✅ | ✅ | — 无 | ✅ | — |
 | usage_logs | ✅ | ✅ | ✅ | — 无 | ✅ | — |
-| integrations | ✅ | ✅ | ✅ | ⬜ 待集成 | ✅ | ⬜ |
+| integrations | ✅ | ✅ | ✅ | ✅+Registry | ✅ | ✅ |
 
 ---
 
