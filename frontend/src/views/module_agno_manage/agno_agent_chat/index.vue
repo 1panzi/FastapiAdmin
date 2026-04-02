@@ -8,7 +8,6 @@
           placeholder="选择 Agent"
           filterable
           class="agent-select"
-          @change="onAgentChange"
         >
           <el-option
             v-for="agent in agentList"
@@ -96,9 +95,8 @@
                   :key="f.name"
                   size="small"
                   type="info"
-                  :icon="Paperclip"
                 >
-                  {{ f.name }}
+                  <el-icon style="margin-right:3px"><Paperclip /></el-icon>{{ f.name }}
                 </el-tag>
               </div>
               <div v-if="msg.metrics && msg.role === 'assistant'" class="bubble-metrics">
@@ -171,10 +169,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted } from "vue";
+import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
 import { Plus, Delete, Paperclip, Promotion, UserFilled, Service, ChatDotRound } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
-const uuidv4 = () => crypto.randomUUID();
 import AgAgentAPI from "@/api/module_agno_manage/agents";
 import AgnoAgentChatAPI, {
   type ChatSession,
@@ -183,8 +180,10 @@ import AgnoAgentChatAPI, {
 import { useUserStoreHook } from "@/store/modules/user.store";
 import type { AgAgentTable } from "@/api/module_agno_manage/agents";
 
+const uuidv4 = () => crypto.randomUUID();
+
 const userStore = useUserStoreHook();
-const userId = computed(() => userStore.basicInfo.id ?? 1);
+const userId = computed(() => userStore.basicInfo.id);
 
 // Agent 列表
 const agentList = ref<AgAgentTable[]>([]);
@@ -215,17 +214,17 @@ onMounted(async () => {
   await loadAgents();
 });
 
+onUnmounted(() => {
+  streamController?.abort();
+});
+
 async function loadAgents() {
   try {
-    const res = await AgAgentAPI.listAgAgent({ page: 1, pageSize: 100 });
-    agentList.value = res.data.data?.list ?? [];
+    const res = await AgAgentAPI.listAgAgent({ page_no: 1, page_size: 100 });
+    agentList.value = res.data.data?.items ?? [];
   } catch {
     ElMessage.error("加载 Agent 列表失败");
   }
-}
-
-function onAgentChange() {
-  // 切换 agent 时不自动创建会话
 }
 
 function createSession() {
@@ -255,7 +254,9 @@ function deleteSession(id: string) {
 }
 
 function onFileChange(file: any) {
-  pendingFiles.value.push(file.raw as File);
+  const raw = file.raw as File;
+  const exists = pendingFiles.value.some((f) => f.name === raw.name && f.size === raw.size);
+  if (!exists) pendingFiles.value.push(raw);
 }
 
 function removeFile(index: number) {
@@ -265,6 +266,15 @@ function removeFile(index: number) {
 async function sendMessage() {
   const text = inputText.value.trim();
   if (!text || !currentSession.value || sending.value) return;
+
+  if (!userId.value) {
+    ElMessage.warning("用户未登录，请重新登录");
+    return;
+  }
+
+  // 中止上一条未完成的流式请求
+  streamController?.abort();
+  streamController = null;
 
   const session = currentSession.value;
   const files = [...pendingFiles.value];

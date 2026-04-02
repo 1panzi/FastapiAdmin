@@ -55,7 +55,8 @@ const AgnoAgentChatAPI = {
     })
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const reader = res.body!.getReader();
+        if (!res.body) throw new Error("Response body is null");
+        const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
         let eventName = "";
@@ -77,6 +78,11 @@ const AgnoAgentChatAPI = {
               } catch {
                 // ignore parse errors
               }
+              // 只在空行（事件分隔符）时重置 eventName，保持跨行一致性
+              // 但当前服务端每个 data 行后紧跟空行，data 处理后重置是安全的
+              eventName = "";
+            } else if (line === "") {
+              // SSE 事件分隔符，确保 eventName 被重置
               eventName = "";
             }
           }
