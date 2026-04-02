@@ -91,6 +91,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, Any]:
         log.info("✅ 定时任务调度器已关闭")
         await FastAPILimiter.close()
         log.info("✅ 请求限制器已关闭")
+
+        from app.plugin.module_agno_manage.core.controller import on_shutdown
+        await on_shutdown()
+
         console_close()
 
     except Exception as e:
