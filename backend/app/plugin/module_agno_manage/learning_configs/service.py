@@ -10,6 +10,7 @@ from app.core.exceptions import CustomException
 from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
 
+from app.plugin.module_agno_manage.core.registry import get_registry
 from .crud import AgLearningConfigCRUD
 from .schema import (
     AgLearningConfigCreateSchema,
@@ -97,6 +98,8 @@ class AgLearningConfigService:
         - dict - 创建结果
         """
         obj = await AgLearningConfigCRUD(auth).create_learning_configs_crud(data=data)
+        if obj and obj.status == "0":
+            get_registry().update_learning_row(str(obj.id), obj)
         return AgLearningConfigOutSchema.model_validate(obj).model_dump()
     
     @classmethod
@@ -120,6 +123,11 @@ class AgLearningConfigService:
         # 检查唯一性约束
             
         obj = await AgLearningConfigCRUD(auth).update_learning_configs_crud(id=id, data=data)
+        if obj:
+            if obj.status == "0":
+                get_registry().update_learning_row(str(obj.id), obj)
+            else:
+                get_registry().remove_learning_row(str(obj.id))
         return AgLearningConfigOutSchema.model_validate(obj).model_dump()
     
     @classmethod
@@ -136,11 +144,15 @@ class AgLearningConfigService:
         """
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
+        ids_to_remove = []
         for id in ids:
             obj = await AgLearningConfigCRUD(auth).get_by_id_learning_configs_crud(id=id)
             if not obj:
                 raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
+            ids_to_remove.append(str(obj.id))
         await AgLearningConfigCRUD(auth).delete_learning_configs_crud(ids=ids)
+        for rid in ids_to_remove:
+            get_registry().remove_learning_row(rid)
     
     @classmethod
     async def set_available_learning_configs_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
@@ -154,7 +166,17 @@ class AgLearningConfigService:
         返回:
         - None
         """
+        obj_list = []
+        for id in data.ids:
+            obj = await AgLearningConfigCRUD(auth).get_by_id_learning_configs_crud(id=id)
+            if obj:
+                obj_list.append(obj)
         await AgLearningConfigCRUD(auth).set_available_learning_configs_crud(ids=data.ids, status=data.status)
+        for obj in obj_list:
+            if data.status == "0":
+                get_registry().update_learning_row(str(obj.id), obj)
+            else:
+                get_registry().remove_learning_row(str(obj.id))
     
     @classmethod
     async def batch_export_learning_configs_service(cls, obj_list: list[dict]) -> bytes:

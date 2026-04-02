@@ -135,6 +135,18 @@ async def _do_warm_up() -> None:
         for row in result.scalars().all():
             registry._culture_rows[str(row.uuid)] = row
 
+        # ── 第五层：Agent ──────────────────────────────────────────────────
+        from app.plugin.module_agno_manage.agents.model import AgAgentModel
+        agent_rows = await db.execute(
+            select(AgAgentModel).where(AgAgentModel.status == "0")
+        )
+        for row in agent_rows.scalars():
+            try:
+                registry.create_agent(row)
+            except Exception as e:
+                log.warning(f"[Startup] failed to create agent id={row.id}: {e}")
+        log.info(f"[Startup] agents loaded")
+
     set_registry(registry)
     log.info(
         f"[Registry] warm-up complete — "

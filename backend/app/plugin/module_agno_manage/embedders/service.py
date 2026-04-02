@@ -10,6 +10,7 @@ from app.core.exceptions import CustomException
 from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
 
+from app.plugin.module_agno_manage.core.registry import get_registry
 from .crud import AgEmbedderCRUD
 from .schema import (
     AgEmbedderCreateSchema,
@@ -97,6 +98,11 @@ class AgEmbedderService:
         - dict - 创建结果
         """
         obj = await AgEmbedderCRUD(auth).create_embedders_crud(data=data)
+        if obj and obj.status == "0":
+            try:
+                get_registry().register_embedder(str(obj.id), obj)
+            except Exception as e:
+                log.warning(f"[Embedders] registry register failed for id={obj.id}: {e}")
         return AgEmbedderOutSchema.model_validate(obj).model_dump()
     
     @classmethod
@@ -120,6 +126,14 @@ class AgEmbedderService:
         # 检查唯一性约束
             
         obj = await AgEmbedderCRUD(auth).update_embedders_crud(id=id, data=data)
+        if obj:
+            try:
+                if obj.status == "0":
+                    get_registry().register_embedder(str(obj.id), obj)
+                else:
+                    get_registry().unregister_embedder(str(obj.id))
+            except Exception as e:
+                log.warning(f"[Embedders] registry update failed for id={obj.id}: {e}")
         return AgEmbedderOutSchema.model_validate(obj).model_dump()
     
     @classmethod
@@ -136,11 +150,15 @@ class AgEmbedderService:
         """
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
+        ids_to_remove = []
         for id in ids:
             obj = await AgEmbedderCRUD(auth).get_by_id_embedders_crud(id=id)
             if not obj:
                 raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
+            ids_to_remove.append(str(obj.id))
         await AgEmbedderCRUD(auth).delete_embedders_crud(ids=ids)
+        for rid in ids_to_remove:
+            get_registry().unregister_embedder(rid)
     
     @classmethod
     async def set_available_embedders_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
@@ -154,7 +172,20 @@ class AgEmbedderService:
         返回:
         - None
         """
+        obj_list = []
+        for id in data.ids:
+            obj = await AgEmbedderCRUD(auth).get_by_id_embedders_crud(id=id)
+            if obj:
+                obj_list.append(obj)
         await AgEmbedderCRUD(auth).set_available_embedders_crud(ids=data.ids, status=data.status)
+        for obj in obj_list:
+            try:
+                if data.status == "0":
+                    get_registry().register_embedder(str(obj.id), obj)
+                else:
+                    get_registry().unregister_embedder(str(obj.id))
+            except Exception as e:
+                log.warning(f"[Embedders] registry set_available failed for id={obj.id}: {e}")
     
     @classmethod
     async def batch_export_embedders_service(cls, obj_list: list[dict]) -> bytes:

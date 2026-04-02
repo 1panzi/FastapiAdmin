@@ -10,6 +10,7 @@ from app.core.exceptions import CustomException
 from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
 
+from app.plugin.module_agno_manage.core.registry import get_registry
 from .crud import AgGuardrailCRUD
 from .schema import (
     AgGuardrailCreateSchema,
@@ -97,6 +98,11 @@ class AgGuardrailService:
         - dict - 创建结果
         """
         obj = await AgGuardrailCRUD(auth).create_guardrails_crud(data=data)
+        if obj and obj.status == "0":
+            try:
+                get_registry().register_guardrail(str(obj.id), obj)
+            except Exception as e:
+                log.warning(f"[Guardrails] registry register failed for id={obj.id}: {e}")
         return AgGuardrailOutSchema.model_validate(obj).model_dump()
     
     @classmethod
@@ -120,6 +126,14 @@ class AgGuardrailService:
         # 检查唯一性约束
             
         obj = await AgGuardrailCRUD(auth).update_guardrails_crud(id=id, data=data)
+        if obj:
+            try:
+                if obj.status == "0":
+                    get_registry().register_guardrail(str(obj.id), obj)
+                else:
+                    get_registry().unregister_guardrail(str(obj.id))
+            except Exception as e:
+                log.warning(f"[Guardrails] registry update failed for id={obj.id}: {e}")
         return AgGuardrailOutSchema.model_validate(obj).model_dump()
     
     @classmethod
@@ -136,11 +150,15 @@ class AgGuardrailService:
         """
         if len(ids) < 1:
             raise CustomException(msg='删除失败，删除对象不能为空')
+        ids_to_remove = []
         for id in ids:
             obj = await AgGuardrailCRUD(auth).get_by_id_guardrails_crud(id=id)
             if not obj:
                 raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
+            ids_to_remove.append(str(obj.id))
         await AgGuardrailCRUD(auth).delete_guardrails_crud(ids=ids)
+        for rid in ids_to_remove:
+            get_registry().unregister_guardrail(rid)
     
     @classmethod
     async def set_available_guardrails_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:
@@ -154,7 +172,20 @@ class AgGuardrailService:
         返回:
         - None
         """
+        obj_list = []
+        for id in data.ids:
+            obj = await AgGuardrailCRUD(auth).get_by_id_guardrails_crud(id=id)
+            if obj:
+                obj_list.append(obj)
         await AgGuardrailCRUD(auth).set_available_guardrails_crud(ids=data.ids, status=data.status)
+        for obj in obj_list:
+            try:
+                if data.status == "0":
+                    get_registry().register_guardrail(str(obj.id), obj)
+                else:
+                    get_registry().unregister_guardrail(str(obj.id))
+            except Exception as e:
+                log.warning(f"[Guardrails] registry set_available failed for id={obj.id}: {e}")
     
     @classmethod
     async def batch_export_guardrails_service(cls, obj_list: list[dict]) -> bytes:

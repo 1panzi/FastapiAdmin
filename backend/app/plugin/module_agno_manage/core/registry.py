@@ -436,6 +436,146 @@ class RuntimeRegistry:
             log.error(f"[Registry] failed to build knowledge id={kb_id}: {e}")
             return None
 
+    # ── Row cache management (public API) ────────────────────────────────────
+
+    def update_vectordb_row(self, vid: str, row) -> None:
+        self._vectordb_rows[vid] = row
+        log.debug(f"[Registry] vectordb row updated: id={vid}")
+
+    def remove_vectordb_row(self, vid: str) -> None:
+        self._vectordb_rows.pop(vid, None)
+
+    def update_kb_row(self, kid: str, row) -> None:
+        self._kb_rows[kid] = row
+        # 行数据变了，让 LRU 缓存失效，下次 resolve 时重建
+        self._knowledge_cache.remove(kid)
+        log.debug(f"[Registry] kb row updated: id={kid}")
+
+    def remove_kb_row(self, kid: str) -> None:
+        self._kb_rows.pop(kid, None)
+        self._knowledge_cache.remove(kid)
+
+    def update_mcp_row(self, mid: str, row) -> None:
+        self._mcp_rows[mid] = row
+        self._mcp_cache.remove(mid)
+        log.debug(f"[Registry] mcp row updated: id={mid}")
+
+    def remove_mcp_row(self, mid: str) -> None:
+        self._mcp_rows.pop(mid, None)
+        self._mcp_cache.remove(mid)
+
+    def update_skill_row(self, sid: str, row) -> None:
+        self._skill_rows[sid] = row
+        log.debug(f"[Registry] skill row updated: id={sid}")
+
+    def remove_skill_row(self, sid: str) -> None:
+        self._skill_rows.pop(sid, None)
+
+    def update_memory_manager_row(self, mid: str, row) -> None:
+        self._memory_manager_rows[mid] = row
+
+    def remove_memory_manager_row(self, mid: str) -> None:
+        self._memory_manager_rows.pop(mid, None)
+
+    def update_learning_row(self, lid: str, row) -> None:
+        self._learning_rows[lid] = row
+
+    def remove_learning_row(self, lid: str) -> None:
+        self._learning_rows.pop(lid, None)
+
+    def update_reasoning_row(self, rid: str, row) -> None:
+        self._reasoning_rows[rid] = row
+
+    def remove_reasoning_row(self, rid: str) -> None:
+        self._reasoning_rows.pop(rid, None)
+
+    def update_compression_row(self, cid: str, row) -> None:
+        self._compression_rows[cid] = row
+
+    def remove_compression_row(self, cid: str) -> None:
+        self._compression_rows.pop(cid, None)
+
+    def update_session_summary_row(self, sid: str, row) -> None:
+        self._session_summary_rows[sid] = row
+
+    def remove_session_summary_row(self, sid: str) -> None:
+        self._session_summary_rows.pop(sid, None)
+
+    def update_culture_row(self, cid: str, row) -> None:
+        self._culture_rows[cid] = row
+
+    def remove_culture_row(self, cid: str) -> None:
+        self._culture_rows.pop(cid, None)
+
+    # ── Team ─────────────────────────────────────────────────────────────────
+
+    def create_team(self, row) -> object:
+        """根据 ag_teams 行构建 Agno Team 并注册。"""
+        from agno.team import Team
+        team_id = str(row.id)
+        config = dict(row.config or {})
+        # 收集成员 agents
+        member_agents = [a for a in self.agents if getattr(a, "agent_id", None) in (
+            [str(m) for m in (row.member_ids or [])] if hasattr(row, "member_ids") else []
+        )]
+        try:
+            team = Team(
+                team_id=team_id,
+                name=row.name,
+                members=member_agents or [],
+                **{k: v for k, v in config.items()},
+            )
+            if team_id not in self._teams_map:
+                self.teams.append(team)
+            else:
+                idx = next((i for i, t in enumerate(self.teams) if getattr(t, "team_id", None) == team_id), None)
+                if idx is not None:
+                    self.teams[idx] = team
+            self._teams_map[team_id] = team
+            log.info(f"[Registry] team created/updated: id={team_id}, name={row.name}")
+            return team
+        except Exception as e:
+            log.error(f"[Registry] failed to create team id={team_id}: {e}")
+            raise
+
+    def remove_team(self, team_id: str) -> None:
+        team = self._teams_map.pop(team_id, None)
+        if team and team in self.teams:
+            self.teams.remove(team)
+        log.debug(f"[Registry] team removed: id={team_id}")
+
+    # ── Workflow ──────────────────────────────────────────────────────────────
+
+    def create_workflow(self, row) -> object:
+        """根据 ag_workflows 行构建 Agno Workflow 并注册。"""
+        from agno.workflow import Workflow
+        workflow_id = str(row.id)
+        config = dict(row.config or {})
+        try:
+            workflow = Workflow(
+                workflow_id=workflow_id,
+                name=row.name,
+                **{k: v for k, v in config.items()},
+            )
+            if workflow_id not in self._workflows_map:
+                self.workflows.append(workflow)
+            else:
+                idx = next((i for i, w in enumerate(self.workflows) if getattr(w, "workflow_id", None) == workflow_id), None)
+                if idx is not None:
+                    self.workflows[idx] = workflow
+            self._workflows_map[workflow_id] = workflow
+            log.info(f"[Registry] workflow created/updated: id={workflow_id}, name={row.name}")
+            return workflow
+        except Exception as e:
+            log.error(f"[Registry] failed to create workflow id={workflow_id}: {e}")
+            raise
+
+    def remove_workflow(self, workflow_id: str) -> None:
+        workflow = self._workflows_map.pop(workflow_id, None)
+        if workflow and workflow in self.workflows:
+            self.workflows.remove(workflow)
+        log.debug(f"[Registry] workflow removed: id={workflow_id}")
+
     # ── Shutdown ──────────────────────────────────────────────────────────────
 
     def shutdown(self) -> None:
