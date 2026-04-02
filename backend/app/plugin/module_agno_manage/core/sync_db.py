@@ -54,7 +54,7 @@ class SyncBindingRepo:
             FROM ag_bindings
             WHERE owner_id = :owner_id
               AND owner_type = :owner_type
-              AND enabled = true
+              AND status = '0'
         """
         # ag_bindings.owner_id 是整数列，需要传整数避免类型不匹配
         try:
@@ -87,7 +87,7 @@ class SyncTeamMemberRepo:
         sql = """
             SELECT member_id::text, member_type, member_order, role
             FROM ag_team_members
-            WHERE team_id = :team_id AND enabled = true
+            WHERE team_id = :team_id AND status = '0'
             ORDER BY member_order
         """
         try:
