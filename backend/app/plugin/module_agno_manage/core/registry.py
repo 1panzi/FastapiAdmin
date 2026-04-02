@@ -225,6 +225,16 @@ class RuntimeRegistry:
     def register_toolkit(self, toolkit_id: str, row) -> None:
         """动态 import module_path.class_name（或 func_name）并实例化。"""
         import importlib
+
+        # 全局禁用直接跳过
+        if getattr(row, "global_enabled", True) is False:
+            log.debug(f"[Registry] toolkit id={toolkit_id} global_enabled=False, skip")
+            return
+
+        if getattr(row, "type", None) == "code":
+            self._register_code_toolkit(toolkit_id, row)
+            return
+
         config = dict(row.config or {})
         try:
             mod = importlib.import_module(row.module_path)
@@ -239,6 +249,41 @@ class RuntimeRegistry:
         except Exception as e:
             log.error(f"[Registry] failed to register toolkit id={toolkit_id}: {e}")
             raise
+
+    def _register_code_toolkit(self, toolkit_id: str, row) -> None:
+        """执行 source_code，提取函数，包装成 Toolkit 注入 registry。"""
+        from agno.tools import Function
+        from agno.tools.toolkit import Toolkit
+
+        source_code = getattr(row, "source_code", None)
+        if not source_code:
+            log.warning(f"[Registry] code toolkit id={toolkit_id} source_code 为空，跳过")
+            return
+
+        namespace: dict = {}
+        try:
+            exec(compile(source_code, f"<toolkit:{toolkit_id}>", "exec"), namespace)
+        except Exception as e:
+            log.error(f"[Registry] code toolkit id={toolkit_id} exec 失败: {e}")
+            raise
+
+        # 收集 @tool 装饰的 Function 对象 + 普通函数（排除内置、类、下划线开头）
+        tools = []
+        for name, obj in namespace.items():
+            if name.startswith("_"):
+                continue
+            if isinstance(obj, Function):
+                tools.append(obj)
+            elif callable(obj) and not isinstance(obj, type) and getattr(obj, "__module__", None) is None:
+                tools.append(obj)
+
+        if not tools:
+            log.warning(f"[Registry] code toolkit id={toolkit_id} 未找到任何可用函数")
+            return
+
+        toolkit = Toolkit(name=row.name or f"code_toolkit_{toolkit_id}", tools=tools)
+        self._toolkit_map[toolkit_id] = toolkit
+        log.info(f"[Registry] code toolkit registered: id={toolkit_id}, functions={[t.name if isinstance(t, Function) else t.__name__ for t in tools]}")
 
     def unregister_toolkit(self, toolkit_id: str) -> None:
         self._toolkit_map.pop(toolkit_id, None)

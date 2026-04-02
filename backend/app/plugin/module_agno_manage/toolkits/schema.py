@@ -13,8 +13,8 @@ class AgToolkitCreateSchema(BaseModel):
     工具管理新增模型
     """
     name: str = Field(default=..., description='工具包名称')
-    type: str = Field(default=..., description='类型(toolkit:整个类 function:单个函数)')
-    module_path: str = Field(default=..., description='Python模块路径')
+    type: str = Field(default=..., description='类型(toolkit:整个类 function:单个函数 code:代码工具)')
+    module_path: str | None = Field(default=None, description='Python模块路径（type=code时为空）')
     class_name: str | None = Field(default=None, description='类名（type=toolkit时使用）')
     func_name: str | None = Field(default=None, description='函数名（type=function时使用）')
     config: dict | None = Field(default=None, description='初始化参数')
@@ -25,6 +25,11 @@ class AgToolkitCreateSchema(BaseModel):
     show_result: bool | None = Field(default=None, description='是否展示结果')
     cache_results: bool | None = Field(default=None, description='是否缓存结果')
     cache_ttl: int | None = Field(default=None, description='缓存TTL秒数')
+    tool_from: str | None = Field(default='agno', description='工具来源(agno/custom/code)')
+    category: str | None = Field(default=None, description='工具分类')
+    global_enabled: bool = Field(default=True, description='超管全局开关')
+    source_code: str | None = Field(default=None, description='预留：type=code时存Python源码')
+    param_schema: list | None = Field(default=None, description='参数描述列表，每项含 name/type/default/required')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 
@@ -51,8 +56,11 @@ class AgToolkitQueryParam:
         name: str | None = Query(None, description="工具包名称"),
         class_name: str | None = Query(None, description="类名（type=toolkit时使用）"),
         func_name: str | None = Query(None, description="函数名（type=function时使用）"),
-        type: str | None = Query(None, description="类型(toolkit:整个类 function:单个函数)"),
+        type: str | None = Query(None, description="类型(toolkit:整个类 function:单个函数 code:代码工具)"),
         module_path: str | None = Query(None, description="Python模块路径"),
+        tool_from: str | None = Query(None, description="工具来源(agno/custom/code)"),
+        category: str | None = Query(None, description="工具分类"),
+        global_enabled: bool | None = Query(None, description="超管全局开关"),
         # config: dict | None = Query(None, description="初始化参数"),
         instructions: str | None = Query(None, description="工具使用说明"),
         requires_confirmation: bool | None = Query(None, description="是否需要确认"),
@@ -79,6 +87,12 @@ class AgToolkitQueryParam:
         self.class_name = (QueueEnum.like.value, class_name)
         # 模糊查询字段
         self.func_name = (QueueEnum.like.value, func_name)
+        if tool_from:
+            self.tool_from = (QueueEnum.eq.value, tool_from)
+        if category:
+            self.category = (QueueEnum.eq.value, category)
+        if global_enabled is not None:
+            self.global_enabled = (QueueEnum.eq.value, global_enabled)
         # 精确查询字段
         # if config:
         #     self.config = (QueueEnum.eq.value, config)
@@ -117,3 +131,25 @@ class AgToolkitQueryParam:
             self.created_time = (QueueEnum.between.value, (created_time[0], created_time[1]))
         if updated_time and len(updated_time) == 2:
             self.updated_time = (QueueEnum.between.value, (updated_time[0], updated_time[1]))
+
+
+class AgToolkitPullSchema(BaseModel):
+    """用户拉取工具时的参数"""
+    config_override: dict | None = Field(default=None, description='覆盖工具默认配置（如自定义 API Key）')
+
+
+class AgToolkitGlobalSwitchSchema(BaseModel):
+    """超管全局开关"""
+    global_enabled: bool = Field(..., description='True=启用 False=禁用（所有用户不可见）')
+
+
+class AgToolkitCodeValidateSchema(BaseModel):
+    """代码工具验证请求"""
+    source_code: str = Field(..., description='待验证的 Python 源码')
+
+
+class AgToolkitCodeValidateResultSchema(BaseModel):
+    """代码工具验证结果"""
+    success: bool
+    functions: list[str] = Field(default_factory=list, description='发现的函数名列表')
+    error: str | None = Field(default=None, description='错误信息')

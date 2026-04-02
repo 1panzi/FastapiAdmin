@@ -8,13 +8,18 @@ from app.api.v1.module_system.auth.schema import AuthSchema
 from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
 from app.core.logger import log
+from app.plugin.module_agno_manage.bindings.crud import AgBindingCRUD
+from app.plugin.module_agno_manage.bindings.schema import AgBindingCreateSchema
 from app.plugin.module_agno_manage.core.registry import get_registry
 from app.utils.excel_util import ExcelUtil
 
 from .agno_catalog import AgnoToolInfo, get_categories, list_agno_tools
 from .crud import AgToolkitCRUD
 from .schema import (
+    AgToolkitCodeValidateSchema,
+    AgToolkitCodeValidateResultSchema,
     AgToolkitCreateSchema,
+    AgToolkitGlobalSwitchSchema,
     AgToolkitOutSchema,
     AgToolkitQueryParam,
     AgToolkitUpdateSchema,
@@ -400,3 +405,170 @@ class AgToolkitService:
     def list_agno_categories_service(cls) -> list[str]:
         """返回所有工具分类。"""
         return get_categories()
+
+    @classmethod
+    async def global_switch_toolkits_service(cls, auth: AuthSchema, id: int, data: AgToolkitGlobalSwitchSchema) -> dict:
+        """
+        超管全局开关：切换 global_enabled。
+        global_enabled=False 时从 registry 移除；True 时重新注册。
+        """
+        from sqlalchemy import update as sa_update
+        from app.core.database import async_db_session
+        from .model import AgToolkitModel
+
+        obj = await AgToolkitCRUD(auth).get_by_id_toolkits_crud(id=id)
+        if not obj:
+            raise CustomException(msg="该数据不存在")
+
+        async with async_db_session() as db:
+            await db.execute(
+                sa_update(AgToolkitModel)
+                .where(AgToolkitModel.id == id)
+                .values(global_enabled=data.global_enabled)
+            )
+            await db.commit()
+
+        obj.global_enabled = data.global_enabled
+        try:
+            if data.global_enabled and obj.status == "0":
+                get_registry().register_toolkit(str(obj.id), obj)
+            else:
+                get_registry().unregister_toolkit(str(obj.id))
+        except Exception as e:
+            log.warning(f"[Toolkits] global_switch registry failed for id={id}: {e}")
+
+        return AgToolkitOutSchema.model_validate(obj).model_dump()
+
+    @classmethod
+    async def pull_toolkit_service(cls, auth: AuthSchema, toolkit_id: int, config_override: dict | None) -> dict:
+        """
+        用户拉取工具：在 ag_bindings 插入 owner_type='user' 记录。
+        """
+        obj = await AgToolkitCRUD(auth).get_by_id_toolkits_crud(id=toolkit_id)
+        if not obj:
+            raise CustomException(msg="工具不存在")
+        if not obj.global_enabled:
+            raise CustomException(msg="该工具已被管理员禁用")
+        if obj.status != "0":
+            raise CustomException(msg="该工具未启用")
+
+        # 检查是否已拉取
+        from sqlalchemy import and_, select
+        from app.core.database import async_db_session
+        from app.plugin.module_agno_manage.bindings.model import AgBindingModel
+        async with async_db_session() as db:
+            result = await db.execute(
+                select(AgBindingModel).where(
+                    and_(
+                        AgBindingModel.owner_type == "user",
+                        AgBindingModel.owner_id == auth.user_id,
+                        AgBindingModel.resource_type == "toolkit",
+                        AgBindingModel.resource_id == toolkit_id,
+                        AgBindingModel.status == "0",
+                    )
+                )
+            )
+            if result.scalar_one_or_none():
+                raise CustomException(msg="已拉取过该工具")
+
+        binding_data = AgBindingCreateSchema(
+            owner_type="user",
+            owner_id=auth.user_id,
+            resource_type="toolkit",
+            resource_id=toolkit_id,
+            config_override=config_override,
+            status="0",
+        )
+        binding = await AgBindingCRUD(auth).create_bindings_crud(data=binding_data)
+        return {"binding_id": binding.id, "toolkit_id": toolkit_id}
+
+    @classmethod
+    async def unpull_toolkit_service(cls, auth: AuthSchema, toolkit_id: int) -> None:
+        """
+        用户取消拉取工具：删除对应 binding。
+        """
+        from sqlalchemy import and_, select
+        from app.core.database import async_db_session
+        from app.plugin.module_agno_manage.bindings.model import AgBindingModel
+        async with async_db_session() as db:
+            result = await db.execute(
+                select(AgBindingModel).where(
+                    and_(
+                        AgBindingModel.owner_type == "user",
+                        AgBindingModel.owner_id == auth.user_id,
+                        AgBindingModel.resource_type == "toolkit",
+                        AgBindingModel.resource_id == toolkit_id,
+                        AgBindingModel.status == "0",
+                    )
+                )
+            )
+            binding = result.scalar_one_or_none()
+            if not binding:
+                raise CustomException(msg="未拉取过该工具")
+            await AgBindingCRUD(auth).delete_bindings_crud(ids=[binding.id])
+
+    @classmethod
+    async def list_pulled_toolkits_service(cls, auth: AuthSchema) -> list[dict]:
+        """
+        查询当前用户已拉取的工具列表。
+        """
+        from sqlalchemy import and_, select
+        from app.core.database import async_db_session
+        from app.plugin.module_agno_manage.bindings.model import AgBindingModel
+        from .model import AgToolkitModel
+
+        async with async_db_session() as db:
+            result = await db.execute(
+                select(AgBindingModel, AgToolkitModel).join(
+                    AgToolkitModel, AgToolkitModel.id == AgBindingModel.resource_id
+                ).where(
+                    and_(
+                        AgBindingModel.owner_type == "user",
+                        AgBindingModel.owner_id == auth.user_id,
+                        AgBindingModel.resource_type == "toolkit",
+                        AgBindingModel.status == "0",
+                        AgToolkitModel.global_enabled == True,  # noqa: E712
+                    )
+                )
+            )
+            rows = result.all()
+
+        return [
+            {
+                **AgToolkitOutSchema.model_validate(toolkit).model_dump(),
+                "binding_id": binding.id,
+                "config_override": binding.config_override,
+            }
+            for binding, toolkit in rows
+        ]
+
+    @classmethod
+    def validate_code_toolkit_service(cls, data: AgToolkitCodeValidateSchema) -> AgToolkitCodeValidateResultSchema:
+        """
+        验证 source_code 是否可以正常 exec，并返回发现的函数列表。
+        不实际注册到 registry，仅做语法和运行时检查。
+        """
+        from agno.tools import Function
+
+        namespace: dict = {}
+        try:
+            exec(compile(data.source_code, "<validate>", "exec"), namespace)
+        except Exception as e:
+            return AgToolkitCodeValidateResultSchema(success=False, error=str(e))
+
+        functions = []
+        for name, obj in namespace.items():
+            if name.startswith("_"):
+                continue
+            if isinstance(obj, Function):
+                functions.append(name)
+            elif callable(obj) and not isinstance(obj, type) and getattr(obj, "__module__", None) is None:
+                functions.append(name)
+
+        if not functions:
+            return AgToolkitCodeValidateResultSchema(
+                success=False,
+                error="未找到任何可用函数，请定义至少一个函数或使用 @tool 装饰器"
+            )
+
+        return AgToolkitCodeValidateResultSchema(success=True, functions=functions)

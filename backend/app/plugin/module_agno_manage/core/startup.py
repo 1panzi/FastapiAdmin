@@ -42,6 +42,9 @@ async def _do_warm_up() -> None:
 
     async with async_db_session() as db:
 
+        # ── 第零层：自动发现工具并 upsert 入库 ───────────────────────────
+        await _sync_discovered_tools(db)
+
         # ── 第一层：无依赖基础组件 ────────────────────────────────────────
         from app.plugin.module_agno_manage.models.model import AgModelModel
         result = await db.execute(select(AgModelModel).where(AgModelModel.status == "0"))
@@ -72,7 +75,12 @@ async def _do_warm_up() -> None:
 
         # ── 第三层：工具类 ────────────────────────────────────────────────
         from app.plugin.module_agno_manage.toolkits.model import AgToolkitModel
-        result = await db.execute(select(AgToolkitModel).where(AgToolkitModel.status == "0"))
+        result = await db.execute(
+            select(AgToolkitModel).where(
+                AgToolkitModel.status == "0",
+                AgToolkitModel.global_enabled == True,  # noqa: E712
+            )
+        )
         for row in result.scalars().all():
             try:
                 registry.register_toolkit(str(row.id), row)
@@ -169,3 +177,66 @@ async def _do_warm_up() -> None:
         f"hooks={len(registry._hook_map)}, "
         f"guardrails={len(registry._guardrail_map)}"
     )
+
+
+async def _sync_discovered_tools(db) -> None:
+    """扫描 agno + custom 工具，将新发现的工具 upsert 入库。
+
+    规则：
+    - 以 module_path + class_name 判断唯一性
+    - 不存在 → INSERT（status='0', global_enabled=True）
+    - 已存在 → 只更新 category / description（保留用户改过的 config/status）
+    """
+    from sqlalchemy import and_, select
+
+    from app.plugin.module_agno_manage.toolkits.discovery import scan_all_tools
+    from app.plugin.module_agno_manage.toolkits.model import AgToolkitModel
+
+    try:
+        discovered = scan_all_tools()
+    except Exception as e:
+        log.warning(f"[Startup] 工具扫描失败，跳过 upsert: {e}")
+        return
+
+    if not discovered:
+        return
+
+    inserted = updated = 0
+    for tool in discovered:
+        try:
+            result = await db.execute(
+                select(AgToolkitModel).where(
+                    and_(
+                        AgToolkitModel.module_path == tool["module_path"],
+                        AgToolkitModel.class_name == tool["class_name"],
+                    )
+                )
+            )
+            existing = result.scalar_one_or_none()
+            if existing is None:
+                row = AgToolkitModel(
+                    name=tool["name"],
+                    type=tool["type"],
+                    module_path=tool["module_path"],
+                    class_name=tool["class_name"],
+                    category=tool["category"],
+                    description=tool["description"],
+                    tool_from=tool["tool_from"],
+                    param_schema=tool["param_schema"],
+                    status="0",
+                    global_enabled=True,
+                )
+                db.add(row)
+                inserted += 1
+            else:
+                # 只更新描述性元数据，不覆盖用户配置
+                existing.category = tool["category"]
+                existing.description = tool["description"]
+                existing.tool_from = tool["tool_from"]
+                existing.param_schema = tool["param_schema"]
+                updated += 1
+        except Exception as e:
+            log.warning(f"[Startup] upsert toolkit {tool['module_path']}.{tool['class_name']} 失败: {e}")
+
+    await db.commit()
+    log.info(f"[Startup] 工具同步完成 — 新增={inserted}, 更新元数据={updated}")

@@ -10,7 +10,14 @@ from app.core.dependencies import AuthPermission
 from app.core.logger import log
 from app.utils.common_util import bytes2file_response
 
-from .schema import AgToolkitCreateSchema, AgToolkitQueryParam, AgToolkitUpdateSchema
+from .schema import (
+    AgToolkitCodeValidateSchema,
+    AgToolkitCreateSchema,
+    AgToolkitGlobalSwitchSchema,
+    AgToolkitPullSchema,
+    AgToolkitQueryParam,
+    AgToolkitUpdateSchema,
+)
 from .service import AgToolkitService
 
 AgToolkitRouter = APIRouter(prefix='/toolkits', tags=["工具管理模块"])
@@ -269,3 +276,74 @@ async def get_agno_categories_controller(
 ) -> JSONResponse:
     result = AgToolkitService.list_agno_categories_service()
     return SuccessResponse(data=result, msg="获取工具分类成功")
+
+
+@AgToolkitRouter.patch(
+    "/global-switch/{id}",
+    summary="超管全局开关",
+    description="超管切换工具的 global_enabled，False 时所有用户不可见不可用"
+)
+async def global_switch_toolkit_controller(
+    data: AgToolkitGlobalSwitchSchema,
+    id: int = Path(..., description="工具ID"),
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:toolkits:global_switch"]))
+) -> JSONResponse:
+    result = await AgToolkitService.global_switch_toolkits_service(auth=auth, id=id, data=data)
+    log.info(f"超管全局开关工具 id={id} global_enabled={data.global_enabled}")
+    return SuccessResponse(data=result, msg="操作成功")
+
+
+@AgToolkitRouter.post(
+    "/pull/{toolkit_id}",
+    summary="用户拉取工具",
+    description="将系统工具拉取到当前用户名下，可指定 config_override 覆盖默认参数"
+)
+async def pull_toolkit_controller(
+    toolkit_id: int = Path(..., description="工具ID"),
+    data: AgToolkitPullSchema = Body(default=AgToolkitPullSchema()),
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:toolkits:pull"]))
+) -> JSONResponse:
+    result = await AgToolkitService.pull_toolkit_service(
+        auth=auth, toolkit_id=toolkit_id, config_override=data.config_override
+    )
+    log.info(f"用户 {auth.user_id} 拉取工具 toolkit_id={toolkit_id}")
+    return SuccessResponse(data=result, msg="拉取成功")
+
+
+@AgToolkitRouter.delete(
+    "/pull/{toolkit_id}",
+    summary="用户取消拉取工具",
+    description="删除当前用户对该工具的 binding"
+)
+async def unpull_toolkit_controller(
+    toolkit_id: int = Path(..., description="工具ID"),
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:toolkits:pull"]))
+) -> JSONResponse:
+    await AgToolkitService.unpull_toolkit_service(auth=auth, toolkit_id=toolkit_id)
+    log.info(f"用户 {auth.user_id} 取消拉取工具 toolkit_id={toolkit_id}")
+    return SuccessResponse(msg="取消成功")
+
+
+@AgToolkitRouter.get(
+    "/pull/list",
+    summary="查询用户已拉取的工具",
+    description="返回当前用户已拉取的工具列表（含 config_override）"
+)
+async def list_pulled_toolkits_controller(
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:toolkits:query"]))
+) -> JSONResponse:
+    result = await AgToolkitService.list_pulled_toolkits_service(auth=auth)
+    return SuccessResponse(data=result, msg="查询成功")
+
+
+@AgToolkitRouter.post(
+    "/code/validate",
+    summary="验证代码工具",
+    description="验证 source_code 语法和运行时是否正常，返回发现的函数列表，不实际注册"
+)
+async def validate_code_toolkit_controller(
+    data: AgToolkitCodeValidateSchema,
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:toolkits:create"]))
+) -> JSONResponse:
+    result = AgToolkitService.validate_code_toolkit_service(data=data)
+    return SuccessResponse(data=result.model_dump(), msg="验证完成")
