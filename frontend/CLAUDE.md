@@ -196,3 +196,18 @@ Record 类型字段通常不在搜索表单中出现。
 - 详情弹窗 `<el-descriptions>` 展示所有相关字段
 - 校验规则 `required` 设置正确（不应将所有字段都标记为必填）
 - 关联字段（如 model_id、embedder_id 等）使用合适的选择器组件，而非普通文本输入框
+
+
+## AGNO相关的开发要求：
+1 接口文件存放位置：src/api/module_agno_manage/agno/xxx.ts 如agent.ts session.ts
+2 界面文件存放未知：src/views/module_agno_manage/agno/xxx/index.vue 如agno/agent/index.vue 
+3 接口文件编写格式参照：src/api/module_agno_manage/下的其他ts文件。
+4 agno的openapi.json文件在：agnoopenapi.json中。
+你可以使用curl来测试这些接口：
+我已经启动了一个agno的服务，测试的地址为：http://192.168.81.15:9008/
+你可以发送如下的请求，来查看的实际的返回结果：
+```bash
+curl -X 'GET' \
+  'http://192.168.81.15:9008/agents' \
+  -H 'accept: application/json'
+```
