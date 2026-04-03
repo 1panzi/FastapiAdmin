@@ -419,7 +419,11 @@ class RuntimeRegistry:
             self.agents.append(agent)
         else:
             # 更新：替换列表中的旧实例
-            idx = next((i for i, a in enumerate(self.agents) if getattr(a, "agent_id", None) == agent_id), None)
+            idx = None
+            for i, a in enumerate(self.agents):
+                if getattr(a, "id", None) == agent_id:
+                    idx = i
+                    break
             if idx is not None:
                 self.agents[idx] = agent
 
@@ -587,7 +591,7 @@ class RuntimeRegistry:
         team_id = str(row.id)
         config = dict(row.config or {})
         # 收集成员 agents
-        member_agents = [a for a in self.agents if getattr(a, "agent_id", None) in (
+        member_agents = [a for a in self.agents if getattr(a, "id", None) in (
             [str(m) for m in (row.member_ids or [])] if hasattr(row, "member_ids") else []
         )]
         try:
@@ -600,7 +604,11 @@ class RuntimeRegistry:
             if team_id not in self._teams_map:
                 self.teams.append(team)
             else:
-                idx = next((i for i, t in enumerate(self.teams) if getattr(t, "team_id", None) == team_id), None)
+                idx = None
+                for i, t in enumerate(self.teams):
+                    if getattr(t, "team_id", None) == team_id:
+                        idx = i
+                        break
                 if idx is not None:
                     self.teams[idx] = team
             self._teams_map[team_id] = team
@@ -632,7 +640,11 @@ class RuntimeRegistry:
             if workflow_id not in self._workflows_map:
                 self.workflows.append(workflow)
             else:
-                idx = next((i for i, w in enumerate(self.workflows) if getattr(w, "workflow_id", None) == workflow_id), None)
+                idx = None
+                for i, w in enumerate(self.workflows):
+                    if getattr(w, "workflow_id", None) == workflow_id:
+                        idx = i
+                        break
                 if idx is not None:
                     self.workflows[idx] = workflow
             self._workflows_map[workflow_id] = workflow
