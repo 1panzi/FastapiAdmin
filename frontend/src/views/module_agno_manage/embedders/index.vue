@@ -26,22 +26,17 @@
               <el-input v-model="queryFormData.name" placeholder="请输入嵌入器名称" clearable />
             </el-form-item>
             <el-form-item label="提供商" prop="provider">
-              <el-input v-model="queryFormData.provider" placeholder="请输入提供商" clearable />
+              <el-select v-model="queryFormData.provider" placeholder="请选择提供商" clearable style="width: 170px">
+                <el-option
+                  v-for="provider in providerList"
+                  :key="provider.provider"
+                  :label="provider.label"
+                  :value="provider.provider"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item label="嵌入模型标识" prop="model_id">
               <el-input v-model="queryFormData.model_id" placeholder="请输入嵌入模型标识" clearable />
-            </el-form-item>
-            <el-form-item label="API密钥" prop="api_key">
-              <el-input v-model="queryFormData.api_key" placeholder="请输入API密钥" clearable />
-            </el-form-item>
-            <el-form-item label="自定义端点地址" prop="base_url">
-              <el-input v-model="queryFormData.base_url" placeholder="请输入自定义端点地址" clearable />
-            </el-form-item>
-            <el-form-item label="向量维度" prop="dimensions">
-              <el-input v-model="queryFormData.dimensions" placeholder="请输入向量维度" clearable />
-            </el-form-item>
-            <el-form-item label="其他构造参数" prop="config">
-              <el-input v-model="queryFormData.config" placeholder="请输入其他构造参数" clearable />
             </el-form-item>
             <el-form-item prop="status" label="状态">
               <el-select
@@ -99,7 +94,7 @@
               </el-button>
               <!-- 展开/收起 -->
               <template v-if="isExpandable">
-                <el-link 
+                <el-link
                   class="ml-3"
                   type="primary"
                   underline="never"
@@ -227,7 +222,7 @@
         </div>
       </div>
 
-      <!-- 表格区域：系统配置列表 -->
+      <!-- 表格区域 -->
       <el-table
         ref="tableRef"
         v-loading="loading"
@@ -270,7 +265,11 @@
           prop="provider"
           min-width="140"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            {{ providerList.find(p => p.provider === scope.row.provider)?.label || scope.row.provider }}
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'model_id')?.show"
           label="嵌入模型标识"
@@ -296,7 +295,7 @@
           v-if="tableColumns.find((col) => col.prop === 'dimensions')?.show"
           label="向量维度"
           prop="dimensions"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
@@ -310,14 +309,7 @@
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
           label="是否启用"
           prop="status"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label="是否启用"
-          prop="status"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -349,16 +341,9 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人"
           prop="created_id"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
-          prop="created_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -367,16 +352,9 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人"
           prop="updated_id"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
-          prop="updated_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -448,14 +426,14 @@
           <el-descriptions-item label="主键ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
-          <el-descriptions-item label="UUID全局唯一标识" :span="2">
+          <el-descriptions-item label="UUID" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
           <el-descriptions-item label="嵌入器名称" :span="2">
             {{ detailFormData.name }}
           </el-descriptions-item>
           <el-descriptions-item label="提供商" :span="2">
-            {{ detailFormData.provider }}
+            {{ providerList.find(p => p.provider === detailFormData.provider)?.label || detailFormData.provider }}
           </el-descriptions-item>
           <el-descriptions-item label="嵌入模型标识" :span="2">
             {{ detailFormData.model_id }}
@@ -469,8 +447,18 @@
           <el-descriptions-item label="向量维度" :span="2">
             {{ detailFormData.dimensions }}
           </el-descriptions-item>
-          <el-descriptions-item label="其他构造参数" :span="2">
-            {{ detailFormData.config }}
+          <el-descriptions-item label="其他构造参数" :span="4">
+            <template v-if="detailFormData.config && Object.keys(detailFormData.config).length">
+              <el-tag
+                v-for="(val, key) in detailFormData.config"
+                :key="key"
+                class="mr-1 mb-1"
+                type="info"
+              >
+                {{ key }}: {{ JSON.stringify(val) }}
+              </el-tag>
+            </template>
+            <el-text v-else type="info">—</el-text>
           </el-descriptions-item>
           <el-descriptions-item label="状态" :span="2">
             <el-tag :type="detailFormData.status == '0' ? 'success' : 'danger'">
@@ -508,20 +496,62 @@
           <el-form-item label="嵌入器名称" prop="name" :required="false">
             <el-input v-model="formData.name" placeholder="请输入嵌入器名称" />
           </el-form-item>
-          <el-form-item label="提供商" prop="provider" :required="false">
-            <el-input v-model="formData.provider" placeholder="请输入提供商" />
+          <el-form-item label="提供商" prop="provider" :required="true">
+            <el-select
+              v-model="formData.provider"
+              placeholder="请选择提供商"
+              style="width: 100%"
+              @change="handleProviderChange"
+            >
+              <el-option
+                v-for="provider in providerList"
+                :key="provider.provider"
+                :label="provider.label"
+                :value="provider.provider"
+              />
+            </el-select>
           </el-form-item>
           <el-form-item label="嵌入模型标识" prop="model_id" :required="false">
-            <el-input v-model="formData.model_id" placeholder="请输入嵌入模型标识" />
+            <el-select
+              v-model="formData.model_id"
+              placeholder="请输入或选择嵌入模型标识"
+              filterable
+              allow-create
+              default-first-option
+              style="width: 100%"
+            >
+              <el-option
+                v-for="model in currentProviderModels"
+                :key="model"
+                :label="model"
+                :value="model"
+              />
+            </el-select>
           </el-form-item>
-          <el-form-item label="API密钥" prop="api_key" :required="false">
+          <el-form-item
+            v-if="!formData.provider || currentProvider?.needs_api_key !== false"
+            label="API密钥"
+            prop="api_key"
+            :required="currentProvider?.needs_api_key === true"
+          >
             <el-input v-model="formData.api_key" placeholder="请输入API密钥" />
           </el-form-item>
-          <el-form-item label="自定义端点地址" prop="base_url" :required="false">
-            <el-input v-model="formData.base_url" placeholder="请输入自定义端点地址" />
+          <el-form-item
+            v-if="!formData.provider || currentProvider?.needs_base_url !== false"
+            :label="currentProvider?.base_url_label || '自定义端点地址'"
+            prop="base_url"
+            :required="currentProvider?.needs_base_url === true"
+          >
+            <el-input
+              v-model="formData.base_url"
+              :placeholder="currentProvider?.base_url_label ? `请输入${currentProvider.base_url_label}` : '请输入自定义端点地址'"
+            />
           </el-form-item>
           <el-form-item label="向量维度" prop="dimensions" :required="false">
-            <el-input v-model="formData.dimensions" placeholder="请输入向量维度" />
+            <el-input
+              v-model="formData.dimensions"
+              :placeholder="currentProvider?.default_dimensions ? `默认 ${currentProvider.default_dimensions}，可不填` : '请输入向量维度（可选）'"
+            />
           </el-form-item>
           <el-form-item label="其他构造参数" prop="config" :required="false">
             <DictEditor v-model="formData.config" />
@@ -547,7 +577,6 @@
 
       <template #footer>
         <div class="dialog-footer">
-          <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
           <el-button @click="handleCloseDialog">取消</el-button>
           <el-button v-if="dialogVisible.type !== 'detail'" type="primary" @click="handleSubmit">
             确定
@@ -582,7 +611,7 @@ defineOptions({
   inheritAttrs: false,
 });
 
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { QuestionFilled, ArrowUp, ArrowDown, Check, CircleClose } from "@element-plus/icons-vue";
 import { formatToDateTime } from "@/utils/dateUtil";
@@ -597,6 +626,8 @@ import AgEmbedderAPI, {
   AgEmbedderTable,
   AgEmbedderForm,
 } from "@/api/module_agno_manage/embedders";
+import EmbedderProviderAPI, { EmbedderProvider } from "@/api/module_agno_manage/embedder_providers";
+import DictEditor from "../components/DictEditor/index.vue";
 
 const visible = ref(false);
 const queryFormRef = ref();
@@ -607,6 +638,19 @@ const selectionRows = ref<AgEmbedderTable[]>([]);
 const loading = ref(false);
 const isExpand = ref(false);
 const isExpandable = ref(true);
+
+// 嵌入器提供商列表
+const providerList = ref<EmbedderProvider[]>([]);
+
+// 当前选中的提供商对象
+const currentProvider = computed(() =>
+  providerList.value.find((p) => p.provider === formData.provider) ?? null
+);
+
+// 当前提供商的推荐模型列表
+const currentProviderModels = computed(() =>
+  currentProvider.value?.popular_models ?? []
+);
 
 // 分页表单
 const pageTableData = ref<AgEmbedderTable[]>([]);
@@ -626,8 +670,8 @@ const tableColumns = ref([
   { prop: "description", label: "备注/描述", show: true },
   { prop: "created_time", label: "创建时间", show: true },
   { prop: "updated_time", label: "更新时间", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "created_id", label: "创建人", show: true },
+  { prop: "updated_id", label: "更新人", show: true },
   { prop: "operation", label: "操作", show: true },
 ]);
 
@@ -644,8 +688,8 @@ const exportColumns = [
   { prop: "description", label: "备注/描述" },
   { prop: "created_time", label: "创建时间" },
   { prop: "updated_time", label: "更新时间" },
-  { prop: "created_id", label: "created_id" },
-  { prop: "updated_id", label: "updated_id" },
+  { prop: "created_id", label: "创建人" },
+  { prop: "updated_id", label: "更新人" },
 ];
 
 // 导入/导出配置
@@ -732,8 +776,7 @@ const formData = reactive<AgEmbedderForm>({
 
 // 字典仓库与需要加载的字典类型
 const dictStore = useDictStore();
-const dictTypes: any = [
-];
+const dictTypes: any = [];
 
 // 弹窗状态
 const dialogVisible = reactive({
@@ -745,20 +788,15 @@ const dialogVisible = reactive({
 // 表单验证规则
 const rules = reactive({
   id: [{ required: false, message: "请输入主键ID", trigger: "blur" }],
-  uuid: [{ required: false, message: "请输入UUID全局唯一标识", trigger: "blur" }],
   name: [{ required: false, message: "请输入嵌入器名称", trigger: "blur" }],
-  provider: [{ required: false, message: "请输入提供商", trigger: "blur" }],
+  provider: [{ required: true, message: "请选择提供商", trigger: "change" }],
   model_id: [{ required: false, message: "请输入嵌入模型标识", trigger: "blur" }],
-  api_key: [{ required: true, message: "请输入API密钥", trigger: "blur" }],
-  base_url: [{ required: true, message: "请输入自定义端点地址", trigger: "blur" }],
-  dimensions: [{ required: true, message: "请输入向量维度", trigger: "blur" }],
+  api_key: [{ required: false, message: "请输入API密钥", trigger: "blur" }],
+  base_url: [{ required: false, message: "请输入自定义端点地址", trigger: "blur" }],
+  dimensions: [{ required: false, message: "请输入向量维度", trigger: "blur" }],
   config: [{ required: false, message: "请输入其他构造参数", trigger: "blur" }],
-  status: [{ required: false, message: "请输入是否启用", trigger: "blur" }],
+  status: [{ required: false, message: "请选择状态", trigger: "blur" }],
   description: [{ required: false, message: "请输入备注/描述", trigger: "blur" }],
-  created_time: [{ required: false, message: "请输入创建时间", trigger: "blur" }],
-  updated_time: [{ required: false, message: "请输入更新时间", trigger: "blur" }],
-  created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
-  updated_id: [{ required: true, message: "请输入updated_id", trigger: "blur" }],
 });
 
 // 导入弹窗显示状态
@@ -812,7 +850,6 @@ function handleConfirm() {
 async function handleResetQuery() {
   queryFormRef.value.resetFields();
   queryFormData.page_no = 1;
-  // 重置日期范围选择器
   createdDateRange.value = [];
   updatedDateRange.value = [];
   queryFormData.created_time = undefined;
@@ -840,8 +877,15 @@ async function resetForm() {
     dataFormRef.value.resetFields();
     dataFormRef.value.clearValidate();
   }
-  // 完全重置 formData 为初始状态
   Object.assign(formData, initialFormData);
+}
+
+// 切换提供商时清空相关字段
+function handleProviderChange() {
+  formData.model_id = undefined;
+  formData.api_key = undefined;
+  formData.base_url = undefined;
+  formData.dimensions = undefined;
 }
 
 // 行复选框选中项变化
@@ -869,28 +913,17 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
       Object.assign(formData, response.data.data);
     }
   } else {
-    dialogVisible.title = "新增AgEmbedder";
-    formData.id = undefined;
-    formData.name = undefined;
-    formData.provider = undefined;
-    formData.model_id = undefined;
-    formData.api_key = undefined;
-    formData.base_url = undefined;
-    formData.dimensions = undefined;
-    formData.config = undefined;
-    formData.status = "0";
-    formData.description = undefined;
+    dialogVisible.title = "新增嵌入器";
+    Object.assign(formData, initialFormData);
   }
   dialogVisible.visible = true;
 }
 
-// 提交表单（防抖）
+// 提交表单
 async function handleSubmit() {
-  // 表单校验
   dataFormRef.value.validate(async (valid: any) => {
     if (valid) {
       loading.value = true;
-      // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
       const submitData = { ...formData };
       const id = formData.id;
       if (id) {
@@ -987,11 +1020,21 @@ const handleUpload = async (formData: FormData) => {
   }
 };
 
+// 获取嵌入器提供商列表
+async function getEmbedderProviderList() {
+  try {
+    const response = await EmbedderProviderAPI.listEmbedderProvider();
+    providerList.value = response.data.data;
+  } catch (error: any) {
+    console.error("获取嵌入器提供商列表失败:", error);
+  }
+}
+
 onMounted(async () => {
-  // 预加载字典数据
   if (dictTypes.length > 0) {
     await dictStore.getDict(dictTypes);
   }
+  await getEmbedderProviderList();
   loadingData();
 });
 </script>

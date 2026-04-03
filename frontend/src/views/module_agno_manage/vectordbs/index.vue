@@ -26,13 +26,24 @@
               <el-input v-model="queryFormData.name" placeholder="请输入向量库名称" clearable />
             </el-form-item>
             <el-form-item label="向量库类型" prop="provider">
-              <el-input v-model="queryFormData.provider" placeholder="请输入向量库类型" clearable />
+              <el-select v-model="queryFormData.provider" placeholder="请选择向量库类型" clearable style="width: 200px">
+                <el-option
+                  v-for="item in vectordbTypeList"
+                  :key="item.db_type"
+                  :label="item.label"
+                  :value="item.db_type"
+                />
+              </el-select>
             </el-form-item>
-            <el-form-item label="关联嵌入模型ID" prop="embedder_id">
-              <el-input v-model="queryFormData.embedder_id" placeholder="请输入关联嵌入模型ID" clearable />
-            </el-form-item>
-            <el-form-item label="连接配置" prop="config">
-              <el-input v-model="queryFormData.config" placeholder="请输入连接配置" clearable />
+            <el-form-item label="关联嵌入模型" prop="embedder_id">
+              <el-select v-model="queryFormData.embedder_id" placeholder="请选择嵌入模型" clearable filterable style="width: 200px">
+                <el-option
+                  v-for="item in embedderList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="String(item.id)"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item prop="status" label="状态">
               <el-select
@@ -90,7 +101,7 @@
               </el-button>
               <!-- 展开/收起 -->
               <template v-if="isExpandable">
-                <el-link 
+                <el-link
                   class="ml-3"
                   type="primary"
                   underline="never"
@@ -218,7 +229,7 @@
         </div>
       </div>
 
-      <!-- 表格区域：系统配置列表 -->
+      <!-- 表格区域 -->
       <el-table
         ref="tableRef"
         v-loading="loading"
@@ -259,35 +270,48 @@
           v-if="tableColumns.find((col) => col.prop === 'provider')?.show"
           label="向量库类型"
           prop="provider"
-          min-width="140"
+          min-width="200"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <span>{{ getProviderLabel(scope.row.provider) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'embedder_id')?.show"
-          label="关联嵌入模型ID"
+          label="关联嵌入模型"
           prop="embedder_id"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <span>{{ getEmbedderName(scope.row.embedder_id) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'config')?.show"
           label="连接配置"
           prop="config"
-          min-width="140"
+          min-width="200"
+          show-overflow-tooltip
+        >
+          <template #default="scope">
+            <pre v-if="scope.row.config" style="margin: 0; font-size: 12px">{{ JSON.stringify(scope.row.config, null, 2) }}</pre>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          v-if="tableColumns.find((col) => col.prop === 'status')?.show"
+          label="状态(原始值)"
+          prop="status"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label="是否启用"
+          label="状态"
           prop="status"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label="是否启用"
-          prop="status"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -298,37 +322,37 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'description')?.show"
-          label=""
+          label="描述"
           prop="description"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
-          label=""
+          label="创建时间"
           prop="created_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
-          label=""
+          label="更新时间"
           prop="updated_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人ID"
           prop="created_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人"
           prop="created_id"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -337,16 +361,16 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人ID"
           prop="updated_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人"
           prop="updated_id"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -415,36 +439,37 @@
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="主键ID" :span="2">
+          <el-descriptions-item label="ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
-          <el-descriptions-item label="UUID全局唯一标识" :span="2">
+          <el-descriptions-item label="UUID" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
           <el-descriptions-item label="向量库名称" :span="2">
             {{ detailFormData.name }}
           </el-descriptions-item>
           <el-descriptions-item label="向量库类型" :span="2">
-            {{ detailFormData.provider }}
+            {{ getProviderLabel(detailFormData.provider) }}
           </el-descriptions-item>
-          <el-descriptions-item label="关联嵌入模型ID" :span="2">
-            {{ detailFormData.embedder_id }}
-          </el-descriptions-item>
-          <el-descriptions-item label="连接配置" :span="2">
-            {{ detailFormData.config }}
+          <el-descriptions-item label="关联嵌入模型" :span="2">
+            {{ getEmbedderName(detailFormData.embedder_id) }}
           </el-descriptions-item>
           <el-descriptions-item label="状态" :span="2">
             <el-tag :type="detailFormData.status == '0' ? 'success' : 'danger'">
               {{ detailFormData.status == "0" ? "启用" : "停用" }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="连接配置" :span="4">
+            <pre v-if="detailFormData.config" style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ JSON.stringify(detailFormData.config, null, 2) }}</pre>
+            <span v-else>-</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="描述" :span="4">
             {{ detailFormData.description }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="创建时间" :span="2">
             {{ detailFormData.created_time }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="更新时间" :span="2">
             {{ detailFormData.updated_time }}
           </el-descriptions-item>
           <el-descriptions-item label="创建人" :span="2">
@@ -470,15 +495,49 @@
             <el-input v-model="formData.name" placeholder="请输入向量库名称" />
           </el-form-item>
           <el-form-item label="向量库类型" prop="provider" :required="false">
-            <el-input v-model="formData.provider" placeholder="请输入向量库类型" />
+            <el-select v-model="formData.provider" placeholder="请选择向量库类型" clearable style="width: 100%" @change="handleProviderChange">
+              <el-option
+                v-for="item in vectordbTypeList"
+                :key="item.db_type"
+                :label="item.label"
+                :value="item.db_type"
+              >
+                <el-tooltip
+                  :content="item.description"
+                  placement="right"
+                  :show-after="300"
+                  :teleported="true"
+                  :enterable="false"
+                >
+                  <span style="display: block; width: 100%;">{{ item.label }}</span>
+                </el-tooltip>
+              </el-option>
+            </el-select>
           </el-form-item>
-          <el-form-item label="关联嵌入模型ID" prop="embedder_id" :required="false">
-            <el-input v-model="formData.embedder_id" placeholder="请输入关联嵌入模型ID" />
+          <el-form-item label="关联嵌入模型" prop="embedder_id" :required="false">
+            <el-select v-model="formData.embedder_id" placeholder="请选择嵌入模型" clearable filterable style="width: 100%">
+              <el-option
+                v-for="item in embedderList"
+                :key="item.id"
+                :label="item.name"
+                :value="String(item.id)"
+              >
+                <el-tooltip
+                  :content="`ID: ${item.id}${item.provider ? ' | ' + item.provider : ''}${item.model_id ? ' | ' + item.model_id : ''}`"
+                  placement="right"
+                  :show-after="300"
+                  :teleported="true"
+                  :enterable="false"
+                >
+                  <span style="display: block; width: 100%;">{{ item.name }}</span>
+                </el-tooltip>
+              </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="连接配置" prop="config" :required="false">
             <DictEditor v-model="formData.config" />
           </el-form-item>
-          <el-form-item label="状态" prop="status" :required="true">
+          <el-form-item label="状态" prop="status" :required="false">
             <el-radio-group v-model="formData.status">
               <el-radio value="0">启用</el-radio>
               <el-radio value="1">停用</el-radio>
@@ -548,7 +607,10 @@ import AgVectordbAPI, {
   AgVectordbPageQuery,
   AgVectordbTable,
   AgVectordbForm,
+  AgVectordbType,
 } from "@/api/module_agno_manage/vectordbs";
+import AgEmbedderAPI from "@/api/module_agno_manage/embedders";
+import DictEditor from "@/views/module_agno_manage/components/DictEditor/index.vue";
 
 const visible = ref(false);
 const queryFormRef = ref();
@@ -563,20 +625,65 @@ const isExpandable = ref(true);
 // 分页表单
 const pageTableData = ref<AgVectordbTable[]>([]);
 
+// 嵌入模型列表
+const embedderList = ref<any[]>([]);
+
+// 向量数据库类型列表
+const vectordbTypeList = ref<AgVectordbType[]>([]);
+
+// 根据 embedder_id 获取嵌入模型名称
+function getEmbedderName(embedderId?: string): string {
+  if (!embedderId) return "-";
+  const found = embedderList.value.find((e) => String(e.id) === String(embedderId));
+  return found ? found.name : String(embedderId);
+}
+
+// 根据 db_type 获取向量库类型标签
+function getProviderLabel(dbType?: string): string {
+  if (!dbType) return "-";
+  const found = vectordbTypeList.value.find((t) => t.db_type === dbType);
+  return found ? found.label : dbType;
+}
+
+// 加载嵌入模型列表
+async function loadEmbedderList() {
+  const res = await AgEmbedderAPI.listAgEmbedder({ page_no: 1, page_size: 100 });
+  embedderList.value = (res.data?.data?.items || []).map((item: any) => ({
+    id: item.id,
+    name: item.name || `Embedder#${item.id}`,
+    provider: item.provider || "",
+    model_id: item.model_id || "",
+  }));
+}
+
+// 加载向量数据库类型列表
+async function loadVectordbTypeList() {
+  const res = await AgVectordbAPI.agnoTypes();
+  vectordbTypeList.value = res.data?.data || [];
+}
+
+// 选择向量库类型后自动填入 config_example
+function handleProviderChange(dbType: string) {
+  const found = vectordbTypeList.value.find((t) => t.db_type === dbType);
+  if (found?.config_example && !formData.config) {
+    formData.config = { ...found.config_example };
+  }
+}
+
 // 表格列配置
 const tableColumns = ref([
   { prop: "selection", label: "选择框", show: true },
   { prop: "index", label: "序号", show: true },
   { prop: "name", label: "向量库名称", show: true },
   { prop: "provider", label: "向量库类型", show: true },
-  { prop: "embedder_id", label: "关联嵌入模型ID", show: true },
+  { prop: "embedder_id", label: "关联嵌入模型", show: true },
   { prop: "config", label: "连接配置", show: true },
-  { prop: "status", label: "是否启用", show: true },
-  { prop: "description", label: "description", show: true },
-  { prop: "created_time", label: "created_time", show: true },
-  { prop: "updated_time", label: "updated_time", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "status", label: "状态", show: true },
+  { prop: "description", label: "描述", show: true },
+  { prop: "created_time", label: "创建时间", show: true },
+  { prop: "updated_time", label: "更新时间", show: true },
+  { prop: "created_id", label: "创建人", show: true },
+  { prop: "updated_id", label: "更新人", show: true },
   { prop: "operation", label: "操作", show: true },
 ]);
 
@@ -586,12 +693,12 @@ const exportColumns = [
   { prop: "provider", label: "向量库类型" },
   { prop: "embedder_id", label: "关联嵌入模型ID" },
   { prop: "config", label: "连接配置" },
-  { prop: "status", label: "是否启用" },
-  { prop: "description", label: "description" },
-  { prop: "created_time", label: "created_time" },
-  { prop: "updated_time", label: "updated_time" },
-  { prop: "created_id", label: "created_id" },
-  { prop: "updated_id", label: "updated_id" },
+  { prop: "status", label: "状态" },
+  { prop: "description", label: "描述" },
+  { prop: "created_time", label: "创建时间" },
+  { prop: "updated_time", label: "更新时间" },
+  { prop: "created_id", label: "创建人" },
+  { prop: "updated_id", label: "更新人" },
 ];
 
 // 导入/导出配置
@@ -603,7 +710,7 @@ const curdContentConfig = {
     const query: any = { ...params };
     query.status = "0";
     query.page_no = 1;
-    query.page_size = 9999;
+    query.page_size = 100;
     const all: any[] = [];
     while (true) {
       const res = await AgVectordbAPI.listAgVectordb(query);
@@ -672,8 +779,7 @@ const formData = reactive<AgVectordbForm>({
 
 // 字典仓库与需要加载的字典类型
 const dictStore = useDictStore();
-const dictTypes: any = [
-];
+const dictTypes: any = [];
 
 // 弹窗状态
 const dialogVisible = reactive({
@@ -684,18 +790,12 @@ const dialogVisible = reactive({
 
 // 表单验证规则
 const rules = reactive({
-  id: [{ required: false, message: "请输入主键ID", trigger: "blur" }],
-  uuid: [{ required: false, message: "请输入UUID全局唯一标识", trigger: "blur" }],
   name: [{ required: false, message: "请输入向量库名称", trigger: "blur" }],
   provider: [{ required: false, message: "请输入向量库类型", trigger: "blur" }],
-  embedder_id: [{ required: false, message: "请输入关联嵌入模型ID", trigger: "blur" }],
-  config: [{ required: false, message: "请输入连接配置", trigger: "blur" }],
-  status: [{ required: false, message: "请输入是否启用", trigger: "blur" }],
-  description: [{ required: false, message: "请输入description", trigger: "blur" }],
-  created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
-  updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
-  created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
-  updated_id: [{ required: true, message: "请输入updated_id", trigger: "blur" }],
+  embedder_id: [{ required: false, message: "请选择关联嵌入模型", trigger: "change" }],
+  config: [{ required: false, trigger: "blur" }],
+  status: [{ required: false, message: "请选择状态", trigger: "change" }],
+  description: [{ required: false, message: "请输入描述", trigger: "blur" }],
 });
 
 // 导入弹窗显示状态
@@ -803,14 +903,8 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
       Object.assign(formData, response.data.data);
     }
   } else {
-    dialogVisible.title = "新增AgVectordb";
-    formData.id = undefined;
-    formData.name = undefined;
-    formData.provider = undefined;
-    formData.embedder_id = undefined;
-    formData.config = undefined;
-    formData.status = "0";
-    formData.description = undefined;
+    dialogVisible.title = "新增向量数据库";
+    Object.assign(formData, initialFormData);
   }
   dialogVisible.visible = true;
 }
@@ -821,7 +915,7 @@ async function handleSubmit() {
   dataFormRef.value.validate(async (valid: any) => {
     if (valid) {
       loading.value = true;
-      // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
+      // 根据弹窗传入的参数(detail\create\update)判断走什么逻辑
       const submitData = { ...formData };
       const id = formData.id;
       if (id) {
@@ -923,6 +1017,7 @@ onMounted(async () => {
   if (dictTypes.length > 0) {
     await dictStore.getDict(dictTypes);
   }
+  await Promise.all([loadEmbedderList(), loadVectordbTypeList()]);
   loadingData();
 });
 </script>

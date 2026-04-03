@@ -22,23 +22,31 @@
             :inline="true"
             @submit.prevent="handleQuery"
           >
-            <el-form-item label="拥有者类型(agent/team)" prop="owner_type">
-              <el-input v-model="queryFormData.owner_type" placeholder="请输入拥有者类型(agent/team)" clearable />
+            <el-form-item label="拥有者类型" prop="owner_type">
+              <el-select v-model="queryFormData.owner_type" placeholder="请选择拥有者类型" clearable style="width: 170px">
+                <el-option value="agent" label="Agent" />
+                <el-option value="team" label="Team" />
+                <el-option value="user" label="User" />
+              </el-select>
             </el-form-item>
             <el-form-item label="拥有者ID" prop="owner_id">
-              <el-input v-model="queryFormData.owner_id" placeholder="请输入拥有者ID" clearable />
+              <el-input-number v-model="queryFormData.owner_id" placeholder="请输入拥有者ID" clearable :controls="false" style="width: 170px" />
             </el-form-item>
-            <el-form-item label="资源类型(toolkit/skill/mcp/knowledge/hook/guardrail)" prop="resource_type">
-              <el-input v-model="queryFormData.resource_type" placeholder="请输入资源类型(toolkit/skill/mcp/knowledge/hook/guardrail)" clearable />
+            <el-form-item label="资源类型" prop="resource_type">
+              <el-select v-model="queryFormData.resource_type" placeholder="请选择资源类型" clearable style="width: 170px">
+                <el-option value="toolkit" label="Toolkit" />
+                <el-option value="skill" label="Skill" />
+                <el-option value="mcp" label="MCP" />
+                <el-option value="knowledge" label="Knowledge" />
+                <el-option value="hook" label="Hook" />
+                <el-option value="guardrail" label="Guardrail" />
+              </el-select>
             </el-form-item>
             <el-form-item label="资源ID" prop="resource_id">
-              <el-input v-model="queryFormData.resource_id" placeholder="请输入资源ID" clearable />
+              <el-input-number v-model="queryFormData.resource_id" placeholder="请输入资源ID" clearable :controls="false" style="width: 170px" />
             </el-form-item>
             <el-form-item label="优先级" prop="priority">
-              <el-input v-model="queryFormData.priority" placeholder="请输入优先级" clearable />
-            </el-form-item>
-            <el-form-item label="覆盖资源默认配置" prop="config_override">
-              <el-input v-model="queryFormData.config_override" placeholder="请输入覆盖资源默认配置" clearable />
+              <el-input-number v-model="queryFormData.priority" placeholder="请输入优先级" clearable :controls="false" style="width: 170px" />
             </el-form-item>
             <el-form-item prop="status" label="状态">
               <el-select
@@ -256,58 +264,63 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'owner_type')?.show"
-          label="拥有者类型(agent/team)"
+          label="拥有者类型"
           prop="owner_type"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'owner_id')?.show"
           label="拥有者ID"
           prop="owner_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'resource_type')?.show"
-          label="资源类型(toolkit/skill/mcp/knowledge/hook/guardrail)"
+          label="资源类型"
           prop="resource_type"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'resource_id')?.show"
           label="资源ID"
           prop="resource_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'priority')?.show"
           label="优先级"
           prop="priority"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'config_override')?.show"
-          label="覆盖资源默认配置"
+          label="配置覆盖"
           prop="config_override"
-          min-width="140"
+          min-width="200"
+          show-overflow-tooltip
+        >
+          <template #default="scope">
+            <pre v-if="scope.row.config_override" style="margin: 0; font-size: 12px">{{ JSON.stringify(scope.row.config_override, null, 2) }}</pre>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          v-if="tableColumns.find((col) => col.prop === 'status')?.show"
+          label="状态(原始值)"
+          prop="status"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
-          prop="status"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -318,37 +331,37 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'description')?.show"
-          label=""
+          label="描述"
           prop="description"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
-          label=""
+          label="创建时间"
           prop="created_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
-          label=""
+          label="更新时间"
           prop="updated_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人ID"
           prop="created_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人"
           prop="created_id"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -357,16 +370,16 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人ID"
           prop="updated_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人"
           prop="updated_id"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -435,19 +448,19 @@
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="UUID" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
-          <el-descriptions-item label="拥有者类型(agent/team)" :span="2">
+          <el-descriptions-item label="拥有者类型" :span="2">
             {{ detailFormData.owner_type }}
           </el-descriptions-item>
           <el-descriptions-item label="拥有者ID" :span="2">
             {{ detailFormData.owner_id }}
           </el-descriptions-item>
-          <el-descriptions-item label="资源类型(toolkit/skill/mcp/knowledge/hook/guardrail)" :span="2">
+          <el-descriptions-item label="资源类型" :span="2">
             {{ detailFormData.resource_type }}
           </el-descriptions-item>
           <el-descriptions-item label="资源ID" :span="2">
@@ -456,21 +469,22 @@
           <el-descriptions-item label="优先级" :span="2">
             {{ detailFormData.priority }}
           </el-descriptions-item>
-          <el-descriptions-item label="覆盖资源默认配置" :span="2">
-            {{ detailFormData.config_override }}
+          <el-descriptions-item label="配置覆盖" :span="4">
+            <pre v-if="detailFormData.config_override" style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ JSON.stringify(detailFormData.config_override, null, 2) }}</pre>
+            <span v-else>-</span>
           </el-descriptions-item>
           <el-descriptions-item label="状态" :span="2">
             <el-tag :type="detailFormData.status == '0' ? 'success' : 'danger'">
               {{ detailFormData.status == "0" ? "启用" : "停用" }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="描述" :span="2">
             {{ detailFormData.description }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="创建时间" :span="2">
             {{ detailFormData.created_time }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="更新时间" :span="2">
             {{ detailFormData.updated_time }}
           </el-descriptions-item>
           <el-descriptions-item label="创建人" :span="2">
@@ -492,25 +506,93 @@
           label-width="auto"
           label-position="right"
         >
-          <el-form-item label="拥有者类型(agent/team)" prop="owner_type" :required="false">
-            <el-input v-model="formData.owner_type" placeholder="请输入拥有者类型(agent/team)" />
+          <el-form-item label="拥有者类型" prop="owner_type" :required="false">
+            <el-select v-model="formData.owner_type" placeholder="请选择拥有者类型" clearable style="width: 100%" @change="handleOwnerTypeChange">
+              <el-option value="agent" label="Agent" />
+              <el-option value="team" label="Team" />
+              <el-option value="user" label="User" />
+            </el-select>
           </el-form-item>
           <el-form-item label="拥有者ID" prop="owner_id" :required="false">
-            <el-input v-model="formData.owner_id" placeholder="请输入拥有者ID" />
+            <el-select v-model="formData.owner_id" placeholder="请选择拥有者" clearable filterable style="width: 100%">
+              <el-option
+                v-for="item in ownerList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              >
+                <el-tooltip
+                  :content="`ID: ${item.id}${item.description ? ' | ' + item.description : ''}`"
+                  placement="right"
+                  :show-after="300"
+                  :teleported="true"
+                  :enterable="false"
+                >
+                  <span style="display: block; width: 100%;">{{ item.name }}</span>
+                </el-tooltip>
+              </el-option>
+            </el-select>
           </el-form-item>
-          <el-form-item label="资源类型(toolkit/skill/mcp/knowledge/hook/guardrail)" prop="resource_type" :required="false">
-            <el-input v-model="formData.resource_type" placeholder="请输入资源类型(toolkit/skill/mcp/knowledge/hook/guardrail)" />
+          <el-form-item label="资源类型" prop="resource_type" :required="false">
+            <el-select v-model="formData.resource_type" placeholder="请选择资源类型" clearable style="width: 100%" @change="handleResourceTypeChange">
+              <el-option value="toolkit" label="Toolkit" />
+              <el-option value="skill" label="Skill" />
+              <el-option value="mcp" label="MCP" />
+              <el-option value="knowledge" label="Knowledge" />
+              <el-option value="hook" label="Hook" />
+              <el-option value="guardrail" label="Guardrail" />
+            </el-select>
           </el-form-item>
           <el-form-item label="资源ID" prop="resource_id" :required="false">
-            <el-input v-model="formData.resource_id" placeholder="请输入资源ID" />
+            <el-select v-model="formData.resource_id" placeholder="请选择资源" clearable filterable style="width: 100%">
+              <el-option
+                v-for="item in resourceList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              >
+                <el-tooltip
+                  :content="`ID: ${item.id}${item.description ? ' | ' + item.description : ''}`"
+                  placement="right"
+                  :show-after="300"
+                  :teleported="true"
+                  :enterable="false"
+                >
+                  <span style="display: block; width: 100%;">{{ item.name }}</span>
+                </el-tooltip>
+              </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="优先级" prop="priority" :required="false">
-            <el-input v-model="formData.priority" placeholder="请输入优先级" />
+            <el-input-number v-model="formData.priority" placeholder="请输入优先级（数字越小优先级越高）" :min="0" style="width: 100%" />
           </el-form-item>
-          <el-form-item label="覆盖资源默认配置" prop="config_override" :required="false">
-            <el-input v-model="formData.config_override" placeholder="请输入覆盖资源默认配置" />
+          <el-form-item label="配置覆盖" prop="config_override" :required="false">
+            <!-- param_schema 引导面板：仅 toolkit 类型资源且有 schema 时显示 -->
+            <div v-if="currentParamSchema.length > 0" style="width: 100%; margin-bottom: 8px;">
+              <el-text type="info" size="small" style="display: block; margin-bottom: 6px;">
+                可配置参数（点击 + 快速填入）：
+              </el-text>
+              <el-space wrap>
+                <el-tooltip
+                  v-for="field in currentParamSchema"
+                  :key="field.name"
+                  :content="`类型: ${field.type} | 默认: ${field.default ?? '无'} | ${field.required ? '必填' : '可选'}`"
+                  placement="top"
+                  :show-after="200"
+                >
+                  <el-tag
+                    :type="field.required ? 'danger' : 'info'"
+                    style="cursor: pointer;"
+                    @click="applySchemaField(field)"
+                  >
+                    + {{ field.name }}
+                  </el-tag>
+                </el-tooltip>
+              </el-space>
+            </div>
+            <DictEditor v-model="formData.config_override" />
           </el-form-item>
-          <el-form-item label="状态" prop="status" :required="true">
+          <el-form-item label="状态" prop="status" :required="false">
             <el-radio-group v-model="formData.status">
               <el-radio value="0">启用</el-radio>
               <el-radio value="1">停用</el-radio>
@@ -566,7 +648,7 @@ defineOptions({
   inheritAttrs: false,
 });
 
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, watch, computed } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { QuestionFilled, ArrowUp, ArrowDown, Check, CircleClose } from "@element-plus/icons-vue";
 import { formatToDateTime } from "@/utils/dateUtil";
@@ -581,6 +663,12 @@ import AgBindingAPI, {
   AgBindingTable,
   AgBindingForm,
 } from "@/api/module_agno_manage/bindings";
+import AgAgentAPI from "@/api/module_agno_manage/agents";
+import AgTeamAPI from "@/api/module_agno_manage/teams";
+import AgToolkitAPI from "@/api/module_agno_manage/toolkits";
+import AgSkillAPI from "@/api/module_agno_manage/skills";
+import AgKnowledgeBaseAPI from "@/api/module_agno_manage/knowledge_bases";
+import DictEditor from "@/views/module_agno_manage/components/DictEditor/index.vue";
 
 const visible = ref(false);
 const queryFormRef = ref();
@@ -595,39 +683,58 @@ const isExpandable = ref(true);
 // 分页表单
 const pageTableData = ref<AgBindingTable[]>([]);
 
+// 动态选择器数据
+const ownerList = ref<any[]>([]);
+const resourceList = ref<any[]>([]);
+
+// 当前资源的 param_schema（仅 toolkit 有）
+const currentParamSchema = computed<Array<{ name: string; type: string; default: any; required: boolean }>>(() => {
+  if (!formData.resource_id) return [];
+  const found = resourceList.value.find((r) => r.id === formData.resource_id);
+  return found?.param_schema || [];
+});
+
+// 将 schema 中某个字段的默认值填入 config_override
+function applySchemaField(field: { name: string; type: string; default: any }) {
+  if (!formData.config_override) formData.config_override = {};
+  formData.config_override[field.name] = field.default ?? (field.type === 'bool' ? false : field.type === 'int' || field.type === 'float' ? 0 : '');
+  // 触发响应式更新
+  formData.config_override = { ...formData.config_override };
+}
+
 // 表格列配置
 const tableColumns = ref([
   { prop: "selection", label: "选择框", show: true },
   { prop: "index", label: "序号", show: true },
-  { prop: "owner_type", label: "拥有者类型(agent/team)", show: true },
+  { prop: "owner_type", label: "拥有者类型", show: true },
   { prop: "owner_id", label: "拥有者ID", show: true },
-  { prop: "resource_type", label: "资源类型(toolkit/skill/mcp/knowledge/hook/guardrail)", show: true },
+  { prop: "resource_type", label: "资源类型", show: true },
   { prop: "resource_id", label: "资源ID", show: true },
-  { prop: "priority", label: "优先级（数字小优先）", show: true },
-  { prop: "config_override", label: "覆盖资源默认配置（如特定Agent使用不同API Key）", show: true },
-  { prop: "status", label: "status", show: true },
-  { prop: "description", label: "description", show: true },
-  { prop: "created_time", label: "created_time", show: true },
-  { prop: "updated_time", label: "updated_time", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "priority", label: "优先级", show: true },
+  { prop: "config_override", label: "配置覆盖", show: true },
+  { prop: "status", label: "状态", show: true },
+  { prop: "description", label: "描述", show: true },
+  { prop: "created_time", label: "创建时间", show: true },
+  { prop: "updated_time", label: "更新时间", show: true },
+  { prop: "created_id", label: "创建人", show: true },
+  { prop: "updated_id", label: "更新人", show: true },
   { prop: "operation", label: "操作", show: true },
 ]);
 
 // 导出列（不含选择/序号/操作）
 const exportColumns = [
-  { prop: "owner_type", label: "拥有者类型(agent/team)" },
+  { prop: "owner_type", label: "拥有者类型" },
   { prop: "owner_id", label: "拥有者ID" },
-  { prop: "resource_type", label: "资源类型(toolkit/skill/mcp/knowledge/hook/guardrail)" },
+  { prop: "resource_type", label: "资源类型" },
   { prop: "resource_id", label: "资源ID" },
-  { prop: "priority", label: "优先级（数字小优先）" },
-  { prop: "config_override", label: "覆盖资源默认配置（如特定Agent使用不同API Key）" },
-  { prop: "status", label: "status" },
-  { prop: "description", label: "description" },
-  { prop: "created_time", label: "created_time" },
-  { prop: "updated_time", label: "updated_time" },
-  { prop: "created_id", label: "created_id" },
-  { prop: "updated_id", label: "updated_id" },
+  { prop: "priority", label: "优先级" },
+  { prop: "config_override", label: "配置覆盖" },
+  { prop: "status", label: "状态" },
+  { prop: "description", label: "描述" },
+  { prop: "created_time", label: "创建时间" },
+  { prop: "updated_time", label: "更新时间" },
+  { prop: "created_id", label: "创建人" },
+  { prop: "updated_id", label: "更新人" },
 ];
 
 // 导入/导出配置
@@ -639,7 +746,7 @@ const curdContentConfig = {
     const query: any = { ...params };
     query.status = "0";
     query.page_no = 1;
-    query.page_size = 9999;
+    query.page_size = 100;
     const all: any[] = [];
     while (true) {
       const res = await AgBindingAPI.listAgBinding(query);
@@ -689,7 +796,6 @@ const queryFormData = reactive<AgBindingPageQuery>({
   resource_type: undefined,
   resource_id: undefined,
   priority: undefined,
-  config_override: undefined,
   status: undefined,
   created_time: undefined,
   updated_time: undefined,
@@ -724,20 +830,14 @@ const dialogVisible = reactive({
 
 // 表单验证规则
 const rules = reactive({
-  id: [{ required: false, message: "请输入id", trigger: "blur" }],
-  uuid: [{ required: false, message: "请输入uuid", trigger: "blur" }],
-  owner_type: [{ required: false, message: "请输入拥有者类型(agent/team)", trigger: "blur" }],
-  owner_id: [{ required: false, message: "请输入拥有者ID", trigger: "blur" }],
-  resource_type: [{ required: false, message: "请输入资源类型(toolkit/skill/mcp/knowledge/hook/guardrail)", trigger: "blur" }],
-  resource_id: [{ required: false, message: "请输入资源ID", trigger: "blur" }],
-  priority: [{ required: false, message: "请输入优先级（数字小优先）", trigger: "blur" }],
-  config_override: [{ required: false, message: "请输入覆盖资源默认配置（如特定Agent使用不同API Key）", trigger: "blur" }],
-  status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: false, message: "请输入description", trigger: "blur" }],
-  created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
-  updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
-  created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
-  updated_id: [{ required: true, message: "请输入updated_id", trigger: "blur" }],
+  owner_type: [{ required: false, message: "请选择拥有者类型", trigger: "change" }],
+  owner_id: [{ required: false, message: "请选择拥有者", trigger: "change" }],
+  resource_type: [{ required: false, message: "请选择资源类型", trigger: "change" }],
+  resource_id: [{ required: false, message: "请选择资源", trigger: "change" }],
+  priority: [{ required: false, message: "请输入优先级", trigger: "blur" }],
+  config_override: [{ required: false, trigger: "blur" }],
+  status: [{ required: false, message: "请选择状态", trigger: "change" }],
+  description: [{ required: false, message: "请输入描述", trigger: "blur" }],
 });
 
 // 导入弹窗显示状态
@@ -785,6 +885,68 @@ async function handleQuery() {
 // 选择创建人后触发查询
 function handleConfirm() {
   handleQuery();
+}
+
+// 根据拥有者类型加载拥有者列表
+async function loadOwnerList(type: string) {
+  ownerList.value = [];
+  if (type === "agent") {
+    const res = await AgAgentAPI.listAgAgent({ page_no: 1, page_size: 100 });
+    ownerList.value = (res.data?.data?.items || []).map((item: any) => ({
+      id: item.id,
+      name: item.name || `Agent#${item.id}`,
+      description: item.description || ''
+    }));
+  } else if (type === "team") {
+    const res = await AgTeamAPI.listAgTeam({ page_no: 1, page_size: 100 });
+    ownerList.value = (res.data?.data?.items || []).map((item: any) => ({
+      id: item.id,
+      name: item.name || `Team#${item.id}`,
+      description: item.description || ''
+    }));
+  }
+}
+
+// 根据资源类型加载资源列表
+async function loadResourceList(type: string) {
+  resourceList.value = [];
+  if (type === "toolkit") {
+    const res = await AgToolkitAPI.listAgToolkit({ page_no: 1, page_size: 100 });
+    resourceList.value = (res.data?.data?.items || []).map((item: any) => ({
+      id: item.id,
+      name: item.name || `Toolkit#${item.id}`,
+      description: item.description || '',
+      param_schema: item.param_schema || []
+    }));
+  } else if (type === "skill") {
+    const res = await AgSkillAPI.listAgSkill({ page_no: 1, page_size: 100 });
+    resourceList.value = (res.data?.data?.items || []).map((item: any) => ({
+      id: item.id,
+      name: item.name || `Skill#${item.id}`,
+      description: item.description || ''
+    }));
+  } else if (type === "knowledge") {
+    const res = await AgKnowledgeBaseAPI.listAgKnowledgeBase({ page_no: 1, page_size: 100 });
+    resourceList.value = (res.data?.data?.items || []).map((item: any) => ({
+      id: item.id,
+      name: item.name || `Knowledge#${item.id}`,
+      description: item.description || ''
+    }));
+  }
+}
+
+// 拥有者类型变更时重置拥有者ID并加载列表
+async function handleOwnerTypeChange(type: string) {
+  formData.owner_id = undefined;
+  if (type) await loadOwnerList(type);
+  else ownerList.value = [];
+}
+
+// 资源类型变更时重置资源ID并加载列表
+async function handleResourceTypeChange(type: string) {
+  formData.resource_id = undefined;
+  if (type) await loadResourceList(type);
+  else resourceList.value = [];
 }
 
 // 重置查询
@@ -845,18 +1007,15 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     } else if (type === "update") {
       dialogVisible.title = "修改";
       Object.assign(formData, response.data.data);
+      // 加载拥有者和资源列表
+      if (formData.owner_type) await loadOwnerList(formData.owner_type);
+      if (formData.resource_type) await loadResourceList(formData.resource_type);
     }
   } else {
-    dialogVisible.title = "新增AgBinding";
-    formData.id = undefined;
-    formData.owner_type = undefined;
-    formData.owner_id = undefined;
-    formData.resource_type = undefined;
-    formData.resource_id = undefined;
-    formData.priority = undefined;
-    formData.config_override = undefined;
-    formData.status = undefined;
-    formData.description = undefined;
+    dialogVisible.title = "新增绑定关系";
+    Object.assign(formData, initialFormData);
+    ownerList.value = [];
+    resourceList.value = [];
   }
   dialogVisible.visible = true;
 }

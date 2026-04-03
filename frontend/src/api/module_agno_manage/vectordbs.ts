@@ -84,6 +84,14 @@ const AgVectordbAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
+
+  // 获取向量数据库类型列表
+  agnoTypes() {
+    return request<ApiResponse<AgVectordbType[]>>({
+      url: `${API_PATH}/agno/types`,
+      method: "get",
+    });
+  },
 };
 
 export default AgVectordbAPI;
@@ -123,4 +131,15 @@ export interface AgVectordbForm extends BaseFormType {
   provider?: string;
   embedder_id?: string;
   config?: Record<string, any>;
+}
+
+// 向量数据库类型
+export interface AgVectordbType {
+  db_type: string;
+  label: string;
+  agno_class: string;
+  agno_module: string;
+  description: string;
+  needs_embedder: boolean;
+  config_example: Record<string, any>;
 }

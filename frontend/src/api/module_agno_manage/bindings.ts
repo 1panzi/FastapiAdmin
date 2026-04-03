@@ -95,11 +95,10 @@ export default AgBindingAPI;
 // 列表查询参数
 export interface AgBindingPageQuery extends PageQuery {
   owner_type?: string;
-  owner_id?: string;
+  owner_id?: number;
   resource_type?: string;
-  resource_id?: string;
-  priority?: string;
-  config_override?: string;
+  resource_id?: number;
+  priority?: number;
   status?: string;
   created_id?: number;
   updated_id?: number;
@@ -110,11 +109,11 @@ export interface AgBindingPageQuery extends PageQuery {
 // 列表展示项
 export interface AgBindingTable extends BaseType {
   owner_type?: string;
-  owner_id?: string;
+  owner_id?: number;
   resource_type?: string;
-  resource_id?: string;
-  priority?: string;
-  config_override?: string;
+  resource_id?: number;
+  priority?: number;
+  config_override?: Record<string, any> | null;
   created_id?: string;
   updated_id?: string;
   created_by?: CommonType;
@@ -124,9 +123,9 @@ export interface AgBindingTable extends BaseType {
 // 新增/修改/详情表单参数
 export interface AgBindingForm extends BaseFormType {
   owner_type?: string;
-  owner_id?: string;
+  owner_id?: number;
   resource_type?: string;
-  resource_id?: string;
-  priority?: string;
-  config_override?: string;
+  resource_id?: number;
+  priority?: number;
+  config_override?: Record<string, any>;
 }
