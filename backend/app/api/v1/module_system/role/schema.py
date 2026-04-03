@@ -13,8 +13,8 @@ from app.common.enums import QueueEnum
 from app.core.base_schema import BaseSchema
 from app.core.validator import (
     DateTimeStr,
-    code_validator,
     role_permission_request_validator,
+    validate_required_code,
 )
 
 
@@ -22,7 +22,7 @@ class RoleCreateSchema(BaseModel):
     """角色创建模型"""
 
     name: str = Field(..., max_length=64, description="角色名称")
-    code: str | None = Field(default=None, max_length=16, description="角色编码")
+    code: str = Field(..., max_length=16, description="角色编码")
     order: int | None = Field(default=1, ge=1, description="显示排序")
     data_scope: int | None = Field(
         default=1,
@@ -33,20 +33,20 @@ class RoleCreateSchema(BaseModel):
 
     @field_validator("code")
     @classmethod
-    def validate_code(cls, value: str | None):
+    def validate_code(cls, value: str):
         """
-        校验角色编码（委托到 `code_validator`）。
+        校验角色编码（与部门编码规则一致，见 `validate_required_code`）。
 
         参数:
-        - value (str | None): 角色编码。
+        - value (str): 角色编码。
 
         返回:
-        - str | None: 校验后的角色编码。
+        - str: 校验后的角色编码。
 
         异常:
-        - CustomException: 不满足编码规则时抛出。
+        - ValueError: 不满足编码规则时抛出。
         """
-        return code_validator(value)
+        return validate_required_code(value)
 
 
 class RolePermissionSettingSchema(BaseModel):

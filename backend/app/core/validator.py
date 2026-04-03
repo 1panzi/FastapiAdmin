@@ -178,22 +178,45 @@ def mobile_validator(value: str | None) -> str | None:
     return value
 
 
-def code_validator(value: str | None) -> str | None:
+def validate_required_code(value: str | None) -> str:
     """
-    编码验证器。
+    必填编码校验：字母开头，总长 2–16，仅含字母/数字/下划线。
 
     参数:
     - value (str | None): 编码。
 
     返回:
-    - str | None: 验证后的编码。
+    - str: 去空白后的编码。
 
     异常:
-    - CustomException: 编码格式无效时抛出。
+    - ValueError: 为空或格式不合法。
+    """
+    if value is None or not str(value).strip():
+        raise ValueError("编码不能为空")
+    v = value.strip()
+    if not re.match(r"^[A-Za-z][A-Za-z0-9_]{1,15}$", v):
+        raise ValueError("编码需字母开头，允许字母/数字/下划线，长度2-16")
+    return v
+
+
+def code_validator(value: str | None) -> str | None:
+    """
+    可选编码验证器（为空则跳过）。
+
+    参数:
+    - value (str | None): 编码。
+
+    返回:
+    - str | None: 验证后的编码；未填写时返回 None。
+
+    异常:
+    - CustomException: 已填写但格式无效时抛出。
     """
     if not value:
         return value
     v = value.strip()
+    if not v:
+        return None
     if not re.match(r"^[A-Za-z][A-Za-z0-9_]{1,15}$", v):
         raise CustomException(
             code=RET.ERROR.code,

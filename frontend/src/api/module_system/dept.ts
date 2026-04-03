@@ -62,7 +62,7 @@ export interface DeptPageQuery {
 export interface DeptTable extends BaseType {
   name?: string;
   order?: number;
-  code?: string;
+  code: string;
   leader?: string;
   phone?: string;
   email?: string;
@@ -74,7 +74,7 @@ export interface DeptTable extends BaseType {
 export interface DeptForm extends BaseFormType {
   name?: string;
   order?: number;
-  code?: string;
+  code: string;
   leader?: string;
   phone?: string;
   email?: string;

@@ -125,6 +125,9 @@ class RoleService:
         exist_role = await RoleCRUD(auth).get(name=data.name)
         if exist_role and exist_role.id != id:
             raise CustomException(msg="更新失败，角色名称重复")
+        exist_code = await RoleCRUD(auth).get(code=data.code)
+        if exist_code and exist_code.id != id:
+            raise CustomException(msg="更新失败，角色编码已存在")
         updated_role = await RoleCRUD(auth).update(id=id, data=data)
         return RoleOutSchema.model_validate(updated_role).model_dump()
 

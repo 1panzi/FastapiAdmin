@@ -214,7 +214,12 @@
             <el-input v-model="formData.name" placeholder="请输入部门名称" :maxlength="50" />
           </el-form-item>
           <el-form-item label="部门编码" prop="code">
-            <el-input v-model="formData.code" placeholder="请输入部门编码" :maxlength="50" />
+            <el-input
+              v-model="formData.code"
+              placeholder="字母开头，2-16位字母/数字/下划线"
+              :maxlength="16"
+              show-word-limit
+            />
           </el-form-item>
           <el-form-item label="上级部门" prop="parent_id">
             <el-tree-select
@@ -379,12 +384,12 @@ const contentConfig = reactive<IContentConfig<DeptPageQuery>>({
 
 const deptOptions = ref<OptionType[]>([]);
 
-const detailFormData = ref<DeptTable>({});
+const detailFormData = ref<DeptTable>({ code: "" });
 
 const formData = reactive<DeptForm>({
   id: undefined,
   name: undefined,
-  code: undefined,
+  code: "",
   order: 1,
   parent_id: undefined,
   status: "0",
@@ -397,8 +402,18 @@ const dialogVisible = reactive({
   type: "create" as "create" | "update" | "detail",
 });
 
+const CODE_PATTERN = /^[A-Za-z][A-Za-z0-9_]{1,15}$/;
+
 const rules = reactive({
   name: [{ required: true, message: "请输入部门名称", trigger: "blur" }],
+  code: [
+    { required: true, message: "请输入部门编码", trigger: "blur" },
+    {
+      pattern: CODE_PATTERN,
+      message: "字母开头，2-16位字母/数字/下划线",
+      trigger: "blur",
+    },
+  ],
   order: [{ required: true, message: "请输入排序", trigger: "blur" }],
   status: [{ required: true, message: "请选择状态", trigger: "blur" }],
 });
@@ -406,7 +421,7 @@ const rules = reactive({
 const initialFormData: DeptForm = {
   id: undefined,
   name: undefined,
-  code: undefined,
+  code: "",
   order: 1,
   parent_id: undefined,
   status: "0",

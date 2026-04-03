@@ -3,7 +3,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.common.enums import QueueEnum
 from app.core.base_schema import BaseSchema
-from app.core.validator import DateTimeStr
+from app.core.validator import DateTimeStr, validate_required_code
 
 
 class DeptCreateSchema(BaseModel):
@@ -11,7 +11,7 @@ class DeptCreateSchema(BaseModel):
 
     name: str = Field(..., max_length=64, description="部门名称")
     order: int = Field(default=1, ge=0, description="显示顺序")
-    code: str | None = Field(default=None, max_length=16, description="部门编码")
+    code: str = Field(..., max_length=16, description="部门编码")
     leader: str | None = Field(default=None, max_length=32, description="部门负责人")
     phone: str | None = Field(default=None, max_length=11, description="手机")
     email: str | None = Field(default=None, max_length=64, description="邮箱")
@@ -41,29 +41,20 @@ class DeptCreateSchema(BaseModel):
 
     @field_validator("code")
     @classmethod
-    def validate_code(cls, value: str | None):
+    def validate_code(cls, value: str):
         """
-        校验部门编码：字母开头，仅包含字母/数字/下划线；空字符串视为 None。
+        校验部门编码（与角色编码规则一致，见 `validate_required_code`）。
 
         参数:
-        - value (str | None): 部门编码。
+        - value (str): 部门编码。
 
         返回:
-        - str | None: 规范化后的部门编码或 None。
+        - str: 规范化后的部门编码。
 
         异常:
         - ValueError: 编码不满足格式要求时抛出。
         """
-        if value is None:
-            return value
-        v = value.strip()
-        if v == "":
-            return None
-        import re
-
-        if not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", v):
-            raise ValueError("部门编码必须以字母开头，且仅包含字母/数字/下划线")
-        return v
+        return validate_required_code(value)
 
 
 class DeptUpdateSchema(DeptCreateSchema):

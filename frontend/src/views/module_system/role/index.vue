@@ -313,7 +313,12 @@
           </el-form-item>
 
           <el-form-item label="角色编码" prop="code">
-            <el-input v-model="formData.code" placeholder="请输入角色编码" />
+            <el-input
+              v-model="formData.code"
+              placeholder="字母开头，2-16位字母/数字/下划线"
+              maxlength="16"
+              show-word-limit
+            />
           </el-form-item>
 
           <el-form-item label="状态" prop="status">
@@ -552,7 +557,7 @@ const formData = reactive<RoleForm>({
   id: undefined,
   name: undefined,
   order: 1,
-  code: undefined,
+  code: "",
   status: "0",
   description: undefined,
 });
@@ -563,8 +568,18 @@ const dialogVisible = reactive({
   type: "create" as "create" | "update" | "detail",
 });
 
+const CODE_PATTERN = /^[A-Za-z][A-Za-z0-9_]{1,15}$/;
+
 const rules = reactive({
   name: [{ required: true, message: "请输入角色名称", trigger: "blur" }],
+  code: [
+    { required: true, message: "请输入角色编码", trigger: "blur" },
+    {
+      pattern: CODE_PATTERN,
+      message: "字母开头，2-16位字母/数字/下划线",
+      trigger: "blur",
+    },
+  ],
   order: [{ required: true, message: "请输入角色排序", trigger: "blur" }],
   status: [{ required: true, message: "请选择状态", trigger: "blur" }],
 });
@@ -573,7 +588,7 @@ const initialFormData: RoleForm = {
   id: undefined,
   name: undefined,
   order: 1,
-  code: undefined,
+  code: "",
   status: "0",
   description: undefined,
 };

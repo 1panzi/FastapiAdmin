@@ -116,6 +116,9 @@ class DeptService:
         exist_dept = await DeptCRUD(auth).get(name=data.name)
         if exist_dept and exist_dept.id != id:
             raise CustomException(msg="更新失败，部门名称重复")
+        exist_code = await DeptCRUD(auth).get(code=data.code)
+        if exist_code and exist_code.id != id:
+            raise CustomException(msg="更新失败，部门编码已存在")
         dept = await DeptCRUD(auth).update(id=id, data=data)
         return DeptOutSchema.model_validate(dept).model_dump()
 
