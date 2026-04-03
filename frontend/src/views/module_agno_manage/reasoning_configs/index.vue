@@ -22,32 +22,36 @@
             :inline="true"
             @submit.prevent="handleQuery"
           >
-            <el-form-item label="推理配置名称" prop="name">
-              <el-input v-model="queryFormData.name" placeholder="请输入推理配置名称" clearable />
+            <el-form-item label="配置名称" prop="name">
+              <el-input v-model="queryFormData.name" placeholder="请输入配置名称" clearable />
             </el-form-item>
-            <el-form-item label="关联推理模型ID" prop="model_id">
-              <el-input v-model="queryFormData.model_id" placeholder="请输入关联推理模型ID" clearable />
+            <el-form-item label="关联模型" prop="model_id">
+              <el-select v-model="queryFormData.model_id" placeholder="请选择模型" clearable filterable style="width: 200px">
+                <el-option
+                  v-for="item in modelList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="String(item.id)"
+                />
+              </el-select>
             </el-form-item>
-            <el-form-item label="最少推理步数" prop="min_steps">
-              <el-input v-model="queryFormData.min_steps" placeholder="请输入最少推理步数" clearable />
+            <el-form-item label="JSON模式" prop="use_json_mode">
+              <el-select v-model="queryFormData.use_json_mode" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
+              </el-select>
             </el-form-item>
-            <el-form-item label="最多推理步数" prop="max_steps">
-              <el-input v-model="queryFormData.max_steps" placeholder="请输入最多推理步数" clearable />
-            </el-form-item>
-            <el-form-item label="是否使用JSON模式" prop="use_json_mode">
-              <el-input v-model="queryFormData.use_json_mode" placeholder="请输入是否使用JSON模式" clearable />
-            </el-form-item>
-            <el-form-item label="工具调用次数上限" prop="tool_call_limit">
-              <el-input v-model="queryFormData.tool_call_limit" placeholder="请输入工具调用次数上限" clearable />
-            </el-form-item>
-            <el-form-item label="是否开启调试模式" prop="debug_mode">
-              <el-input v-model="queryFormData.debug_mode" placeholder="请输入是否开启调试模式" clearable />
+            <el-form-item label="调试模式" prop="debug_mode">
+              <el-select v-model="queryFormData.debug_mode" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
+              </el-select>
             </el-form-item>
             <el-form-item prop="status" label="状态">
               <el-select
                 v-model="queryFormData.status"
                 placeholder="请选择状态"
-                style="width: 170px"
+                style="width: 120px"
                 clearable
               >
                 <el-option value="0" label="启用" />
@@ -99,7 +103,7 @@
               </el-button>
               <!-- 展开/收起 -->
               <template v-if="isExpandable">
-                <el-link 
+                <el-link
                   class="ml-3"
                   type="primary"
                   underline="never"
@@ -227,7 +231,7 @@
         </div>
       </div>
 
-      <!-- 表格区域：系统配置列表 -->
+      <!-- 表格区域 -->
       <el-table
         ref="tableRef"
         v-loading="loading"
@@ -259,66 +263,75 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'name')?.show"
-          label="推理配置名称"
+          label="配置名称"
           prop="name"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'model_id')?.show"
-          label="关联推理模型ID"
+          label="关联模型"
           prop="model_id"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <span>{{ getModelName(scope.row.model_id) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'min_steps')?.show"
-          label="最少推理步数"
+          label="最少步数"
           prop="min_steps"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="100"
+          align="center"
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'max_steps')?.show"
-          label="最多推理步数"
+          label="最多步数"
           prop="max_steps"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'use_json_mode')?.show"
-          label="是否使用JSON模式"
-          prop="use_json_mode"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="100"
+          align="center"
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'tool_call_limit')?.show"
-          label="工具调用次数上限"
+          label="工具调用上限"
           prop="tool_call_limit"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="120"
+          align="center"
         />
+        <el-table-column
+          v-if="tableColumns.find((col) => col.prop === 'use_json_mode')?.show"
+          label="JSON模式"
+          prop="use_json_mode"
+          min-width="100"
+          align="center"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.use_json_mode === true ? 'success' : scope.row.use_json_mode === false ? 'danger' : undefined">
+              {{ scope.row.use_json_mode === true ? '是' : scope.row.use_json_mode === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'debug_mode')?.show"
-          label="是否开启调试模式"
+          label="调试模式"
           prop="debug_mode"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="100"
+          align="center"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.debug_mode === true ? 'success' : scope.row.debug_mode === false ? 'danger' : undefined">
+              {{ scope.row.debug_mode === true ? '是' : scope.row.debug_mode === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
-          prop="status"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="80"
+          align="center"
         >
           <template #default="scope">
             <el-tag :type="scope.row.status == '0' ? 'success' : 'info'">
@@ -328,37 +341,30 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'description')?.show"
-          label=""
+          label="描述"
           prop="description"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
-          label=""
+          label="创建时间"
           prop="created_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
-          label=""
+          label="更新时间"
           prop="updated_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人"
           prop="created_id"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
-          prop="created_id"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -367,16 +373,9 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人"
           prop="updated_id"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
-          prop="updated_id"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -440,22 +439,26 @@
     <el-dialog
       v-model="dialogVisible.visible"
       :title="dialogVisible.title"
+      width="600px"
       @close="handleCloseDialog"
     >
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="UUID" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
-          <el-descriptions-item label="推理配置名称" :span="2">
+          <el-descriptions-item label="配置名称" :span="4">
             {{ detailFormData.name }}
           </el-descriptions-item>
-          <el-descriptions-item label="关联推理模型ID" :span="2">
-            {{ detailFormData.model_id }}
+          <el-descriptions-item label="关联模型" :span="2">
+            {{ getModelName(detailFormData.model_id) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="工具调用上限" :span="2">
+            {{ detailFormData.tool_call_limit }}
           </el-descriptions-item>
           <el-descriptions-item label="最少推理步数" :span="2">
             {{ detailFormData.min_steps }}
@@ -463,27 +466,28 @@
           <el-descriptions-item label="最多推理步数" :span="2">
             {{ detailFormData.max_steps }}
           </el-descriptions-item>
-          <el-descriptions-item label="是否使用JSON模式" :span="2">
-            {{ detailFormData.use_json_mode }}
+          <el-descriptions-item label="JSON模式" :span="2">
+            <el-tag :type="detailFormData.use_json_mode === true ? 'success' : detailFormData.use_json_mode === false ? 'danger' : undefined">
+              {{ detailFormData.use_json_mode === true ? '是' : detailFormData.use_json_mode === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="工具调用次数上限" :span="2">
-            {{ detailFormData.tool_call_limit }}
-          </el-descriptions-item>
-          <el-descriptions-item label="是否开启调试模式" :span="2">
-            {{ detailFormData.debug_mode }}
+          <el-descriptions-item label="调试模式" :span="2">
+            <el-tag :type="detailFormData.debug_mode === true ? 'success' : detailFormData.debug_mode === false ? 'danger' : undefined">
+              {{ detailFormData.debug_mode === true ? '是' : detailFormData.debug_mode === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="状态" :span="2">
             <el-tag :type="detailFormData.status == '0' ? 'success' : 'danger'">
               {{ detailFormData.status == "0" ? "启用" : "停用" }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="描述" :span="4">
             {{ detailFormData.description }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="创建时间" :span="2">
             {{ detailFormData.created_time }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="更新时间" :span="2">
             {{ detailFormData.updated_time }}
           </el-descriptions-item>
           <el-descriptions-item label="创建人" :span="2">
@@ -502,30 +506,65 @@
           :model="formData"
           :rules="rules"
           label-suffix=":"
-          label-width="auto"
+          label-width="120px"
           label-position="right"
         >
-          <el-form-item label="推理配置名称" prop="name" :required="false">
+          <el-form-item label="配置名称" prop="name" :required="false">
             <el-input v-model="formData.name" placeholder="请输入推理配置名称" />
           </el-form-item>
-          <el-form-item label="关联推理模型ID" prop="model_id" :required="false">
-            <el-input v-model="formData.model_id" placeholder="请输入关联推理模型ID" />
+          <el-form-item label="关联模型" prop="model_id" :required="false">
+            <el-select v-model="formData.model_id" placeholder="请选择推理模型" clearable filterable style="width: 100%">
+              <el-option
+                v-for="item in modelList"
+                :key="item.id"
+                :label="item.name"
+                :value="String(item.id)"
+              >
+                <el-tooltip
+                  :content="`ID: ${item.id} | ${item.provider}`"
+                  placement="right"
+                  :show-after="300"
+                  :teleported="true"
+                  :enterable="false"
+                >
+                  <span style="display: block; width: 100%;">{{ item.name }}</span>
+                </el-tooltip>
+              </el-option>
+            </el-select>
           </el-form-item>
-          <el-form-item label="最少推理步数" prop="min_steps" :required="false">
-            <el-input v-model="formData.min_steps" placeholder="请输入最少推理步数" />
+          <el-row :gutter="16">
+            <el-col :span="12">
+              <el-form-item label="最少步数" prop="min_steps" :required="false">
+                <el-input-number v-model="formData.min_steps" placeholder="最少推理步数" :min="0" :controls="false" style="width: 100%" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="最多步数" prop="max_steps" :required="false">
+                <el-input-number v-model="formData.max_steps" placeholder="最多推理步数" :min="0" :controls="false" style="width: 100%" />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-form-item label="工具调用上限" prop="tool_call_limit" :required="false">
+            <el-input-number v-model="formData.tool_call_limit" placeholder="请输入工具调用次数上限" :min="0" :controls="false" style="width: 100%" />
           </el-form-item>
-          <el-form-item label="最多推理步数" prop="max_steps" :required="false">
-            <el-input v-model="formData.max_steps" placeholder="请输入最多推理步数" />
-          </el-form-item>
-          <el-form-item label="是否使用JSON模式" prop="use_json_mode" :required="false">
-            <el-input v-model="formData.use_json_mode" placeholder="请输入是否使用JSON模式" />
-          </el-form-item>
-          <el-form-item label="工具调用次数上限" prop="tool_call_limit" :required="false">
-            <el-input v-model="formData.tool_call_limit" placeholder="请输入工具调用次数上限" />
-          </el-form-item>
-          <el-form-item label="是否开启调试模式" prop="debug_mode" :required="false">
-            <el-input v-model="formData.debug_mode" placeholder="请输入是否开启调试模式" />
-          </el-form-item>
+          <el-row :gutter="16">
+            <el-col :span="12">
+              <el-form-item label="JSON模式" prop="use_json_mode" :required="false">
+                <el-select v-model="formData.use_json_mode" placeholder="默认" clearable style="width: 100%">
+                  <el-option label="开启" :value="true" />
+                  <el-option label="关闭" :value="false" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="调试模式" prop="debug_mode" :required="false">
+                <el-select v-model="formData.debug_mode" placeholder="默认" clearable style="width: 100%">
+                  <el-option label="开启" :value="true" />
+                  <el-option label="关闭" :value="false" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
           <el-form-item label="状态" prop="status" :required="true">
             <el-radio-group v-model="formData.status">
               <el-radio value="0">启用</el-radio>
@@ -574,7 +613,9 @@
       :selection-data="selectionRows"
     />
   </div>
+
 </template>
+
 
 <script setup lang="ts">
 defineOptions({
@@ -597,6 +638,7 @@ import AgReasoningConfigAPI, {
   AgReasoningConfigTable,
   AgReasoningConfigForm,
 } from "@/api/module_agno_manage/reasoning_configs";
+import AgModelAPI from "@/api/module_agno_manage/models";
 
 const visible = ref(false);
 const queryFormRef = ref();
@@ -608,6 +650,24 @@ const loading = ref(false);
 const isExpand = ref(false);
 const isExpandable = ref(true);
 
+// 关联模型列表
+const modelList = ref<any[]>([]);
+
+async function loadModelList() {
+  const res = await AgModelAPI.listAgModel({ page_no: 1, page_size: 100 });
+  modelList.value = (res.data?.data?.items || []).map((item: any) => ({
+    id: item.id,
+    name: item.name || `Model#${item.id}`,
+    provider: item.provider || "",
+  }));
+}
+
+function getModelName(modelId?: string | number): string {
+  if (!modelId) return "-";
+  const found = modelList.value.find((m) => String(m.id) === String(modelId));
+  return found ? found.name : String(modelId);
+}
+
 // 分页表单
 const pageTableData = ref<AgReasoningConfigTable[]>([]);
 
@@ -615,37 +675,37 @@ const pageTableData = ref<AgReasoningConfigTable[]>([]);
 const tableColumns = ref([
   { prop: "selection", label: "选择框", show: true },
   { prop: "index", label: "序号", show: true },
-  { prop: "name", label: "推理配置名称", show: true },
-  { prop: "model_id", label: "关联推理模型ID", show: true },
-  { prop: "min_steps", label: "最少推理步数", show: true },
-  { prop: "max_steps", label: "最多推理步数", show: true },
-  { prop: "use_json_mode", label: "是否使用JSON模式", show: true },
-  { prop: "tool_call_limit", label: "工具调用次数上限", show: true },
-  { prop: "debug_mode", label: "是否开启调试模式", show: true },
-  { prop: "status", label: "status", show: true },
-  { prop: "description", label: "description", show: true },
-  { prop: "created_time", label: "created_time", show: true },
-  { prop: "updated_time", label: "updated_time", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "name", label: "配置名称", show: true },
+  { prop: "model_id", label: "关联模型", show: true },
+  { prop: "min_steps", label: "最少步数", show: true },
+  { prop: "max_steps", label: "最多步数", show: true },
+  { prop: "tool_call_limit", label: "工具调用上限", show: true },
+  { prop: "use_json_mode", label: "JSON模式", show: true },
+  { prop: "debug_mode", label: "调试模式", show: true },
+  { prop: "status", label: "状态", show: true },
+  { prop: "description", label: "描述", show: true },
+  { prop: "created_time", label: "创建时间", show: false },
+  { prop: "updated_time", label: "更新时间", show: false },
+  { prop: "created_id", label: "创建人", show: true },
+  { prop: "updated_id", label: "更新人", show: false },
   { prop: "operation", label: "操作", show: true },
 ]);
 
 // 导出列（不含选择/序号/操作）
 const exportColumns = [
-  { prop: "name", label: "推理配置名称" },
-  { prop: "model_id", label: "关联推理模型ID" },
-  { prop: "min_steps", label: "最少推理步数" },
-  { prop: "max_steps", label: "最多推理步数" },
-  { prop: "use_json_mode", label: "是否使用JSON模式" },
-  { prop: "tool_call_limit", label: "工具调用次数上限" },
-  { prop: "debug_mode", label: "是否开启调试模式" },
-  { prop: "status", label: "status" },
-  { prop: "description", label: "description" },
-  { prop: "created_time", label: "created_time" },
-  { prop: "updated_time", label: "updated_time" },
-  { prop: "created_id", label: "created_id" },
-  { prop: "updated_id", label: "updated_id" },
+  { prop: "name", label: "配置名称" },
+  { prop: "model_id", label: "关联模型" },
+  { prop: "min_steps", label: "最少步数" },
+  { prop: "max_steps", label: "最多步数" },
+  { prop: "tool_call_limit", label: "工具调用上限" },
+  { prop: "use_json_mode", label: "JSON模式" },
+  { prop: "debug_mode", label: "调试模式" },
+  { prop: "status", label: "状态" },
+  { prop: "description", label: "描述" },
+  { prop: "created_time", label: "创建时间" },
+  { prop: "updated_time", label: "更新时间" },
+  { prop: "created_id", label: "创建人" },
+  { prop: "updated_id", label: "更新人" },
 ];
 
 // 导入/导出配置
@@ -744,21 +804,15 @@ const dialogVisible = reactive({
 
 // 表单验证规则
 const rules = reactive({
-  id: [{ required: false, message: "请输入id", trigger: "blur" }],
-  uuid: [{ required: false, message: "请输入uuid", trigger: "blur" }],
   name: [{ required: false, message: "请输入推理配置名称", trigger: "blur" }],
-  model_id: [{ required: true, message: "请输入关联推理模型ID", trigger: "blur" }],
+  model_id: [{ required: false, message: "请输入关联推理模型ID", trigger: "blur" }],
   min_steps: [{ required: false, message: "请输入最少推理步数", trigger: "blur" }],
   max_steps: [{ required: false, message: "请输入最多推理步数", trigger: "blur" }],
-  use_json_mode: [{ required: false, message: "请输入是否使用JSON模式", trigger: "blur" }],
-  tool_call_limit: [{ required: true, message: "请输入工具调用次数上限", trigger: "blur" }],
-  debug_mode: [{ required: false, message: "请输入是否开启调试模式", trigger: "blur" }],
-  status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: false, message: "请输入description", trigger: "blur" }],
-  created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
-  updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
-  created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
-  updated_id: [{ required: true, message: "请输入updated_id", trigger: "blur" }],
+  use_json_mode: [{ required: false, message: "请选择是否使用JSON模式", trigger: "change" }],
+  tool_call_limit: [{ required: false, message: "请输入工具调用次数上限", trigger: "blur" }],
+  debug_mode: [{ required: false, message: "请选择是否开启调试模式", trigger: "change" }],
+  status: [{ required: false, message: "请选择状态", trigger: "blur" }],
+  description: [{ required: false, message: "请输入描述", trigger: "blur" }],
 });
 
 // 导入弹窗显示状态
@@ -865,21 +919,12 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
       dialogVisible.title = "详情";
       Object.assign(detailFormData.value, response.data.data);
     } else if (type === "update") {
-      dialogVisible.title = "修改";
+      dialogVisible.title = "修改推理配置";
       Object.assign(formData, response.data.data);
     }
   } else {
-    dialogVisible.title = "新增AgReasoningConfig";
-    formData.id = undefined;
-    formData.name = undefined;
-    formData.model_id = undefined;
-    formData.min_steps = undefined;
-    formData.max_steps = undefined;
-    formData.use_json_mode = undefined;
-    formData.tool_call_limit = undefined;
-    formData.debug_mode = undefined;
-    formData.status = undefined;
-    formData.description = undefined;
+    dialogVisible.title = "新增推理配置";
+    Object.assign(formData, initialFormData);
   }
   dialogVisible.visible = true;
 }
@@ -992,7 +1037,7 @@ onMounted(async () => {
   if (dictTypes.length > 0) {
     await dictStore.getDict(dictTypes);
   }
-  loadingData();
+  await Promise.all([loadModelList(), loadingData()]);
 });
 </script>
 

@@ -171,10 +171,256 @@ const AgXxxAPI = {
 **搜索表单：**
 Record 类型字段通常不在搜索表单中出现。
 
+### 3. 关联外键字段（ID 关联其他资源）
+
+当字段存储的是另一张表的 ID（如 `embedder_id`、`model_id`、`owner_id`、`resource_id`），必须用下拉选择器而非文本输入框。
+
+**通用模式：**
+
+```typescript
+// 脚本：声明列表 ref
+const embedderList = ref<any[]>([]);
+
+// 脚本：加载列表（onMounted 中调用）
+async function loadEmbedderList() {
+  const res = await AgEmbedderAPI.listAgEmbedder({ page_no: 1, page_size: 100 });
+  embedderList.value = (res.data?.data?.items || []).map((item: any) => ({
+    id: item.id,
+    name: item.name || `Embedder#${item.id}`,
+    // 额外保留用于 tooltip 显示的字段
+    provider: item.provider || "",
+    model_id: item.model_id || "",
+  }));
+}
+
+// 脚本：ID → 名称转换（用于表格列和详情显示）
+function getEmbedderName(embedderId?: string): string {
+  if (!embedderId) return "-";
+  const found = embedderList.value.find((e) => String(e.id) === String(embedderId));
+  return found ? found.name : String(embedderId);
+}
+```
+
+**表单下拉（带 tooltip）：**
+```vue
+<el-form-item label="关联嵌入模型" prop="embedder_id" :required="false">
+  <el-select v-model="formData.embedder_id" placeholder="请选择嵌入模型" clearable filterable style="width: 100%">
+    <el-option
+      v-for="item in embedderList"
+      :key="item.id"
+      :label="item.name"
+      :value="String(item.id)"
+    >
+      <el-tooltip
+        :content="`ID: ${item.id} | ${item.provider}`"
+        placement="right"
+        :show-after="300"
+        :teleported="true"
+        :enterable="false"
+      >
+        <span style="display: block; width: 100%;">{{ item.name }}</span>
+      </el-tooltip>
+    </el-option>
+  </el-select>
+</el-form-item>
+```
+
+**搜索表单下拉：**
+```vue
+<el-form-item label="关联嵌入模型" prop="embedder_id">
+  <el-select v-model="queryFormData.embedder_id" placeholder="请选择嵌入模型" clearable filterable style="width: 200px">
+    <el-option
+      v-for="item in embedderList"
+      :key="item.id"
+      :label="item.name"
+      :value="String(item.id)"
+    />
+  </el-select>
+</el-form-item>
+```
+
+**表格列（显示名称而非 ID）：**
+```vue
+<el-table-column label="关联嵌入模型" prop="embedder_id" min-width="160" show-overflow-tooltip>
+  <template #default="scope">
+    <span>{{ getEmbedderName(scope.row.embedder_id) }}</span>
+  </template>
+</el-table-column>
+```
+
+**详情展示：**
+```vue
+<el-descriptions-item label="关联嵌入模型" :span="2">
+  {{ getEmbedderName(detailFormData.embedder_id) }}
+</el-descriptions-item>
+```
+
+**注意事项：**
+- `value` 统一用 `String(item.id)`，因为后端返回的 ID 类型可能不一致
+- `page_size: 100` 是约定的下拉列表加载上限
+- 多个列表可以在 `onMounted` 中用 `Promise.all` 并行加载：
+  ```typescript
+  await Promise.all([loadEmbedderList(), loadVectordbTypeList()]);
+  ```
+
+### 4. 枚举类型下拉（来自后端 /agno/types 接口）
+
+当后端提供枚举类型列表接口（如向量库类型、embedder provider 类型），在 API 文件中添加对应方法，并在视图中动态加载。
+
+**API 文件中添加类型接口：**
+```typescript
+// 获取类型列表
+agnoTypes() {
+  return request<ApiResponse<AgXxxType[]>>({
+    url: `${API_PATH}/agno/types`,
+    method: "get",
+  });
+},
+```
+
+**类型声明：**
+```typescript
+export interface AgXxxType {
+  db_type: string;      // 存储值（如 "pgvector"）
+  label: string;        // 显示标签（如 "PostgreSQL + pgvector"）
+  description: string;  // 描述
+  config_example: Record<string, any>;  // 配置示例（可用于自动填入）
+  // ...其他字段
+}
+```
+
+**视图脚本：**
+```typescript
+const vectordbTypeList = ref<AgVectordbType[]>([]);
+
+async function loadVectordbTypeList() {
+  const res = await AgVectordbAPI.agnoTypes();
+  vectordbTypeList.value = res.data?.data || [];
+}
+
+// 获取显示标签
+function getProviderLabel(dbType?: string): string {
+  if (!dbType) return "-";
+  const found = vectordbTypeList.value.find((t) => t.db_type === dbType);
+  return found ? found.label : dbType;
+}
+
+// 选择类型后自动填入 config_example（仅当 config 为空时）
+function handleProviderChange(dbType: string) {
+  const found = vectordbTypeList.value.find((t) => t.db_type === dbType);
+  if (found?.config_example && !formData.config) {
+    formData.config = { ...found.config_example };
+  }
+}
+```
+
+**表单下拉（带描述 tooltip）：**
+```vue
+<el-select v-model="formData.provider" placeholder="请选择类型" clearable style="width: 100%" @change="handleProviderChange">
+  <el-option
+    v-for="item in vectordbTypeList"
+    :key="item.db_type"
+    :label="item.label"
+    :value="item.db_type"
+  >
+    <el-tooltip :content="item.description" placement="right" :show-after="300" :teleported="true" :enterable="false">
+      <span style="display: block; width: 100%;">{{ item.label }}</span>
+    </el-tooltip>
+  </el-option>
+</el-select>
+```
+
 ### models 视图特殊说明
 - `providerList` 在 `onMounted` 时通过 `ProviderAPI.listProvider({})` 加载
 - 提供商在 UI 中显示 `Provider.label`，存储值为 `Provider.provider`（字符串 key）
 - `curdContentConfig` 将 ImportModal/ExportModal 与 API 方法绑定
+
+### embedders 视图特殊说明
+
+嵌入器提供商接口返回的字段比 models 的提供商更丰富，需要利用这些字段驱动表单行为：
+
+**独立 API 文件**：`src/api/module_agno_manage/embedder_providers.ts`（不复用 provider.ts），接口路径 `GET /agno_manage/embedders/agno/providers`。
+
+**`EmbedderProvider` 关键字段：**
+- `needs_api_key: boolean` — 是否需要 API 密钥，决定表单字段是否显示
+- `needs_base_url: boolean` — 是否需要自定义端点，决定表单字段是否显示
+- `base_url_label: string` — 端点地址的业务名称（如"Azure 端点地址"），用作表单 label 和 placeholder
+- `popular_models: string[]` — 推荐模型列表，用于 model_id 的下拉候选
+- `default_dimensions: number | null` — 默认向量维度，用于 dimensions 字段的 placeholder 提示
+
+**表单联动模式（computed + @change）：**
+```typescript
+// 当前提供商对象（computed）
+const currentProvider = computed(() =>
+  providerList.value.find((p) => p.provider === formData.provider) ?? null
+);
+
+// 推荐模型列表（computed）
+const currentProviderModels = computed(() =>
+  currentProvider.value?.popular_models ?? []
+);
+
+// 切换提供商时清空依赖字段
+function handleProviderChange() {
+  formData.model_id = undefined;
+  formData.api_key = undefined;
+  formData.base_url = undefined;
+  formData.dimensions = undefined;
+}
+```
+
+**model_id 使用 el-select（filterable + allow-create）而非文本输入：**
+```vue
+<el-select
+  v-model="formData.model_id"
+  placeholder="请输入或选择嵌入模型标识"
+  filterable
+  allow-create
+  default-first-option
+  style="width: 100%"
+>
+  <el-option v-for="model in currentProviderModels" :key="model" :label="model" :value="model" />
+</el-select>
+```
+
+**api_key / base_url 动态显示/隐藏：**
+```vue
+<!-- api_key：未选择提供商时默认显示，选择后按 needs_api_key 决定 -->
+<el-form-item
+  v-if="!formData.provider || currentProvider?.needs_api_key !== false"
+  label="API密钥"
+  prop="api_key"
+  :required="currentProvider?.needs_api_key === true"
+>
+  <el-input v-model="formData.api_key" placeholder="请输入API密钥" />
+</el-form-item>
+
+<!-- base_url：label 和 placeholder 随提供商变化 -->
+<el-form-item
+  v-if="!formData.provider || currentProvider?.needs_base_url !== false"
+  :label="currentProvider?.base_url_label || '自定义端点地址'"
+  prop="base_url"
+  :required="currentProvider?.needs_base_url === true"
+>
+  <el-input
+    v-model="formData.base_url"
+    :placeholder="currentProvider?.base_url_label ? `请输入${currentProvider.base_url_label}` : '请输入自定义端点地址'"
+  />
+</el-form-item>
+```
+
+**dimensions placeholder 显示默认值：**
+```vue
+<el-input
+  v-model="formData.dimensions"
+  :placeholder="currentProvider?.default_dimensions ? `默认 ${currentProvider.default_dimensions}，可不填` : '请输入向量维度（可选）'"
+/>
+```
+
+### vectordbs 视图特殊说明
+- `embedder_id` 使用关联外键下拉，从 `AgEmbedderAPI.listAgEmbedder` 加载
+- `provider`（向量库类型）使用枚举下拉，从 `AgVectordbAPI.agnoTypes()` 加载，选择后自动填入 `config_example`
+- 接口路径：`GET /agno_manage/vectordbs/agno/types`
 
 ## 开发计划
 
@@ -184,11 +430,12 @@ Record 类型字段通常不在搜索表单中出现。
 2. **toolkits**（`src/views/module_agno_manage/toolkits/`）— 完善表单字段
 3. **mcp_servers** — 完善表单字段
 4. **skills** — 完善表单字段
-5. **knowledge_bases** — 完善表单字段
-6. **embedders** — 完善表单字段
-7. **agents** — 大型复杂表单（50+ 字段）
-8. **teams** — 多 Agent 群组配置
-9. **workflows** / **workflow_nodes** — 工作流自动化
+5. **knowledge_bases** — ✅ 已完成
+6. **embedders** — ✅ 已完成
+7. **reasoning_configs** — ✅ 已完成（bool 三态 select、model_id 关联下拉、数字字段 input-number）
+8. **agents** — 大型复杂表单（50+ 字段）
+9. **teams** — 多 Agent 群组配置
+10. **workflows** / **workflow_nodes** — 工作流自动化
 
 每个视图完善时需检查以下内容：
 - `tableColumns` 的 `label` 全部填写完整（初始生成时很多为空字符串 `""`）

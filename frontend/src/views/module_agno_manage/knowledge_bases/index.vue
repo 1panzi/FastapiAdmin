@@ -25,21 +25,26 @@
             <el-form-item label="知识库名称" prop="name">
               <el-input v-model="queryFormData.name" placeholder="请输入知识库名称" clearable />
             </el-form-item>
-            <el-form-item label="关联向量数据库ID" prop="vectordb_id">
-              <el-input v-model="queryFormData.vectordb_id" placeholder="请输入关联向量数据库ID" clearable />
+            <el-form-item label="关联向量数据库" prop="vectordb_id">
+              <el-select v-model="queryFormData.vectordb_id" placeholder="请选择向量数据库" clearable filterable style="width: 200px">
+                <el-option
+                  v-for="item in vectordbList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="String(item.id)"
+                />
+              </el-select>
             </el-form-item>
-            <el-form-item label="最大检索结果数" prop="max_results">
-              <el-input v-model="queryFormData.max_results" placeholder="请输入最大检索结果数" clearable />
-            </el-form-item>
-            <el-form-item label="文档读取器类型(pdf/web/docx/csv/json/text)" prop="reader_type">
-              <el-input v-model="queryFormData.reader_type" placeholder="请输入文档读取器类型(pdf/web/docx/csv/json/text)" clearable />
-            </el-form-item>
-            <el-form-item label="读取器配置参数" prop="reader_config">
-              <el-input v-model="queryFormData.reader_config" placeholder="请输入读取器配置参数" clearable />
-            </el-form-item>
-            <el-form-item label="默认搜索过滤条件" prop="default_filters">
-              <el-input v-model="queryFormData.default_filters" placeholder="请输入默认搜索过滤条件" clearable />
-            </el-form-item>
+            <!-- <el-form-item label="文档读取器类型" prop="reader_type">
+              <el-select v-model="queryFormData.reader_type" placeholder="请选择类型" clearable style="width: 160px">
+                <el-option value="pdf" label="PDF" />
+                <el-option value="web" label="Web" />
+                <el-option value="docx" label="Word(docx)" />
+                <el-option value="csv" label="CSV" />
+                <el-option value="json" label="JSON" />
+                <el-option value="text" label="文本(text)" />
+              </el-select>
+            </el-form-item> -->
             <el-form-item prop="status" label="状态">
               <el-select
                 v-model="queryFormData.status"
@@ -263,32 +268,46 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'vectordb_id')?.show"
-          label="关联向量数据库ID"
+          label="关联向量数据库"
           prop="vectordb_id"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <span>{{ getVectordbName(scope.row.vectordb_id) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'max_results')?.show"
           label="最大检索结果数"
           prop="max_results"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         />
-        <el-table-column
+        <!-- <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'reader_type')?.show"
-          label="文档读取器类型(pdf/web/docx/csv/json/text)"
+          label="文档读取器类型"
           prop="reader_type"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
+          min-width="130"
+          align="center"
+        >
+          <template #default="scope">
+            <el-tag v-if="scope.row.reader_type" type="info">{{ scope.row.reader_type }}</el-tag>
+            <span v-else>-</span>
+          </template>
+        </el-table-column> -->
+        <!-- <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'reader_config')?.show"
           label="读取器配置参数"
           prop="reader_config"
           min-width="140"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <span v-if="scope.row.reader_config">{{ JSON.stringify(scope.row.reader_config) }}</span>
+            <span v-else>-</span>
+          </template>
+        </el-table-column> -->
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'default_filters')?.show"
           label="默认搜索过滤条件"
@@ -298,17 +317,17 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态原始值"
           prop="status"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="100"
+          align="center"
         >
           <template #default="scope">
             <el-tag :type="scope.row.status == '0' ? 'success' : 'info'">
@@ -318,37 +337,37 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'description')?.show"
-          label=""
+          label="描述"
           prop="description"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
-          label=""
+          label="创建时间"
           prop="created_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
-          label=""
+          label="更新时间"
           prop="updated_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人ID"
           prop="created_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人"
           prop="created_id"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -357,16 +376,16 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人ID"
           prop="updated_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人"
           prop="updated_id"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -435,26 +454,27 @@
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="UUID" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
           <el-descriptions-item label="知识库名称" :span="2">
             {{ detailFormData.name }}
           </el-descriptions-item>
-          <el-descriptions-item label="关联向量数据库ID" :span="2">
-            {{ detailFormData.vectordb_id }}
+          <el-descriptions-item label="关联向量数据库" :span="2">
+            {{ getVectordbName(detailFormData.vectordb_id) }}
           </el-descriptions-item>
           <el-descriptions-item label="最大检索结果数" :span="2">
             {{ detailFormData.max_results }}
           </el-descriptions-item>
-          <el-descriptions-item label="文档读取器类型(pdf/web/docx/csv/json/text)" :span="2">
-            {{ detailFormData.reader_type }}
+          <el-descriptions-item label="文档读取器类型" :span="2">
+            <el-tag v-if="detailFormData.reader_type" type="info">{{ detailFormData.reader_type }}</el-tag>
+            <span v-else>-</span>
           </el-descriptions-item>
-          <el-descriptions-item label="读取器配置参数" :span="2">
-            {{ detailFormData.reader_config }}
+          <el-descriptions-item label="读取器配置参数" :span="4">
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ JSON.stringify(detailFormData.reader_config, null, 2) }}</pre>
           </el-descriptions-item>
           <el-descriptions-item label="默认搜索过滤条件" :span="2">
             {{ detailFormData.default_filters }}
@@ -464,13 +484,13 @@
               {{ detailFormData.status == "0" ? "启用" : "停用" }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="描述" :span="2">
             {{ detailFormData.description }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="创建时间" :span="2">
             {{ detailFormData.created_time }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="更新时间" :span="2">
             {{ detailFormData.updated_time }}
           </el-descriptions-item>
           <el-descriptions-item label="创建人" :span="2">
@@ -495,18 +515,42 @@
           <el-form-item label="知识库名称" prop="name" :required="false">
             <el-input v-model="formData.name" placeholder="请输入知识库名称" />
           </el-form-item>
-          <el-form-item label="关联向量数据库ID" prop="vectordb_id" :required="false">
-            <el-input v-model="formData.vectordb_id" placeholder="请输入关联向量数据库ID" />
+          <el-form-item label="关联向量数据库" prop="vectordb_id" :required="false">
+            <el-select v-model="formData.vectordb_id" placeholder="请选择向量数据库" clearable filterable style="width: 100%">
+              <el-option
+                v-for="item in vectordbList"
+                :key="item.id"
+                :label="item.name"
+                :value="String(item.id)"
+              >
+                <el-tooltip
+                  :content="`ID: ${item.id}`"
+                  placement="right"
+                  :show-after="300"
+                  :teleported="true"
+                  :enterable="false"
+                >
+                  <span style="display: block; width: 100%;">{{ item.name }}</span>
+                </el-tooltip>
+              </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="最大检索结果数" prop="max_results" :required="false">
             <el-input v-model="formData.max_results" placeholder="请输入最大检索结果数" />
           </el-form-item>
-          <el-form-item label="文档读取器类型(pdf/web/docx/csv/json/text)" prop="reader_type" :required="false">
-            <el-input v-model="formData.reader_type" placeholder="请输入文档读取器类型(pdf/web/docx/csv/json/text)" />
+          <!-- <el-form-item label="文档读取器类型" prop="reader_type" :required="false">
+            <el-select v-model="formData.reader_type" placeholder="请选择文档读取器类型" clearable style="width: 100%">
+              <el-option value="pdf" label="PDF" />
+              <el-option value="web" label="Web" />
+              <el-option value="docx" label="Word(docx)" />
+              <el-option value="csv" label="CSV" />
+              <el-option value="json" label="JSON" />
+              <el-option value="text" label="文本(text)" />
+            </el-select>
           </el-form-item>
           <el-form-item label="读取器配置参数" prop="reader_config" :required="false">
             <DictEditor v-model="formData.reader_config" />
-          </el-form-item>
+          </el-form-item> -->
           <el-form-item label="默认搜索过滤条件" prop="default_filters" :required="false">
             <el-input v-model="formData.default_filters" placeholder="请输入默认搜索过滤条件" />
           </el-form-item>
@@ -570,17 +614,18 @@ import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { QuestionFilled, ArrowUp, ArrowDown, Check, CircleClose } from "@element-plus/icons-vue";
 import { formatToDateTime } from "@/utils/dateUtil";
-import { useDictStore } from "@/store";
 import { ResultEnum } from "@/enums/api/result.enum";
 import DatePicker from "@/components/DatePicker/index.vue";
 import type { IContentConfig } from "@/components/CURD/types";
 import ImportModal from "@/components/CURD/ImportModal.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
+import DictEditor from "@/views/module_agno_manage/components/DictEditor/index.vue";
 import AgKnowledgeBaseAPI, {
   AgKnowledgeBasePageQuery,
   AgKnowledgeBaseTable,
   AgKnowledgeBaseForm,
 } from "@/api/module_agno_manage/knowledge_bases";
+import AgVectordbAPI from "@/api/module_agno_manage/vectordbs";
 
 const visible = ref(false);
 const queryFormRef = ref();
@@ -592,6 +637,23 @@ const loading = ref(false);
 const isExpand = ref(false);
 const isExpandable = ref(true);
 
+// 向量数据库列表（关联外键下拉）
+const vectordbList = ref<any[]>([]);
+
+async function loadVectordbList() {
+  const res = await AgVectordbAPI.listAgVectordb({ page_no: 1, page_size: 100 });
+  vectordbList.value = (res.data?.data?.items || []).map((item: any) => ({
+    id: item.id,
+    name: item.name || `Vectordb#${item.id}`,
+  }));
+}
+
+function getVectordbName(vectordbId?: string): string {
+  if (!vectordbId) return "-";
+  const found = vectordbList.value.find((e) => String(e.id) === String(vectordbId));
+  return found ? found.name : String(vectordbId);
+}
+
 // 分页表单
 const pageTableData = ref<AgKnowledgeBaseTable[]>([]);
 
@@ -600,34 +662,34 @@ const tableColumns = ref([
   { prop: "selection", label: "选择框", show: true },
   { prop: "index", label: "序号", show: true },
   { prop: "name", label: "知识库名称", show: true },
-  { prop: "vectordb_id", label: "关联向量数据库ID", show: true },
+  { prop: "vectordb_id", label: "关联向量数据库", show: true },
   { prop: "max_results", label: "最大检索结果数", show: true },
-  { prop: "reader_type", label: "文档读取器类型(pdf/web/docx/csv/json/text)", show: true },
+  { prop: "reader_type", label: "文档读取器类型", show: true },
   { prop: "reader_config", label: "读取器配置参数", show: true },
   { prop: "default_filters", label: "默认搜索过滤条件", show: true },
-  { prop: "status", label: "status", show: true },
-  { prop: "description", label: "description", show: true },
-  { prop: "created_time", label: "created_time", show: true },
-  { prop: "updated_time", label: "updated_time", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "status", label: "状态", show: true },
+  { prop: "description", label: "描述", show: true },
+  { prop: "created_time", label: "创建时间", show: true },
+  { prop: "updated_time", label: "更新时间", show: true },
+  { prop: "created_id", label: "创建人", show: true },
+  { prop: "updated_id", label: "更新人", show: true },
   { prop: "operation", label: "操作", show: true },
 ]);
 
 // 导出列（不含选择/序号/操作）
 const exportColumns = [
   { prop: "name", label: "知识库名称" },
-  { prop: "vectordb_id", label: "关联向量数据库ID" },
+  { prop: "vectordb_id", label: "关联向量数据库" },
   { prop: "max_results", label: "最大检索结果数" },
-  { prop: "reader_type", label: "文档读取器类型(pdf/web/docx/csv/json/text)" },
+  { prop: "reader_type", label: "文档读取器类型" },
   { prop: "reader_config", label: "读取器配置参数" },
   { prop: "default_filters", label: "默认搜索过滤条件" },
-  { prop: "status", label: "status" },
-  { prop: "description", label: "description" },
-  { prop: "created_time", label: "created_time" },
-  { prop: "updated_time", label: "updated_time" },
-  { prop: "created_id", label: "created_id" },
-  { prop: "updated_id", label: "updated_id" },
+  { prop: "status", label: "状态" },
+  { prop: "description", label: "描述" },
+  { prop: "created_time", label: "创建时间" },
+  { prop: "updated_time", label: "更新时间" },
+  { prop: "created_id", label: "创建人ID" },
+  { prop: "updated_id", label: "更新人ID" },
 ];
 
 // 导入/导出配置
@@ -686,10 +748,7 @@ const queryFormData = reactive<AgKnowledgeBasePageQuery>({
   page_size: 10,
   name: undefined,
   vectordb_id: undefined,
-  max_results: undefined,
   reader_type: undefined,
-  reader_config: undefined,
-  default_filters: undefined,
   status: undefined,
   created_time: undefined,
   updated_time: undefined,
@@ -710,11 +769,6 @@ const formData = reactive<AgKnowledgeBaseForm>({
   description: undefined,
 });
 
-// 字典仓库与需要加载的字典类型
-const dictStore = useDictStore();
-const dictTypes: any = [
-];
-
 // 弹窗状态
 const dialogVisible = reactive({
   title: "",
@@ -724,20 +778,14 @@ const dialogVisible = reactive({
 
 // 表单验证规则
 const rules = reactive({
-  id: [{ required: false, message: "请输入id", trigger: "blur" }],
-  uuid: [{ required: false, message: "请输入uuid", trigger: "blur" }],
   name: [{ required: false, message: "请输入知识库名称", trigger: "blur" }],
-  vectordb_id: [{ required: false, message: "请输入关联向量数据库ID", trigger: "blur" }],
+  vectordb_id: [{ required: false, message: "请选择关联向量数据库", trigger: "change" }],
   max_results: [{ required: false, message: "请输入最大检索结果数", trigger: "blur" }],
-  reader_type: [{ required: true, message: "请输入文档读取器类型(pdf/web/docx/csv/json/text)", trigger: "blur" }],
+  reader_type: [{ required: false, message: "请选择文档读取器类型", trigger: "change" }],
   reader_config: [{ required: false, message: "请输入读取器配置参数", trigger: "blur" }],
-  default_filters: [{ required: true, message: "请输入默认搜索过滤条件", trigger: "blur" }],
-  status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: false, message: "请输入description", trigger: "blur" }],
-  created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
-  updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
-  created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
-  updated_id: [{ required: true, message: "请输入updated_id", trigger: "blur" }],
+  default_filters: [{ required: false, message: "请输入默认搜索过滤条件", trigger: "blur" }],
+  status: [{ required: false, message: "请选择状态", trigger: "change" }],
+  description: [{ required: false, message: "请输入描述", trigger: "blur" }],
 });
 
 // 导入弹窗显示状态
@@ -965,10 +1013,7 @@ const handleUpload = async (formData: FormData) => {
 };
 
 onMounted(async () => {
-  // 预加载字典数据
-  if (dictTypes.length > 0) {
-    await dictStore.getDict(dictTypes);
-  }
+  await loadVectordbList();
   loadingData();
 });
 </script>
