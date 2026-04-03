@@ -32,7 +32,7 @@ _sync_engine = _create_sync_engine()
 _SyncSession = sessionmaker(bind=_sync_engine)
 
 # ── namedtuple 轻量返回值 ──────────────────────────────────────────────────────
-Binding = namedtuple("Binding", ["resource_type", "resource_id"])
+Binding = namedtuple("Binding", ["resource_type", "resource_id","priority", "config_override"])
 TeamMember = namedtuple("TeamMember", ["member_id", "member_type", "member_order", "role"])
 
 
@@ -49,7 +49,7 @@ class SyncBindingRepo:
         resource_type: str | None = None,
     ) -> list[Binding]:
         sql = """
-            SELECT resource_type, resource_id::text
+            SELECT resource_type, resource_id::text, priority, config_override
             FROM ag_bindings
             WHERE owner_id = :owner_id
               AND owner_type = :owner_type
@@ -69,7 +69,12 @@ class SyncBindingRepo:
             with _SyncSession() as session:
                 rows = session.execute(text(sql), params).fetchall()
             # resource_id 是整数，转为字符串与 registry key 保持一致
-            return [Binding(r.resource_type, str(r.resource_id)) for r in rows]
+            binding_results = []
+            for row in rows:
+                if row.config_override and isinstance(row.config_override, str):
+                    row.config_override = json.loads(row.config_override)
+                binding_results.append(Binding(row.resource_type, str(row.resource_id), row.priority, row.config_override))
+            return binding_results
         except Exception as e:
             log.error(f"[SyncBindingRepo] query failed: {e}")
             return []
