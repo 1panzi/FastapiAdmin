@@ -34,6 +34,29 @@ English | [简体中文](./README.md)
 
 > **Design Philosophy**: With modularity and loose coupling at its core, it pursues rich functional modules, simple and easy-to-use interfaces, detailed development documentation, and convenient maintenance methods. By unifying frameworks and components, it reduces the cost of technology selection, follows development specifications and design patterns, builds a powerful code hierarchical model, and comes with comprehensive local language support. It is specifically tailored for team and enterprise development scenarios.
 
+<a id="packaging-philosophy"></a>
+
+## 📐 Packaging philosophy: two layouts and this project’s choice
+
+This is about **how source directories are split** (package by feature vs by layer), not whether the code uses MVC or Controller–Service–CRUD **logic layers**—those layers still exist in this project; the difference is the **first** split: by business domain or by technical tier.
+
+| Approach | Idea | Typical layout (example) |
+|----------|------|---------------------------|
+| **Package by layer** | Group files by technical role | Top-level `models/`, `schemas/`, `cruds/`, `services/`, `controllers/`, … |
+| **Package by feature** (vertical slice) | Group files by business domain | Under `app/api/v1/module_*/<domain>/`: `controller.py`, `service.py`, `crud.py`, `model.py`, `schema.py`; optional features under `app/plugin/...` |
+
+**This project (backend) uses: package by feature (vertical slices).**
+
+**Why (design intent)**
+
+- **Decoupling follows business boundaries**: modules such as system admin, monitoring, and business subdomains; collaborators touch different folders instead of one global `models/` / `services/`.
+- **Future extraction**: moving a module to its own repo or package is naturally **one tree**; layer-first layouts often require pulling files from many top-level folders.
+- **Layers are not gone**: Controller → Service → CRUD → Model / Schema still applies **inside** each domain package, not as the only top-level organization.
+
+**Trade-off**: layer-first can suit small teams that want to browse one technical tier at a glance; this project prioritizes **domain decoupling** and **parallel work by module**. For schema overview, use IDE, DB tools, and Alembic rather than switching to a single global `models/` tree.
+
+---
+
 ## 📖 Start Here (New Users)
 
 | I want to… | Go to |
@@ -41,7 +64,7 @@ English | [简体中文](./README.md)
 | **Run the project locally ASAP** | **Quick Start** → **“First-time local setup (in order)”** (env, deps, run; **first backend start auto-inits DB schema & seed data**) |
 | **Architecture diagram & default ports (5180 / 8001, …)** | **“Local Architecture & Default Ports”** (matches `.env*.example`) |
 | **See what the project offers** | **Built-in Functional Modules**, **Demo Environment** (credentials) |
-| **Extend / plugin development** | **Secondary Development Tutorial**; backend layout and CLI: [**backend/README.md**](backend/README.md) |
+| **Extend / plugin development** | **Secondary Development Tutorial**; **[Packaging philosophy](#packaging-philosophy)**; backend layout & CLI: [**backend/README.md**](backend/README.md) |
 | **API docs** | With template env: **`http://127.0.0.1:8001/docs`** (see `SERVER_PORT`) |
 
 ## 🎯 Core Advantages
