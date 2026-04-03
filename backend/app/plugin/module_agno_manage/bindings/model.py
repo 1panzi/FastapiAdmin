@@ -15,7 +15,7 @@ class AgBindingModel(ModelMixin, UserMixin):
 
     owner_type: Mapped[str | None] = mapped_column(String(50), nullable=True, comment='拥有者类型(agent/team/user)')
     owner_id: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='拥有者ID（user时为user_id）')
-    resource_type: Mapped[str | None] = mapped_column(String(50), nullable=True, comment='资源类型(toolkit/skill/mcp/knowledge/hook/guardrail)')
+    resource_type: Mapped[str | None] = mapped_column(String(50), nullable=True, comment='资源类型(toolkit/skill/mcp/knowledge/hook/guardrail/reader)')
     resource_id: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='资源ID')
     priority: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='优先级（数字小优先）')
     config_override: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='覆盖资源默认配置（如特定Agent使用不同API Key）')

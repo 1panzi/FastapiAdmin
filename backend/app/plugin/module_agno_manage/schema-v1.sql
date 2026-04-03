@@ -300,20 +300,18 @@ COMMENT ON COLUMN ag_skills.updated_id     IS '更新人ID';
 -- 5.7 ag_knowledge_bases（知识库管理）
 -- ──────────────────────────────────────────────────────────
 CREATE TABLE ag_knowledge_bases (
-    id              SERIAL NOT NULL,
-    uuid            varchar(64) NOT NULL,
-    name            varchar(255) NOT NULL,
-    vectordb_id     integer NOT NULL,
-    max_results     integer NOT NULL DEFAULT 10,
-    reader_type     varchar(50),
-    reader_config   jsonb NOT NULL DEFAULT '{}',
-    default_filters jsonb,
-    status          varchar(10) NOT NULL DEFAULT '0',
-    description     text,
-    created_time    timestamp without time zone NOT NULL,
-    updated_time    timestamp without time zone NOT NULL,
-    created_id      integer,
-    updated_id      integer,
+    id                      SERIAL NOT NULL,
+    uuid                    varchar(64) NOT NULL,
+    name                    varchar(255) NOT NULL,
+    vectordb_id             integer NOT NULL,
+    max_results             integer NOT NULL DEFAULT 10,
+    isolate_vector_search   boolean NOT NULL DEFAULT false,
+    status                  varchar(10) NOT NULL DEFAULT '0',
+    description             text,
+    created_time            timestamp without time zone NOT NULL,
+    updated_time            timestamp without time zone NOT NULL,
+    created_id              integer,
+    updated_id              integer,
     PRIMARY KEY(id),
     CONSTRAINT ag_knowledge_bases_vectordb_id_fkey FOREIGN KEY(vectordb_id) REFERENCES ag_vectordbs(id),
     CONSTRAINT ag_knowledge_bases_created_id_fkey  FOREIGN KEY(created_id)  REFERENCES sys_user(id),
@@ -325,21 +323,101 @@ CREATE INDEX ix_ag_knowledge_bases_status        ON public.ag_knowledge_bases US
 CREATE INDEX ix_ag_knowledge_bases_created_id    ON public.ag_knowledge_bases USING btree (created_id);
 CREATE INDEX ix_ag_knowledge_bases_updated_id    ON public.ag_knowledge_bases USING btree (updated_id);
 
-COMMENT ON TABLE  ag_knowledge_bases                IS '知识库管理表';
-COMMENT ON COLUMN ag_knowledge_bases.id             IS '主键ID';
-COMMENT ON COLUMN ag_knowledge_bases.uuid           IS 'UUID全局唯一标识';
-COMMENT ON COLUMN ag_knowledge_bases.name           IS '知识库名称';
-COMMENT ON COLUMN ag_knowledge_bases.vectordb_id    IS '关联向量数据库ID';
-COMMENT ON COLUMN ag_knowledge_bases.max_results    IS '最大检索结果数';
-COMMENT ON COLUMN ag_knowledge_bases.reader_type    IS '文档读取器类型(pdf/web/docx/csv/json/text)';
-COMMENT ON COLUMN ag_knowledge_bases.reader_config  IS '读取器配置参数';
-COMMENT ON COLUMN ag_knowledge_bases.default_filters IS '默认搜索过滤条件';
-COMMENT ON COLUMN ag_knowledge_bases.status         IS '是否启用(0:启用 1:禁用)';
-COMMENT ON COLUMN ag_knowledge_bases.description    IS '备注/描述';
-COMMENT ON COLUMN ag_knowledge_bases.created_time   IS '创建时间';
-COMMENT ON COLUMN ag_knowledge_bases.updated_time   IS '更新时间';
-COMMENT ON COLUMN ag_knowledge_bases.created_id     IS '创建人ID';
-COMMENT ON COLUMN ag_knowledge_bases.updated_id     IS '更新人ID';
+COMMENT ON TABLE  ag_knowledge_bases                         IS '知识库管理表';
+COMMENT ON COLUMN ag_knowledge_bases.id                      IS '主键ID';
+COMMENT ON COLUMN ag_knowledge_bases.uuid                    IS 'UUID全局唯一标识';
+COMMENT ON COLUMN ag_knowledge_bases.name                    IS '知识库名称';
+COMMENT ON COLUMN ag_knowledge_bases.vectordb_id             IS '关联向量数据库ID';
+COMMENT ON COLUMN ag_knowledge_bases.max_results             IS '最大检索结果数（Knowledge.max_results）';
+COMMENT ON COLUMN ag_knowledge_bases.isolate_vector_search   IS '是否启用向量搜索隔离（多知识库共享同一向量库时按name隔离）';
+COMMENT ON COLUMN ag_knowledge_bases.status                  IS '是否启用(0:启用 1:禁用)';
+COMMENT ON COLUMN ag_knowledge_bases.description             IS '备注/描述';
+COMMENT ON COLUMN ag_knowledge_bases.created_time            IS '创建时间';
+COMMENT ON COLUMN ag_knowledge_bases.updated_time            IS '更新时间';
+COMMENT ON COLUMN ag_knowledge_bases.created_id              IS '创建人ID';
+COMMENT ON COLUMN ag_knowledge_bases.updated_id              IS '更新人ID';
+
+
+-- ──────────────────────────────────────────────────────────
+-- 5.7b ag_readers（文档读取器管理）
+-- ──────────────────────────────────────────────────────────
+-- Reader 配置独立管理，通过 ag_bindings(resource_type='reader') 关联到知识库。
+-- 绑定时可在 config_override 字段中覆盖基础配置，实现知识库级别的参数差异化。
+-- Reader 运行时由 registry 在知识库 build 时一次性实例化，不常驻内存缓存。
+-- ──────────────────────────────────────────────────────────
+CREATE TABLE ag_readers (
+    id                  SERIAL NOT NULL,
+    uuid                varchar(64) NOT NULL,
+    name                varchar(255) NOT NULL,
+
+    -- Reader 类型
+    reader_type         varchar(30) NOT NULL,
+
+    -- 基类通用参数（Reader base class）
+    chunk               boolean NOT NULL DEFAULT true,
+    chunk_size          integer NOT NULL DEFAULT 5000,
+    encoding            varchar(30),
+
+    -- Chunking 策略
+    -- 枚举值: FixedSizeChunker/RecursiveChunker/DocumentChunker/
+    --         MarkdownChunker/RowChunker/SemanticChunker/AgenticChunker/CodeChunker
+    chunking_strategy   varchar(30),
+    chunk_overlap       integer NOT NULL DEFAULT 0,
+
+    -- Reader 专属参数（按 reader_type 不同而异）
+    -- pdf:              {"split_on_pages": true, "sanitize_content": true, "password": null}
+    -- excel:            {"sheets": null}
+    -- website:          {"max_depth": 3, "max_links": 10, "timeout": 10, "proxy": null}
+    -- firecrawl:        {"api_key": "", "mode": "scrape", "params": null}
+    -- tavily:           {"api_key": "", "extract_format": "markdown", "extract_depth": "basic"}
+    -- arxiv:            {"sort_by": "Relevance"}
+    -- wikipedia:        {"auto_suggest": true}
+    -- field_labeled_csv:{"chunk_title": null, "field_names": [], "format_headers": true, "skip_empty_fields": true}
+    reader_config       jsonb NOT NULL DEFAULT '{}',
+
+    -- 运行时对象引用（可选，用于需要外部模型的 Chunking 策略）
+    embedder_id         integer,    -- SemanticChunker 使用
+    model_id            integer,    -- AgenticChunker 使用
+
+    status              varchar(10) NOT NULL DEFAULT '0',
+    description         text,
+    created_time        timestamp without time zone NOT NULL,
+    updated_time        timestamp without time zone NOT NULL,
+    created_id          integer,
+    updated_id          integer,
+    PRIMARY KEY(id),
+    CONSTRAINT ag_readers_embedder_id_fkey  FOREIGN KEY(embedder_id) REFERENCES ag_embedders(id),
+    CONSTRAINT ag_readers_model_id_fkey     FOREIGN KEY(model_id)    REFERENCES ag_models(id),
+    CONSTRAINT ag_readers_created_id_fkey   FOREIGN KEY(created_id)  REFERENCES sys_user(id),
+    CONSTRAINT ag_readers_updated_id_fkey   FOREIGN KEY(updated_id)  REFERENCES sys_user(id)
+);
+CREATE UNIQUE INDEX ag_readers_uuid_key         ON public.ag_readers USING btree (uuid);
+CREATE INDEX ix_ag_readers_reader_type          ON public.ag_readers USING btree (reader_type);
+CREATE INDEX ix_ag_readers_embedder_id          ON public.ag_readers USING btree (embedder_id);
+CREATE INDEX ix_ag_readers_model_id             ON public.ag_readers USING btree (model_id);
+CREATE INDEX ix_ag_readers_status               ON public.ag_readers USING btree (status);
+CREATE INDEX ix_ag_readers_created_id           ON public.ag_readers USING btree (created_id);
+CREATE INDEX ix_ag_readers_updated_id           ON public.ag_readers USING btree (updated_id);
+
+COMMENT ON TABLE  ag_readers                    IS '文档读取器管理表（Reader+Chunking配置，通过ag_bindings关联知识库）';
+COMMENT ON COLUMN ag_readers.id                 IS '主键ID';
+COMMENT ON COLUMN ag_readers.uuid               IS 'UUID全局唯一标识';
+COMMENT ON COLUMN ag_readers.name               IS 'Reader名称';
+COMMENT ON COLUMN ag_readers.reader_type        IS 'Reader类型(pdf/csv/excel/docx/pptx/json/markdown/text/website/firecrawl/tavily/youtube/arxiv/wikipedia/web_search/field_labeled_csv)';
+COMMENT ON COLUMN ag_readers.chunk              IS '是否对内容分块';
+COMMENT ON COLUMN ag_readers.chunk_size         IS '分块大小（字符数）';
+COMMENT ON COLUMN ag_readers.encoding           IS '文本编码（utf-8/gbk等，文本类Reader使用）';
+COMMENT ON COLUMN ag_readers.chunking_strategy  IS 'Chunking策略(FixedSizeChunker/RecursiveChunker/DocumentChunker/MarkdownChunker/RowChunker/SemanticChunker/AgenticChunker/CodeChunker)';
+COMMENT ON COLUMN ag_readers.chunk_overlap      IS 'Chunk重叠字符数（FixedSize/Recursive/Document/Markdown策略支持）';
+COMMENT ON COLUMN ag_readers.reader_config      IS 'Reader专属参数（按reader_type不同，见表注释）';
+COMMENT ON COLUMN ag_readers.embedder_id        IS '关联Embedder ID（SemanticChunker使用）';
+COMMENT ON COLUMN ag_readers.model_id           IS '关联Model ID（AgenticChunker使用）';
+COMMENT ON COLUMN ag_readers.status             IS '是否启用(0:启用 1:禁用)';
+COMMENT ON COLUMN ag_readers.description        IS '备注/描述';
+COMMENT ON COLUMN ag_readers.created_time       IS '创建时间';
+COMMENT ON COLUMN ag_readers.updated_time       IS '更新时间';
+COMMENT ON COLUMN ag_readers.created_id         IS '创建人ID';
+COMMENT ON COLUMN ag_readers.updated_id         IS '更新人ID';
 
 
 -- ──────────────────────────────────────────────────────────
@@ -1003,7 +1081,7 @@ COMMENT ON COLUMN ag_bindings.id             IS '主键ID';
 COMMENT ON COLUMN ag_bindings.uuid           IS 'UUID全局唯一标识';
 COMMENT ON COLUMN ag_bindings.owner_type     IS '拥有者类型(agent/team)';
 COMMENT ON COLUMN ag_bindings.owner_id       IS '拥有者ID';
-COMMENT ON COLUMN ag_bindings.resource_type  IS '资源类型(toolkit/skill/mcp/knowledge/hook/guardrail)';
+COMMENT ON COLUMN ag_bindings.resource_type  IS '资源类型(toolkit/skill/mcp/knowledge/hook/guardrail/reader)';
 COMMENT ON COLUMN ag_bindings.resource_id    IS '资源ID';
 COMMENT ON COLUMN ag_bindings.priority       IS '优先级（数字小优先）';
 COMMENT ON COLUMN ag_bindings.config_override IS '覆盖资源默认配置（如特定Agent使用不同API Key）';
