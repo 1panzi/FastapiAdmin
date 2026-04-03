@@ -83,7 +83,8 @@ def get_dynamic_router() -> APIRouter:
                             container_router.include_router(attr_value)
 
             except Exception as e:
-                log.error(f"❌️ 处理模块 {module_path} 失败: {e!s}")
+                import traceback
+                log.error(f"❌️ 处理模块 {module_path} 失败: {e!s}\n{traceback.format_exc()}")
 
         # 将所有容器路由注册到根路由
         for prefix, container_router in sorted(container_routers.items()):

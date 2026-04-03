@@ -66,7 +66,7 @@ class AgReaderQueryParam:
         encoding: str | None = Query(None, description="文本编码（utf-8/gbk等，文本类Reader使用）"),
         chunking_strategy: str | None = Query(None, description="Chunking策略(FixedSizeChunker/RecursiveChunker/DocumentChunker/MarkdownChunker/RowChunker/SemanticChunker/AgenticChunker/CodeChunker)"),
         chunk_overlap: int | None = Query(None, description="Chunk重叠字符数（FixedSize/Recursive/Document/Markdown策略支持）"),
-        reader_config: dict | None = Query(None, description="Reader专属参数（按reader_type不同，见表注释）"),
+        # reader_config: dict | None = Query(None, description="Reader专属参数（按reader_type不同，见表注释）"),
         embedder_id: int | None = Query(None, description="关联Embedder ID（SemanticChunker使用）"),
         model_id: int | None = Query(None, description="关联Model ID（AgenticChunker使用）"),
         status: str | None = Query(None, description="是否启用(0:启用 1:禁用)"),
@@ -96,8 +96,8 @@ class AgReaderQueryParam:
         if chunk_overlap:
             self.chunk_overlap = (QueueEnum.eq.value, chunk_overlap)
         # 精确查询字段
-        if reader_config:
-            self.reader_config = (QueueEnum.eq.value, reader_config)
+        # if reader_config:
+        #     self.reader_config = (QueueEnum.eq.value, reader_config)
         # 精确查询字段
         if embedder_id:
             self.embedder_id = (QueueEnum.eq.value, embedder_id)

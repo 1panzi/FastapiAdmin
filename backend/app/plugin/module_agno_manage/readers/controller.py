@@ -3,9 +3,9 @@
 from fastapi import APIRouter, Depends, UploadFile, Body, Path, Query
 from fastapi.responses import StreamingResponse, JSONResponse
 
+from app.api.v1.module_system.auth.schema import AuthSchema
 from app.common.response import SuccessResponse, StreamResponse
 from app.core.dependencies import AuthPermission
-from app.api.v1.module_system.auth.schema import AuthSchema
 from app.core.base_params import PaginationQueryParam
 from app.utils.common_util import bytes2file_response
 from app.core.logger import log

@@ -3,7 +3,7 @@ __pycache__
 .idea
 .DS_Store
 .git
-
+**/__pycache__
 backend/__pycache__
 backend/.vscode
 backend/.idea

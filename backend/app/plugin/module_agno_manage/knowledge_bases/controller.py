@@ -249,12 +249,3 @@ async def export_knowledge_bases_template_controller() -> StreamingResponse:
     )
 
 
-@AgKnowledgeBaseRouter.get(
-    "/agno/reader_types",
-    summary="获取 Agno 支持的 Reader 类型列表",
-)
-async def get_agno_reader_types_controller(
-    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:knowledge_bases:query"]))
-):
-    result = AgKnowledgeBaseService.list_agno_types_service()
-    return SuccessResponse(data=result, msg="获取 Reader 类型列表成功")

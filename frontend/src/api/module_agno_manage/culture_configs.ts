@@ -114,13 +114,13 @@ export interface AgCultureConfigPageQuery extends PageQuery {
 export interface AgCultureConfigTable extends BaseType {
   name?: string;
   model_id?: string;
-  add_knowledge?: boolean;
-  update_knowledge?: boolean;
-  delete_knowledge?: boolean;
-  clear_knowledge?: string;
+  add_knowledge?: boolean | null;
+  update_knowledge?: boolean | null;
+  delete_knowledge?: boolean | null;
+  clear_knowledge?: boolean | null;
   culture_capture_instructions?: string;
   additional_instructions?: string;
-  debug_mode?: string;
+  debug_mode?: boolean | null;
   created_id?: string;
   updated_id?: string;
   created_by?: CommonType;
@@ -131,11 +131,11 @@ export interface AgCultureConfigTable extends BaseType {
 export interface AgCultureConfigForm extends BaseFormType {
   name?: string;
   model_id?: string;
-  add_knowledge?: boolean;
-  update_knowledge?: boolean;
-  delete_knowledge?: boolean;
-  clear_knowledge?: string;
+  add_knowledge?: boolean | null;
+  update_knowledge?: boolean | null;
+  delete_knowledge?: boolean | null;
+  clear_knowledge?: boolean | null;
   culture_capture_instructions?: string;
   additional_instructions?: string;
-  debug_mode?: string;
+  debug_mode?: boolean | null;
 }

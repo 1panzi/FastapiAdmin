@@ -22,11 +22,19 @@
             :inline="true"
             @submit.prevent="handleQuery"
           >
-            <el-form-item label="所属TeamID" prop="team_id">
-              <el-input v-model="queryFormData.team_id" placeholder="请输入所属TeamID" clearable />
+            <el-form-item label="所属Team" prop="team_id">
+              <LazySelect
+                v-model="queryFormData.team_id"
+                :fetcher="teamFetcher"
+                placeholder="请选择所属Team"
+                style="width: 200px"
+              />
             </el-form-item>
-            <el-form-item label="成员类型(agent/team)" prop="member_type">
-              <el-input v-model="queryFormData.member_type" placeholder="请输入成员类型(agent/team)" clearable />
+            <el-form-item label="成员类型" prop="member_type">
+              <el-select v-model="queryFormData.member_type" placeholder="请选择成员类型" clearable style="width: 140px">
+                <el-option value="agent" label="agent" />
+                <el-option value="team" label="team" />
+              </el-select>
             </el-form-item>
             <el-form-item label="成员ID" prop="member_id">
               <el-input v-model="queryFormData.member_id" placeholder="请输入成员ID" clearable />
@@ -253,16 +261,20 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'team_id')?.show"
-          label="所属TeamID"
+          label="所属Team"
           prop="team_id"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <span>{{ getTeamName(scope.row.team_id) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'member_type')?.show"
-          label="成员类型(agent/team)"
+          label="成员类型"
           prop="member_type"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         />
         <el-table-column
@@ -288,16 +300,16 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
-          min-width="140"
+          min-width="80"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
-          min-width="140"
+          min-width="80"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -308,37 +320,37 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'description')?.show"
-          label=""
+          label="描述"
           prop="description"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
-          label=""
+          label="创建时间"
           prop="created_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
-          label=""
+          label="更新时间"
           prop="updated_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人ID"
           prop="created_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人"
           prop="created_id"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -347,16 +359,16 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人ID"
           prop="updated_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人"
           prop="updated_id"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -425,16 +437,16 @@
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="UUID" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
-          <el-descriptions-item label="所属TeamID" :span="2">
-            {{ detailFormData.team_id }}
+          <el-descriptions-item label="所属Team" :span="2">
+            {{ getTeamName(detailFormData.team_id) }}
           </el-descriptions-item>
-          <el-descriptions-item label="成员类型(agent/team)" :span="2">
+          <el-descriptions-item label="成员类型" :span="2">
             {{ detailFormData.member_type }}
           </el-descriptions-item>
           <el-descriptions-item label="成员ID" :span="2">
@@ -451,13 +463,13 @@
               {{ detailFormData.status == "0" ? "启用" : "停用" }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="描述" :span="2">
             {{ detailFormData.description }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="创建时间" :span="2">
             {{ detailFormData.created_time }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="更新时间" :span="2">
             {{ detailFormData.updated_time }}
           </el-descriptions-item>
           <el-descriptions-item label="创建人" :span="2">
@@ -479,11 +491,18 @@
           label-width="auto"
           label-position="right"
         >
-          <el-form-item label="所属TeamID" prop="team_id" :required="false">
-            <el-input v-model="formData.team_id" placeholder="请输入所属TeamID" />
+          <el-form-item label="所属Team" prop="team_id" :required="false">
+            <LazySelect
+              v-model="formData.team_id"
+              :fetcher="teamFetcher"
+              placeholder="请选择所属Team"
+            />
           </el-form-item>
-          <el-form-item label="成员类型(agent/team)" prop="member_type" :required="false">
-            <el-input v-model="formData.member_type" placeholder="请输入成员类型(agent/team)" />
+          <el-form-item label="成员类型" prop="member_type" :required="false">
+            <el-select v-model="formData.member_type" placeholder="请选择成员类型" clearable style="width: 100%">
+              <el-option value="agent" label="agent（AI代理）" />
+              <el-option value="team" label="team（嵌套Team）" />
+            </el-select>
           </el-form-item>
           <el-form-item label="成员ID" prop="member_id" :required="false">
             <el-input v-model="formData.member_id" placeholder="请输入成员ID" />
@@ -492,9 +511,9 @@
             <el-input v-model="formData.role" placeholder="请输入成员角色描述" />
           </el-form-item>
           <el-form-item label="成员排序" prop="member_order" :required="false">
-            <el-input v-model="formData.member_order" placeholder="请输入成员排序" />
+            <el-input-number v-model="formData.member_order" placeholder="数字小的优先" :min="0" :precision="0" style="width: 100%" />
           </el-form-item>
-          <el-form-item label="状态" prop="status" :required="true">
+          <el-form-item label="状态" prop="status" :required="false">
             <el-radio-group v-model="formData.status">
               <el-radio value="0">启用</el-radio>
               <el-radio value="1">停用</el-radio>
@@ -560,11 +579,13 @@ import DatePicker from "@/components/DatePicker/index.vue";
 import type { IContentConfig } from "@/components/CURD/types";
 import ImportModal from "@/components/CURD/ImportModal.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
+import LazySelect from "@/views/module_agno_manage/components/LazySelect/index.vue";
 import AgTeamMemberAPI, {
   AgTeamMemberPageQuery,
   AgTeamMemberTable,
   AgTeamMemberForm,
 } from "@/api/module_agno_manage/team_members";
+import AgTeamAPI from "@/api/module_agno_manage/teams";
 
 const visible = ref(false);
 const queryFormRef = ref();
@@ -583,33 +604,33 @@ const pageTableData = ref<AgTeamMemberTable[]>([]);
 const tableColumns = ref([
   { prop: "selection", label: "选择框", show: true },
   { prop: "index", label: "序号", show: true },
-  { prop: "team_id", label: "所属TeamID", show: true },
-  { prop: "member_type", label: "成员类型(agent/team)", show: true },
-  { prop: "member_id", label: "成员ID（agent或嵌套team）", show: true },
+  { prop: "team_id", label: "所属Team", show: true },
+  { prop: "member_type", label: "成员类型", show: true },
+  { prop: "member_id", label: "成员ID", show: true },
   { prop: "role", label: "成员角色描述", show: true },
-  { prop: "member_order", label: "成员排序（数字小优先）", show: true },
-  { prop: "status", label: "status", show: true },
-  { prop: "description", label: "description", show: true },
-  { prop: "created_time", label: "created_time", show: true },
-  { prop: "updated_time", label: "updated_time", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "member_order", label: "成员排序", show: true },
+  { prop: "status", label: "状态", show: true },
+  { prop: "description", label: "描述", show: true },
+  { prop: "created_time", label: "创建时间", show: true },
+  { prop: "updated_time", label: "更新时间", show: true },
+  { prop: "created_id", label: "创建人", show: true },
+  { prop: "updated_id", label: "更新人", show: true },
   { prop: "operation", label: "操作", show: true },
 ]);
 
 // 导出列（不含选择/序号/操作）
 const exportColumns = [
-  { prop: "team_id", label: "所属TeamID" },
-  { prop: "member_type", label: "成员类型(agent/team)" },
-  { prop: "member_id", label: "成员ID（agent或嵌套team）" },
+  { prop: "team_id", label: "所属Team" },
+  { prop: "member_type", label: "成员类型" },
+  { prop: "member_id", label: "成员ID" },
   { prop: "role", label: "成员角色描述" },
-  { prop: "member_order", label: "成员排序（数字小优先）" },
-  { prop: "status", label: "status" },
-  { prop: "description", label: "description" },
-  { prop: "created_time", label: "created_time" },
-  { prop: "updated_time", label: "updated_time" },
-  { prop: "created_id", label: "created_id" },
-  { prop: "updated_id", label: "updated_id" },
+  { prop: "member_order", label: "成员排序" },
+  { prop: "status", label: "状态" },
+  { prop: "description", label: "描述" },
+  { prop: "created_time", label: "创建时间" },
+  { prop: "updated_time", label: "更新时间" },
+  { prop: "created_id", label: "创建人ID" },
+  { prop: "updated_id", label: "更新人ID" },
 ];
 
 // 导入/导出配置
@@ -695,6 +716,34 @@ const dictStore = useDictStore();
 const dictTypes: any = [
 ];
 
+// Team 懒加载 fetcher
+const teamFetcher = async (params: { page_no: number; page_size: number; name?: string }) => {
+  const res = await AgTeamAPI.listAgTeam({ ...params });
+  const items = (res.data?.data?.items || []).map((item: any) => ({
+    value: String(item.id),
+    label: item.name || String(item.id),
+    raw: item,
+  }));
+  return { items, total: res.data?.data?.total || 0 };
+};
+
+// Team 名称缓存（用于表格/详情显示）
+const teamNameCache = ref<Record<string, string>>({});
+
+function getTeamName(id?: number | string | null): string {
+  if (!id) return "-";
+  const key = String(id);
+  if (teamNameCache.value[key]) return teamNameCache.value[key];
+  AgTeamAPI.detailAgTeam(Number(id))
+    .then((res) => {
+      teamNameCache.value[key] = res.data?.data?.name || key;
+    })
+    .catch(() => {
+      teamNameCache.value[key] = key;
+    });
+  return key;
+}
+
 // 弹窗状态
 const dialogVisible = reactive({
   title: "",
@@ -706,17 +755,17 @@ const dialogVisible = reactive({
 const rules = reactive({
   id: [{ required: false, message: "请输入id", trigger: "blur" }],
   uuid: [{ required: false, message: "请输入uuid", trigger: "blur" }],
-  team_id: [{ required: false, message: "请输入所属TeamID", trigger: "blur" }],
-  member_type: [{ required: false, message: "请输入成员类型(agent/team)", trigger: "blur" }],
-  member_id: [{ required: false, message: "请输入成员ID（agent或嵌套team）", trigger: "blur" }],
-  role: [{ required: true, message: "请输入成员角色描述", trigger: "blur" }],
-  member_order: [{ required: false, message: "请输入成员排序（数字小优先）", trigger: "blur" }],
-  status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: false, message: "请输入description", trigger: "blur" }],
-  created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
-  updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
-  created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
-  updated_id: [{ required: true, message: "请输入updated_id", trigger: "blur" }],
+  team_id: [{ required: false, message: "请选择所属Team", trigger: "blur" }],
+  member_type: [{ required: false, message: "请选择成员类型", trigger: "blur" }],
+  member_id: [{ required: false, message: "请输入成员ID", trigger: "blur" }],
+  role: [{ required: false, message: "请输入成员角色描述", trigger: "blur" }],
+  member_order: [{ required: false, message: "请输入成员排序", trigger: "blur" }],
+  status: [{ required: false, message: "请选择状态", trigger: "blur" }],
+  description: [{ required: false, message: "请输入描述", trigger: "blur" }],
+  created_time: [{ required: false, message: "请输入创建时间", trigger: "blur" }],
+  updated_time: [{ required: false, message: "请输入更新时间", trigger: "blur" }],
+  created_id: [{ required: false, message: "请输入创建人", trigger: "blur" }],
+  updated_id: [{ required: false, message: "请输入更新人", trigger: "blur" }],
 });
 
 // 导入弹窗显示状态
@@ -832,7 +881,7 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     formData.member_id = undefined;
     formData.role = undefined;
     formData.member_order = undefined;
-    formData.status = undefined;
+    formData.status = "0";
     formData.description = undefined;
   }
   dialogVisible.visible = true;

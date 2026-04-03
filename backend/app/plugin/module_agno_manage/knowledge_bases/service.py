@@ -11,7 +11,6 @@ from app.core.logger import log
 from app.plugin.module_agno_manage.core.registry import get_registry
 from app.utils.excel_util import ExcelUtil
 
-from .agno_catalog import KnowledgeTypeInfo, list_knowledge_types
 from .crud import AgKnowledgeBaseCRUD
 from .schema import (
     AgKnowledgeBaseCreateSchema,
@@ -336,8 +335,3 @@ class AgKnowledgeBaseService:
             selector_header_list=selector_header_list,
             option_list=option_list
         )
-
-    @classmethod
-    def list_agno_types_service(cls) -> list[KnowledgeTypeInfo]:
-        """返回 Agno 支持的知识库类型列表。"""
-        return list_knowledge_types()

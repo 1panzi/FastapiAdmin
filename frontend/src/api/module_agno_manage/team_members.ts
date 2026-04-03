@@ -108,11 +108,11 @@ export interface AgTeamMemberPageQuery extends PageQuery {
 
 // 列表展示项
 export interface AgTeamMemberTable extends BaseType {
-  team_id?: string;
+  team_id?: number | null;
   member_type?: string;
-  member_id?: string;
+  member_id?: number | null;
   role?: string;
-  member_order?: string;
+  member_order?: number | null;
   created_id?: string;
   updated_id?: string;
   created_by?: CommonType;
@@ -123,7 +123,7 @@ export interface AgTeamMemberTable extends BaseType {
 export interface AgTeamMemberForm extends BaseFormType {
   team_id?: string;
   member_type?: string;
-  member_id?: string;
+  member_id?: number | null;
   role?: string;
-  member_order?: string;
+  member_order?: number | null;
 }

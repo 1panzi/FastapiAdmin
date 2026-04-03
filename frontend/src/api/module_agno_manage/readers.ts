@@ -56,6 +56,22 @@ const AgReaderAPI = {
     });
   },
 
+  // 获取Reader类型列表
+  listReaderTypes() {
+    return request<ApiResponse<AgReaderType[]>>({
+      url: `${API_PATH}/agno/reader_types`,
+      method: "get",
+    });
+  },
+
+  // 获取Chunking策略列表
+  listChunkingStrategies() {
+    return request<ApiResponse<AgChunkingStrategy[]>>({
+      url: `${API_PATH}/agno/chunking_strategies`,
+      method: "get",
+    });
+  },
+
   // 导出
   exportAgReader(query: AgReaderPageQuery) {
     return request<Blob>({
@@ -97,11 +113,8 @@ export interface AgReaderPageQuery extends PageQuery {
   name?: string;
   reader_type?: string;
   chunk?: string;
-  chunk_size?: string;
   encoding?: string;
   chunking_strategy?: string;
-  chunk_overlap?: string;
-  reader_config?: string;
   embedder_id?: string;
   model_id?: string;
   status?: string;
@@ -115,12 +128,12 @@ export interface AgReaderPageQuery extends PageQuery {
 export interface AgReaderTable extends BaseType {
   name?: string;
   reader_type?: string;
-  chunk?: string;
-  chunk_size?: string;
+  chunk?: boolean | null;
+  chunk_size?: number | null;
   encoding?: string;
   chunking_strategy?: string;
-  chunk_overlap?: string;
-  reader_config?: string;
+  chunk_overlap?: number | null;
+  reader_config?: Record<string, any> | null;
   embedder_id?: string;
   model_id?: string;
   created_id?: string;
@@ -133,12 +146,26 @@ export interface AgReaderTable extends BaseType {
 export interface AgReaderForm extends BaseFormType {
   name?: string;
   reader_type?: string;
-  chunk?: string;
-  chunk_size?: string;
+  chunk?: boolean | null;
+  chunk_size?: number | null;
   encoding?: string;
   chunking_strategy?: string;
-  chunk_overlap?: string;
-  reader_config?: string;
+  chunk_overlap?: number | null;
+  reader_config?: Record<string, any>;
   embedder_id?: string;
   model_id?: string;
+}
+
+// Reader类型元数据
+export interface AgReaderType {
+  reader_type: string;
+  label: string;
+  description: string;
+}
+
+// Chunking策略元数据
+export interface AgChunkingStrategy {
+  strategy: string;
+  label: string;
+  description: string;
 }

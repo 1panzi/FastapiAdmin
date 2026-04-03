@@ -25,41 +25,49 @@
             <el-form-item label="文化配置名称" prop="name">
               <el-input v-model="queryFormData.name" placeholder="请输入文化配置名称" clearable />
             </el-form-item>
-            <el-form-item label="关联模型ID" prop="model_id">
-              <el-input v-model="queryFormData.model_id" placeholder="请输入关联模型ID" clearable />
+            <el-form-item label="关联模型" prop="model_id">
+              <LazySelect
+                v-model="queryFormData.model_id"
+                :fetcher="modelFetcher"
+                placeholder="请选择关联模型"
+                style="width: 200px"
+              />
             </el-form-item>
-            <el-form-item label="是否允许新增知识" prop="add_knowledge">
-              <el-select v-model="queryFormData.add_knowledge" placeholder="请选择是否允许新增知识" style="width: 180px" clearable>
-                <el-option v-for="dict in dictStore.getDictArray('sys_yes_no')" :key="dict.dict_value" :label="dict.dict_label" :value="dict.dict_value" />
+            <el-form-item label="允许新增知识" prop="add_knowledge">
+              <el-select v-model="queryFormData.add_knowledge" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
               </el-select>
             </el-form-item>
-            <el-form-item label="是否允许更新知识" prop="update_knowledge">
-              <el-select v-model="queryFormData.update_knowledge" placeholder="请选择是否允许更新知识" style="width: 180px" clearable>
-                <el-option v-for="dict in dictStore.getDictArray('sys_yes_no')" :key="dict.dict_value" :label="dict.dict_label" :value="dict.dict_value" />
+            <el-form-item label="允许更新知识" prop="update_knowledge">
+              <el-select v-model="queryFormData.update_knowledge" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
               </el-select>
             </el-form-item>
-            <el-form-item label="是否允许删除知识" prop="delete_knowledge">
-              <el-select v-model="queryFormData.delete_knowledge" placeholder="请选择是否允许删除知识" style="width: 180px" clearable>
-                <el-option v-for="dict in dictStore.getDictArray('sys_yes_no')" :key="dict.dict_value" :label="dict.dict_label" :value="dict.dict_value" />
+            <el-form-item label="允许删除知识" prop="delete_knowledge">
+              <el-select v-model="queryFormData.delete_knowledge" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
               </el-select>
             </el-form-item>
-            <el-form-item label="是否允许清空知识" prop="clear_knowledge">
-              <el-input v-model="queryFormData.clear_knowledge" placeholder="请输入是否允许清空知识" clearable />
+            <el-form-item label="允许清空知识" prop="clear_knowledge">
+              <el-select v-model="queryFormData.clear_knowledge" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
+              </el-select>
             </el-form-item>
-            <el-form-item label="文化捕获指令" prop="culture_capture_instructions">
-              <el-input v-model="queryFormData.culture_capture_instructions" placeholder="请输入文化捕获指令" clearable />
-            </el-form-item>
-            <el-form-item label="附加指令" prop="additional_instructions">
-              <el-input v-model="queryFormData.additional_instructions" placeholder="请输入附加指令" clearable />
-            </el-form-item>
-            <el-form-item label="是否开启调试模式" prop="debug_mode">
-              <el-input v-model="queryFormData.debug_mode" placeholder="请输入是否开启调试模式" clearable />
+            <el-form-item label="调试模式" prop="debug_mode">
+              <el-select v-model="queryFormData.debug_mode" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
+              </el-select>
             </el-form-item>
             <el-form-item prop="status" label="状态">
               <el-select
                 v-model="queryFormData.status"
                 placeholder="请选择状态"
-                style="width: 170px"
+                style="width: 120px"
                 clearable
               >
                 <el-option value="0" label="启用" />
@@ -111,7 +119,7 @@
               </el-button>
               <!-- 展开/收起 -->
               <template v-if="isExpandable">
-                <el-link 
+                <el-link
                   class="ml-3"
                   type="primary"
                   underline="never"
@@ -239,7 +247,7 @@
         </div>
       </div>
 
-      <!-- 表格区域：系统配置列表 -->
+      <!-- 表格区域 -->
       <el-table
         ref="tableRef"
         v-loading="loading"
@@ -278,73 +286,101 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'model_id')?.show"
-          label="关联模型ID"
+          label="关联模型"
           prop="model_id"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <span>{{ getModelName(scope.row.model_id) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'add_knowledge')?.show"
-          label="是否允许新增知识"
+          label="允许新增知识"
           prop="add_knowledge"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="120"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.add_knowledge === true ? 'success' : scope.row.add_knowledge === false ? 'danger' : undefined">
+              {{ scope.row.add_knowledge === true ? '是' : scope.row.add_knowledge === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'update_knowledge')?.show"
-          label="是否允许更新知识"
+          label="允许更新知识"
           prop="update_knowledge"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="120"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.update_knowledge === true ? 'success' : scope.row.update_knowledge === false ? 'danger' : undefined">
+              {{ scope.row.update_knowledge === true ? '是' : scope.row.update_knowledge === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'delete_knowledge')?.show"
-          label="是否允许删除知识"
+          label="允许删除知识"
           prop="delete_knowledge"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="120"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.delete_knowledge === true ? 'success' : scope.row.delete_knowledge === false ? 'danger' : undefined">
+              {{ scope.row.delete_knowledge === true ? '是' : scope.row.delete_knowledge === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'clear_knowledge')?.show"
-          label="是否允许清空知识"
+          label="允许清空知识"
           prop="clear_knowledge"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="120"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.clear_knowledge === true ? 'success' : scope.row.clear_knowledge === false ? 'danger' : undefined">
+              {{ scope.row.clear_knowledge === true ? '是' : scope.row.clear_knowledge === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'culture_capture_instructions')?.show"
           label="文化捕获指令"
           prop="culture_capture_instructions"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'additional_instructions')?.show"
           label="附加指令"
           prop="additional_instructions"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'debug_mode')?.show"
-          label="是否开启调试模式"
+          label="调试模式"
           prop="debug_mode"
-          min-width="140"
+          min-width="100"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.debug_mode === true ? 'success' : scope.row.debug_mode === false ? 'danger' : undefined">
+              {{ scope.row.debug_mode === true ? '是' : scope.row.debug_mode === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column
+          v-if="tableColumns.find((col) => col.prop === 'status')?.show"
+          label="状态原值"
+          prop="status"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          v-if="tableColumns.find((col) => col.prop === 'status_tag')?.show"
+          label="状态"
           prop="status"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
-          prop="status"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="100"
         >
           <template #default="scope">
             <el-tag :type="scope.row.status == '0' ? 'success' : 'info'">
@@ -354,38 +390,37 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'description')?.show"
-          label=""
+          label="描述"
           prop="description"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
-          label=""
+          label="创建时间"
           prop="created_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
-          label=""
+          label="更新时间"
           prop="updated_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人ID"
           prop="created_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          v-if="tableColumns.find((col) => col.prop === 'created_by')?.show"
+          label="创建人"
           prop="created_id"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="120"
         >
           <template #default="scope">
             <el-tag>{{ scope.row.created_by?.name }}</el-tag>
@@ -393,17 +428,16 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人ID"
           prop="updated_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          v-if="tableColumns.find((col) => col.prop === 'updated_by')?.show"
+          label="更新人"
           prop="updated_id"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="120"
         >
           <template #default="scope">
             <el-tag>{{ scope.row.updated_by?.name }}</el-tag>
@@ -471,51 +505,61 @@
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="UUID" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
           <el-descriptions-item label="文化配置名称" :span="2">
             {{ detailFormData.name }}
           </el-descriptions-item>
-          <el-descriptions-item label="关联模型ID" :span="2">
-            {{ detailFormData.model_id }}
+          <el-descriptions-item label="关联模型" :span="2">
+            {{ getModelName(detailFormData.model_id) }}
           </el-descriptions-item>
-          <el-descriptions-item label="是否允许新增知识" :span="2">
-            {{ detailFormData.add_knowledge }}
+          <el-descriptions-item label="允许新增知识" :span="2">
+            <el-tag :type="detailFormData.add_knowledge === true ? 'success' : detailFormData.add_knowledge === false ? 'danger' : undefined">
+              {{ detailFormData.add_knowledge === true ? '是' : detailFormData.add_knowledge === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否允许更新知识" :span="2">
-            {{ detailFormData.update_knowledge }}
+          <el-descriptions-item label="允许更新知识" :span="2">
+            <el-tag :type="detailFormData.update_knowledge === true ? 'success' : detailFormData.update_knowledge === false ? 'danger' : undefined">
+              {{ detailFormData.update_knowledge === true ? '是' : detailFormData.update_knowledge === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否允许删除知识" :span="2">
-            {{ detailFormData.delete_knowledge }}
+          <el-descriptions-item label="允许删除知识" :span="2">
+            <el-tag :type="detailFormData.delete_knowledge === true ? 'success' : detailFormData.delete_knowledge === false ? 'danger' : undefined">
+              {{ detailFormData.delete_knowledge === true ? '是' : detailFormData.delete_knowledge === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否允许清空知识" :span="2">
-            {{ detailFormData.clear_knowledge }}
+          <el-descriptions-item label="允许清空知识" :span="2">
+            <el-tag :type="detailFormData.clear_knowledge === true ? 'success' : detailFormData.clear_knowledge === false ? 'danger' : undefined">
+              {{ detailFormData.clear_knowledge === true ? '是' : detailFormData.clear_knowledge === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="文化捕获指令" :span="2">
-            {{ detailFormData.culture_capture_instructions }}
+          <el-descriptions-item label="文化捕获指令" :span="4">
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ detailFormData.culture_capture_instructions }}</pre>
           </el-descriptions-item>
-          <el-descriptions-item label="附加指令" :span="2">
-            {{ detailFormData.additional_instructions }}
+          <el-descriptions-item label="附加指令" :span="4">
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ detailFormData.additional_instructions }}</pre>
           </el-descriptions-item>
-          <el-descriptions-item label="是否开启调试模式" :span="2">
-            {{ detailFormData.debug_mode }}
+          <el-descriptions-item label="调试模式" :span="2">
+            <el-tag :type="detailFormData.debug_mode === true ? 'success' : detailFormData.debug_mode === false ? 'danger' : undefined">
+              {{ detailFormData.debug_mode === true ? '是' : detailFormData.debug_mode === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="状态" :span="2">
             <el-tag :type="detailFormData.status == '0' ? 'success' : 'danger'">
               {{ detailFormData.status == "0" ? "启用" : "停用" }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="描述" :span="4">
             {{ detailFormData.description }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="创建时间" :span="2">
             {{ detailFormData.created_time }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="更新时间" :span="2">
             {{ detailFormData.updated_time }}
           </el-descriptions-item>
           <el-descriptions-item label="创建人" :span="2">
@@ -540,37 +584,60 @@
           <el-form-item label="文化配置名称" prop="name" :required="false">
             <el-input v-model="formData.name" placeholder="请输入文化配置名称" />
           </el-form-item>
-          <el-form-item label="关联模型ID" prop="model_id" :required="false">
-            <el-input v-model="formData.model_id" placeholder="请输入关联模型ID" />
+          <el-form-item label="关联模型" prop="model_id" :required="false">
+            <LazySelect
+              v-model="formData.model_id"
+              :fetcher="modelFetcher"
+              placeholder="请选择关联模型"
+            />
           </el-form-item>
-          <el-form-item label="是否允许新增知识" prop="add_knowledge" :required="false">
-            <el-select v-model="formData.add_knowledge" placeholder="请选择是否允许新增知识">
-              <el-option v-for="dict in dictStore.getDictArray('sys_yes_no')" :key="dict.dict_value" :label="dict.dict_label" :value="dict.dict_value" />
+          <el-form-item label="允许新增知识" prop="add_knowledge" :required="false">
+            <el-select v-model="formData.add_knowledge" placeholder="默认" clearable style="width: 100%">
+              <el-option label="开启" :value="true" />
+              <el-option label="关闭" :value="false" />
             </el-select>
           </el-form-item>
-          <el-form-item label="是否允许更新知识" prop="update_knowledge" :required="false">
-            <el-select v-model="formData.update_knowledge" placeholder="请选择是否允许更新知识">
-              <el-option v-for="dict in dictStore.getDictArray('sys_yes_no')" :key="dict.dict_value" :label="dict.dict_label" :value="dict.dict_value" />
+          <el-form-item label="允许更新知识" prop="update_knowledge" :required="false">
+            <el-select v-model="formData.update_knowledge" placeholder="默认" clearable style="width: 100%">
+              <el-option label="开启" :value="true" />
+              <el-option label="关闭" :value="false" />
             </el-select>
           </el-form-item>
-          <el-form-item label="是否允许删除知识" prop="delete_knowledge" :required="false">
-            <el-select v-model="formData.delete_knowledge" placeholder="请选择是否允许删除知识">
-              <el-option v-for="dict in dictStore.getDictArray('sys_yes_no')" :key="dict.dict_value" :label="dict.dict_label" :value="dict.dict_value" />
+          <el-form-item label="允许删除知识" prop="delete_knowledge" :required="false">
+            <el-select v-model="formData.delete_knowledge" placeholder="默认" clearable style="width: 100%">
+              <el-option label="开启" :value="true" />
+              <el-option label="关闭" :value="false" />
             </el-select>
           </el-form-item>
-          <el-form-item label="是否允许清空知识" prop="clear_knowledge" :required="false">
-            <el-input v-model="formData.clear_knowledge" placeholder="请输入是否允许清空知识" />
+          <el-form-item label="允许清空知识" prop="clear_knowledge" :required="false">
+            <el-select v-model="formData.clear_knowledge" placeholder="默认" clearable style="width: 100%">
+              <el-option label="开启" :value="true" />
+              <el-option label="关闭" :value="false" />
+            </el-select>
           </el-form-item>
           <el-form-item label="文化捕获指令" prop="culture_capture_instructions" :required="false">
-            <el-input v-model="formData.culture_capture_instructions" placeholder="请输入文化捕获指令" />
+            <el-input
+              v-model="formData.culture_capture_instructions"
+              :rows="4"
+              type="textarea"
+              placeholder="请输入文化捕获指令"
+            />
           </el-form-item>
           <el-form-item label="附加指令" prop="additional_instructions" :required="false">
-            <el-input v-model="formData.additional_instructions" placeholder="请输入附加指令" />
+            <el-input
+              v-model="formData.additional_instructions"
+              :rows="4"
+              type="textarea"
+              placeholder="请输入附加指令"
+            />
           </el-form-item>
-          <el-form-item label="是否开启调试模式" prop="debug_mode" :required="false">
-            <el-input v-model="formData.debug_mode" placeholder="请输入是否开启调试模式" />
+          <el-form-item label="调试模式" prop="debug_mode" :required="false">
+            <el-select v-model="formData.debug_mode" placeholder="默认" clearable style="width: 100%">
+              <el-option label="开启" :value="true" />
+              <el-option label="关闭" :value="false" />
+            </el-select>
           </el-form-item>
-          <el-form-item label="状态" prop="status" :required="true">
+          <el-form-item label="状态" prop="status" :required="false">
             <el-radio-group v-model="formData.status">
               <el-radio value="0">启用</el-radio>
               <el-radio value="1">停用</el-radio>
@@ -620,6 +687,7 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 defineOptions({
   name: "AgCultureConfig",
@@ -636,11 +704,13 @@ import DatePicker from "@/components/DatePicker/index.vue";
 import type { IContentConfig } from "@/components/CURD/types";
 import ImportModal from "@/components/CURD/ImportModal.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
+import LazySelect from "@/views/module_agno_manage/components/LazySelect/index.vue";
 import AgCultureConfigAPI, {
   AgCultureConfigPageQuery,
   AgCultureConfigTable,
   AgCultureConfigForm,
 } from "@/api/module_agno_manage/culture_configs";
+import AgModelAPI from "@/api/module_agno_manage/models";
 
 const visible = ref(false);
 const queryFormRef = ref();
@@ -660,20 +730,23 @@ const tableColumns = ref([
   { prop: "selection", label: "选择框", show: true },
   { prop: "index", label: "序号", show: true },
   { prop: "name", label: "文化配置名称", show: true },
-  { prop: "model_id", label: "关联模型ID", show: true },
-  { prop: "add_knowledge", label: "是否允许新增知识", show: true },
-  { prop: "update_knowledge", label: "是否允许更新知识", show: true },
-  { prop: "delete_knowledge", label: "是否允许删除知识", show: true },
-  { prop: "clear_knowledge", label: "是否允许清空知识", show: true },
+  { prop: "model_id", label: "关联模型", show: true },
+  { prop: "add_knowledge", label: "允许新增知识", show: true },
+  { prop: "update_knowledge", label: "允许更新知识", show: true },
+  { prop: "delete_knowledge", label: "允许删除知识", show: true },
+  { prop: "clear_knowledge", label: "允许清空知识", show: true },
   { prop: "culture_capture_instructions", label: "文化捕获指令", show: true },
   { prop: "additional_instructions", label: "附加指令", show: true },
-  { prop: "debug_mode", label: "是否开启调试模式", show: true },
-  { prop: "status", label: "status", show: true },
-  { prop: "description", label: "description", show: true },
-  { prop: "created_time", label: "created_time", show: true },
-  { prop: "updated_time", label: "updated_time", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "debug_mode", label: "调试模式", show: true },
+  { prop: "status", label: "状态原值", show: false },
+  { prop: "status_tag", label: "状态", show: true },
+  { prop: "description", label: "描述", show: true },
+  { prop: "created_time", label: "创建时间", show: true },
+  { prop: "updated_time", label: "更新时间", show: false },
+  { prop: "created_id", label: "创建人ID", show: false },
+  { prop: "created_by", label: "创建人", show: true },
+  { prop: "updated_id", label: "更新人ID", show: false },
+  { prop: "updated_by", label: "更新人", show: true },
   { prop: "operation", label: "操作", show: true },
 ]);
 
@@ -681,19 +754,19 @@ const tableColumns = ref([
 const exportColumns = [
   { prop: "name", label: "文化配置名称" },
   { prop: "model_id", label: "关联模型ID" },
-  { prop: "add_knowledge", label: "是否允许新增知识" },
-  { prop: "update_knowledge", label: "是否允许更新知识" },
-  { prop: "delete_knowledge", label: "是否允许删除知识" },
-  { prop: "clear_knowledge", label: "是否允许清空知识" },
+  { prop: "add_knowledge", label: "允许新增知识" },
+  { prop: "update_knowledge", label: "允许更新知识" },
+  { prop: "delete_knowledge", label: "允许删除知识" },
+  { prop: "clear_knowledge", label: "允许清空知识" },
   { prop: "culture_capture_instructions", label: "文化捕获指令" },
   { prop: "additional_instructions", label: "附加指令" },
-  { prop: "debug_mode", label: "是否开启调试模式" },
-  { prop: "status", label: "status" },
-  { prop: "description", label: "description" },
-  { prop: "created_time", label: "created_time" },
-  { prop: "updated_time", label: "updated_time" },
-  { prop: "created_id", label: "created_id" },
-  { prop: "updated_id", label: "updated_id" },
+  { prop: "debug_mode", label: "调试模式" },
+  { prop: "status", label: "状态" },
+  { prop: "description", label: "描述" },
+  { prop: "created_time", label: "创建时间" },
+  { prop: "updated_time", label: "更新时间" },
+  { prop: "created_id", label: "创建人ID" },
+  { prop: "updated_id", label: "更新人ID" },
 ];
 
 // 导入/导出配置
@@ -756,9 +829,6 @@ const queryFormData = reactive<AgCultureConfigPageQuery>({
   update_knowledge: undefined,
   delete_knowledge: undefined,
   clear_knowledge: undefined,
-  culture_capture_instructions: undefined,
-  additional_instructions: undefined,
-  debug_mode: undefined,
   status: undefined,
   created_time: undefined,
   updated_time: undefined,
@@ -782,13 +852,8 @@ const formData = reactive<AgCultureConfigForm>({
   description: undefined,
 });
 
-// 字典仓库与需要加载的字典类型
+// 字典仓库
 const dictStore = useDictStore();
-const dictTypes: any = [
-  "sys_yes_no",
-  "sys_yes_no",
-  "sys_yes_no",
-];
 
 // 弹窗状态
 const dialogVisible = reactive({
@@ -799,23 +864,17 @@ const dialogVisible = reactive({
 
 // 表单验证规则
 const rules = reactive({
-  id: [{ required: false, message: "请输入id", trigger: "blur" }],
-  uuid: [{ required: false, message: "请输入uuid", trigger: "blur" }],
   name: [{ required: false, message: "请输入文化配置名称", trigger: "blur" }],
-  model_id: [{ required: true, message: "请输入关联模型ID", trigger: "blur" }],
-  add_knowledge: [{ required: false, message: "请输入是否允许新增知识", trigger: "blur" }],
-  update_knowledge: [{ required: false, message: "请输入是否允许更新知识", trigger: "blur" }],
-  delete_knowledge: [{ required: false, message: "请输入是否允许删除知识", trigger: "blur" }],
-  clear_knowledge: [{ required: false, message: "请输入是否允许清空知识", trigger: "blur" }],
-  culture_capture_instructions: [{ required: true, message: "请输入文化捕获指令", trigger: "blur" }],
-  additional_instructions: [{ required: true, message: "请输入附加指令", trigger: "blur" }],
-  debug_mode: [{ required: false, message: "请输入是否开启调试模式", trigger: "blur" }],
-  status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: false, message: "请输入description", trigger: "blur" }],
-  created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
-  updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
-  created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
-  updated_id: [{ required: true, message: "请输入updated_id", trigger: "blur" }],
+  model_id: [{ required: false, message: "请选择关联模型", trigger: "change" }],
+  add_knowledge: [{ required: false, message: "请选择是否允许新增知识", trigger: "change" }],
+  update_knowledge: [{ required: false, message: "请选择是否允许更新知识", trigger: "change" }],
+  delete_knowledge: [{ required: false, message: "请选择是否允许删除知识", trigger: "change" }],
+  clear_knowledge: [{ required: false, message: "请选择是否允许清空知识", trigger: "change" }],
+  culture_capture_instructions: [{ required: false, message: "请输入文化捕获指令", trigger: "blur" }],
+  additional_instructions: [{ required: false, message: "请输入附加指令", trigger: "blur" }],
+  debug_mode: [{ required: false, message: "请选择是否开启调试模式", trigger: "change" }],
+  status: [{ required: false, message: "请选择状态", trigger: "change" }],
+  description: [{ required: false, message: "请输入描述", trigger: "blur" }],
 });
 
 // 导入弹窗显示状态
@@ -824,6 +883,34 @@ const uploadLoading = ref(false);
 
 // 导出弹窗显示状态
 const exportsDialogVisible = ref(false);
+
+// LazySelect fetcher：关联模型
+const modelFetcher = async (params: { page_no: number; page_size: number; name?: string }) => {
+  const res = await AgModelAPI.listAgModel({ ...params });
+  const items = (res.data?.data?.items || []).map((item: any) => ({
+    value: String(item.id),
+    label: item.name || String(item.id),
+    raw: item,
+  }));
+  return { items, total: res.data?.data?.total || 0 };
+};
+
+// 模型名称缓存（用于表格/详情中显示名称）
+const modelNameCache = ref<Record<string, string>>({});
+
+function getModelName(id?: string | number): string {
+  if (!id) return "-";
+  const key = String(id);
+  if (modelNameCache.value[key]) return modelNameCache.value[key];
+  AgModelAPI.detailAgModel(Number(id))
+    .then((res) => {
+      modelNameCache.value[key] = res.data?.data?.name || key;
+    })
+    .catch(() => {
+      modelNameCache.value[key] = key;
+    });
+  return key;
+}
 
 // 打开导入弹窗
 function handleOpenImportDialog() {
@@ -928,19 +1015,9 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
       Object.assign(formData, response.data.data);
     }
   } else {
-    dialogVisible.title = "新增AgCultureConfig";
-    formData.id = undefined;
-    formData.name = undefined;
-    formData.model_id = undefined;
-    formData.add_knowledge = undefined;
-    formData.update_knowledge = undefined;
-    formData.delete_knowledge = undefined;
-    formData.clear_knowledge = undefined;
-    formData.culture_capture_instructions = undefined;
-    formData.additional_instructions = undefined;
-    formData.debug_mode = undefined;
-    formData.status = undefined;
-    formData.description = undefined;
+    dialogVisible.title = "新增文化配置";
+    Object.assign(formData, initialFormData);
+    formData.status = "0";
   }
   dialogVisible.visible = true;
 }
@@ -951,7 +1028,7 @@ async function handleSubmit() {
   dataFormRef.value.validate(async (valid: any) => {
     if (valid) {
       loading.value = true;
-      // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
+      // 根据弹窗传入的参数(detail\create\update)判断走什么逻辑
       const submitData = { ...formData };
       const id = formData.id;
       if (id) {
@@ -1049,10 +1126,6 @@ const handleUpload = async (formData: FormData) => {
 };
 
 onMounted(async () => {
-  // 预加载字典数据
-  if (dictTypes.length > 0) {
-    await dictStore.getDict(dictTypes);
-  }
   loadingData();
 });
 </script>

@@ -6,8 +6,8 @@
       <template #header>
         <div class="card-header">
           <span>
-            reader管理列表
-            <el-tooltip content="reader管理列表">
+            Reader管理列表
+            <el-tooltip content="Reader管理列表">
               <QuestionFilled class="w-4 h-4 mx-1" />
             </el-tooltip>
           </span>
@@ -25,38 +25,76 @@
             <el-form-item label="Reader名称" prop="name">
               <el-input v-model="queryFormData.name" placeholder="请输入Reader名称" clearable />
             </el-form-item>
-            <el-form-item label="Reader类型(pdf/csv/excel/docx/pptx/json/markdown/text/website/firecrawl/tavily/youtube/arxiv/wikipedia/web_search/field_labeled_csv)" prop="reader_type">
-              <el-input v-model="queryFormData.reader_type" placeholder="请输入Reader类型(pdf/csv/excel/docx/pptx/json/markdown/text/website/firecrawl/tavily/youtube/arxiv/wikipedia/web_search/field_labeled_csv)" clearable />
+            <el-form-item label="Reader类型" prop="reader_type">
+              <el-select
+                v-model="queryFormData.reader_type"
+                placeholder="请选择Reader类型"
+                style="width: 180px"
+                clearable
+                filterable
+              >
+                <el-option
+                  v-for="item in readerTypeList"
+                  :key="item.reader_type"
+                  :label="item.label || item.reader_type"
+                  :value="item.reader_type"
+                >
+                  <el-tooltip
+                    v-if="item.description"
+                    :content="item.description"
+                    placement="right"
+                    :show-after="300"
+                    :teleported="true"
+                    :enterable="false"
+                  >
+                    <span style="display: block; width: 100%">{{ item.label || item.reader_type }}</span>
+                  </el-tooltip>
+                </el-option>
+              </el-select>
             </el-form-item>
-            <el-form-item label="是否对内容分块" prop="chunk">
-              <el-input v-model="queryFormData.chunk" placeholder="请输入是否对内容分块" clearable />
+            <el-form-item label="是否分块" prop="chunk">
+              <el-select v-model="queryFormData.chunk" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
+              </el-select>
             </el-form-item>
-            <el-form-item label="分块大小" prop="chunk_size">
-              <el-input v-model="queryFormData.chunk_size" placeholder="请输入分块大小" clearable />
+            <el-form-item label="Chunking策略" prop="chunking_strategy">
+              <el-select
+                v-model="queryFormData.chunking_strategy"
+                placeholder="请选择策略"
+                style="width: 180px"
+                clearable
+                filterable
+              >
+                <el-option
+                  v-for="item in chunkingStrategyList"
+                  :key="item.strategy"
+                  :label="item.label || item.strategy"
+                  :value="item.strategy"
+                />
+              </el-select>
             </el-form-item>
-            <el-form-item label="文本编码" prop="encoding">
-              <el-input v-model="queryFormData.encoding" placeholder="请输入文本编码" clearable />
+            <el-form-item label="关联Embedder" prop="embedder_id">
+              <LazySelect
+                v-model="queryFormData.embedder_id"
+                :fetcher="embedderFetcher"
+                placeholder="请选择Embedder"
+                style="width: 200px"
+              />
             </el-form-item>
-            <el-form-item label="Chunking策略(FixedSizeChunker/RecursiveChunker/DocumentChunker/MarkdownChunker/RowChunker/SemanticChunker/AgenticChunker/CodeChunker)" prop="chunking_strategy">
-              <el-input v-model="queryFormData.chunking_strategy" placeholder="请输入Chunking策略(FixedSizeChunker/RecursiveChunker/DocumentChunker/MarkdownChunker/RowChunker/SemanticChunker/AgenticChunker/CodeChunker)" clearable />
-            </el-form-item>
-            <el-form-item label="Chunk重叠字符数" prop="chunk_overlap">
-              <el-input v-model="queryFormData.chunk_overlap" placeholder="请输入Chunk重叠字符数" clearable />
-            </el-form-item>
-            <el-form-item label="Reader专属参数" prop="reader_config">
-              <el-input v-model="queryFormData.reader_config" placeholder="请输入Reader专属参数" clearable />
-            </el-form-item>
-            <el-form-item label="关联Embedder ID" prop="embedder_id">
-              <el-input v-model="queryFormData.embedder_id" placeholder="请输入关联Embedder ID" clearable />
-            </el-form-item>
-            <el-form-item label="关联Model ID" prop="model_id">
-              <el-input v-model="queryFormData.model_id" placeholder="请输入关联Model ID" clearable />
+            <el-form-item label="关联模型" prop="model_id">
+              <LazySelect
+                v-model="queryFormData.model_id"
+                :fetcher="modelFetcher"
+                placeholder="请选择模型"
+                style="width: 200px"
+              />
             </el-form-item>
             <el-form-item prop="status" label="状态">
               <el-select
                 v-model="queryFormData.status"
                 placeholder="请选择状态"
-                style="width: 170px"
+                style="width: 120px"
                 clearable
               >
                 <el-option value="0" label="启用" />
@@ -108,7 +146,7 @@
               </el-button>
               <!-- 展开/收起 -->
               <template v-if="isExpandable">
-                <el-link 
+                <el-link
                   class="ml-3"
                   type="primary"
                   underline="never"
@@ -236,7 +274,7 @@
         </div>
       </div>
 
-      <!-- 表格区域：系统配置列表 -->
+      <!-- 表格区域 -->
       <el-table
         ref="tableRef"
         v-loading="loading"
@@ -275,80 +313,80 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'reader_type')?.show"
-          label="Reader类型(pdf/csv/excel/docx/pptx/json/markdown/text/website/firecrawl/tavily/youtube/arxiv/wikipedia/web_search/field_labeled_csv)"
+          label="Reader类型"
           prop="reader_type"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'chunk')?.show"
-          label="是否对内容分块"
+          label="是否分块"
           prop="chunk"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="100"
+        >
+          <template #default="scope">
+            <el-tag
+              :type="scope.row.chunk === true ? 'success' : scope.row.chunk === false ? 'danger' : undefined"
+            >
+              {{ scope.row.chunk === true ? '是' : scope.row.chunk === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'chunk_size')?.show"
           label="分块大小"
           prop="chunk_size"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'encoding')?.show"
           label="文本编码"
           prop="encoding"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'chunking_strategy')?.show"
-          label="Chunking策略(FixedSizeChunker/RecursiveChunker/DocumentChunker/MarkdownChunker/RowChunker/SemanticChunker/AgenticChunker/CodeChunker)"
+          label="Chunking策略"
           prop="chunking_strategy"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'chunk_overlap')?.show"
           label="Chunk重叠字符数"
           prop="chunk_overlap"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'reader_config')?.show"
-          label="Reader专属参数"
-          prop="reader_config"
-          min-width="140"
+          min-width="130"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'embedder_id')?.show"
-          label="关联Embedder ID"
+          label="关联Embedder"
           prop="embedder_id"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <span>{{ getEmbedderName(scope.row.embedder_id) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'model_id')?.show"
-          label="关联Model ID"
+          label="关联模型"
           prop="model_id"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <span>{{ getModelName(scope.row.model_id) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label="是否启用(0:启用 1:禁用)"
+          label="状态"
           prop="status"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label="是否启用(0:启用 1:禁用)"
-          prop="status"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="90"
         >
           <template #default="scope">
             <el-tag :type="scope.row.status == '0' ? 'success' : 'info'">
@@ -367,28 +405,21 @@
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
           label="创建时间"
           prop="created_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
           label="更新时间"
           prop="updated_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人"
           prop="created_id"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
-          prop="created_id"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -397,16 +428,9 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人"
           prop="updated_id"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
-          prop="updated_id"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -470,25 +494,30 @@
     <el-dialog
       v-model="dialogVisible.visible"
       :title="dialogVisible.title"
+      width="700px"
       @close="handleCloseDialog"
     >
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="UUID" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
           <el-descriptions-item label="Reader名称" :span="2">
             {{ detailFormData.name }}
           </el-descriptions-item>
-          <el-descriptions-item label="Reader类型(pdf/csv/excel/docx/pptx/json/markdown/text/website/firecrawl/tavily/youtube/arxiv/wikipedia/web_search/field_labeled_csv)" :span="2">
+          <el-descriptions-item label="Reader类型" :span="2">
             {{ detailFormData.reader_type }}
           </el-descriptions-item>
-          <el-descriptions-item label="是否对内容分块" :span="2">
-            {{ detailFormData.chunk }}
+          <el-descriptions-item label="是否分块" :span="2">
+            <el-tag
+              :type="detailFormData.chunk === true ? 'success' : detailFormData.chunk === false ? 'danger' : undefined"
+            >
+              {{ detailFormData.chunk === true ? '是' : detailFormData.chunk === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="分块大小" :span="2">
             {{ detailFormData.chunk_size }}
@@ -496,20 +525,20 @@
           <el-descriptions-item label="文本编码" :span="2">
             {{ detailFormData.encoding }}
           </el-descriptions-item>
-          <el-descriptions-item label="Chunking策略(FixedSizeChunker/RecursiveChunker/DocumentChunker/MarkdownChunker/RowChunker/SemanticChunker/AgenticChunker/CodeChunker)" :span="2">
+          <el-descriptions-item label="Chunking策略" :span="2">
             {{ detailFormData.chunking_strategy }}
           </el-descriptions-item>
           <el-descriptions-item label="Chunk重叠字符数" :span="2">
             {{ detailFormData.chunk_overlap }}
           </el-descriptions-item>
-          <el-descriptions-item label="Reader专属参数" :span="2">
-            {{ detailFormData.reader_config }}
+          <el-descriptions-item label="Reader专属参数" :span="4">
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ JSON.stringify(detailFormData.reader_config, null, 2) }}</pre>
           </el-descriptions-item>
-          <el-descriptions-item label="关联Embedder ID" :span="2">
-            {{ detailFormData.embedder_id }}
+          <el-descriptions-item label="关联Embedder" :span="2">
+            {{ getEmbedderName(detailFormData.embedder_id) }}
           </el-descriptions-item>
-          <el-descriptions-item label="关联Model ID" :span="2">
-            {{ detailFormData.model_id }}
+          <el-descriptions-item label="关联模型" :span="2">
+            {{ getModelName(detailFormData.model_id) }}
           </el-descriptions-item>
           <el-descriptions-item label="状态" :span="2">
             <el-tag :type="detailFormData.status == '0' ? 'success' : 'danger'">
@@ -544,47 +573,118 @@
           label-width="auto"
           label-position="right"
         >
-          <el-form-item label="Reader名称" prop="name" :required="false">
+          <el-form-item label="Reader名称" prop="name">
             <el-input v-model="formData.name" placeholder="请输入Reader名称" />
           </el-form-item>
-          <el-form-item label="Reader类型(pdf/csv/excel/docx/pptx/json/markdown/text/website/firecrawl/tavily/youtube/arxiv/wikipedia/web_search/field_labeled_csv)" prop="reader_type" :required="false">
-            <el-input v-model="formData.reader_type" placeholder="请输入Reader类型(pdf/csv/excel/docx/pptx/json/markdown/text/website/firecrawl/tavily/youtube/arxiv/wikipedia/web_search/field_labeled_csv)" />
+          <el-form-item label="Reader类型" prop="reader_type">
+            <el-select
+              v-model="formData.reader_type"
+              placeholder="请选择Reader类型"
+              clearable
+              filterable
+              style="width: 100%"
+            >
+              <el-option
+                v-for="item in readerTypeList"
+                :key="item.reader_type"
+                :label="item.label || item.reader_type"
+                :value="item.reader_type"
+              >
+                <el-tooltip
+                  v-if="item.description"
+                  :content="item.description"
+                  placement="right"
+                  :show-after="300"
+                  :teleported="true"
+                  :enterable="false"
+                >
+                  <span style="display: block; width: 100%">{{ item.label || item.reader_type }}</span>
+                </el-tooltip>
+              </el-option>
+            </el-select>
           </el-form-item>
-          <el-form-item label="是否对内容分块" prop="chunk" :required="false">
-            <el-input v-model="formData.chunk" placeholder="请输入是否对内容分块" />
+          <el-form-item label="是否分块" prop="chunk" :required="false">
+            <el-select v-model="formData.chunk" placeholder="默认" clearable style="width: 100%">
+              <el-option label="是" :value="true" />
+              <el-option label="否" :value="false" />
+            </el-select>
           </el-form-item>
           <el-form-item label="分块大小" prop="chunk_size" :required="false">
-            <el-input v-model="formData.chunk_size" placeholder="请输入分块大小" />
+            <el-input-number
+              v-model="formData.chunk_size"
+              placeholder="请输入分块大小（字符数）"
+              :min="1"
+              style="width: 100%"
+              controls-position="right"
+            />
           </el-form-item>
           <el-form-item label="文本编码" prop="encoding" :required="false">
-            <el-input v-model="formData.encoding" placeholder="请输入文本编码" />
+            <el-input v-model="formData.encoding" placeholder="如 utf-8、gbk，留空自动检测" />
           </el-form-item>
-          <el-form-item label="Chunking策略(FixedSizeChunker/RecursiveChunker/DocumentChunker/MarkdownChunker/RowChunker/SemanticChunker/AgenticChunker/CodeChunker)" prop="chunking_strategy" :required="false">
-            <el-input v-model="formData.chunking_strategy" placeholder="请输入Chunking策略(FixedSizeChunker/RecursiveChunker/DocumentChunker/MarkdownChunker/RowChunker/SemanticChunker/AgenticChunker/CodeChunker)" />
+          <el-form-item label="Chunking策略" prop="chunking_strategy" :required="false">
+            <el-select
+              v-model="formData.chunking_strategy"
+              placeholder="留空使用该Reader类型默认策略"
+              clearable
+              filterable
+              style="width: 100%"
+            >
+              <el-option
+                v-for="item in chunkingStrategyList"
+                :key="item.strategy"
+                :label="item.label || item.strategy"
+                :value="item.strategy"
+              >
+                <el-tooltip
+                  v-if="item.description"
+                  :content="item.description"
+                  placement="right"
+                  :show-after="300"
+                  :teleported="true"
+                  :enterable="false"
+                >
+                  <span style="display: block; width: 100%">{{ item.label || item.strategy }}</span>
+                </el-tooltip>
+              </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="Chunk重叠字符数" prop="chunk_overlap" :required="false">
-            <el-input v-model="formData.chunk_overlap" placeholder="请输入Chunk重叠字符数" />
+            <el-input-number
+              v-model="formData.chunk_overlap"
+              placeholder="FixedSize/Recursive等策略支持"
+              :min="0"
+              style="width: 100%"
+              controls-position="right"
+            />
           </el-form-item>
           <el-form-item label="Reader专属参数" prop="reader_config" :required="false">
-            <el-input v-model="formData.reader_config" placeholder="请输入Reader专属参数" />
+            <DictEditor v-model="formData.reader_config" />
           </el-form-item>
-          <el-form-item label="关联Embedder ID" prop="embedder_id" :required="false">
-            <el-input v-model="formData.embedder_id" placeholder="请输入关联Embedder ID" />
+          <el-form-item label="关联Embedder" prop="embedder_id" :required="false">
+            <LazySelect
+              v-model="formData.embedder_id"
+              :fetcher="embedderFetcher"
+              placeholder="SemanticChunker使用"
+            />
           </el-form-item>
-          <el-form-item label="关联Model ID" prop="model_id" :required="false">
-            <el-input v-model="formData.model_id" placeholder="请输入关联Model ID" />
+          <el-form-item label="关联模型" prop="model_id" :required="false">
+            <LazySelect
+              v-model="formData.model_id"
+              :fetcher="modelFetcher"
+              placeholder="AgenticChunker使用"
+            />
           </el-form-item>
-          <el-form-item label="状态" prop="status" :required="true">
+          <el-form-item label="状态" prop="status" :required="false">
             <el-radio-group v-model="formData.status">
               <el-radio value="0">启用</el-radio>
               <el-radio value="1">停用</el-radio>
             </el-radio-group>
           </el-form-item>
-          <el-form-item label="描述" prop="description">
+          <el-form-item label="描述" prop="description" :required="false">
             <el-input
               v-model="formData.description"
-              :rows="4"
-              :maxlength="100"
+              :rows="3"
+              :maxlength="255"
               show-word-limit
               type="textarea"
               placeholder="请输入描述"
@@ -595,7 +695,6 @@
 
       <template #footer>
         <div class="dialog-footer">
-          <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
           <el-button @click="handleCloseDialog">取消</el-button>
           <el-button v-if="dialogVisible.type !== 'detail'" type="primary" @click="handleSubmit">
             确定
@@ -624,6 +723,7 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 defineOptions({
   name: "AgReader",
@@ -640,11 +740,17 @@ import DatePicker from "@/components/DatePicker/index.vue";
 import type { IContentConfig } from "@/components/CURD/types";
 import ImportModal from "@/components/CURD/ImportModal.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
+import LazySelect from "@/views/module_agno_manage/components/LazySelect/index.vue";
+import DictEditor from "@/views/module_agno_manage/components/DictEditor/index.vue";
 import AgReaderAPI, {
   AgReaderPageQuery,
   AgReaderTable,
   AgReaderForm,
+  AgReaderType,
+  AgChunkingStrategy,
 } from "@/api/module_agno_manage/readers";
+import AgEmbedderAPI from "@/api/module_agno_manage/embedders";
+import AgModelAPI from "@/api/module_agno_manage/models";
 
 const visible = ref(true);
 const queryFormRef = ref();
@@ -659,47 +765,103 @@ const isExpandable = ref(true);
 // 分页表单
 const pageTableData = ref<AgReaderTable[]>([]);
 
+// Reader类型列表
+const readerTypeList = ref<AgReaderType[]>([]);
+
+// Chunking策略列表
+const chunkingStrategyList = ref<AgChunkingStrategy[]>([]);
+
+// LazySelect fetcher for embedder
+const embedderFetcher = async (params: { page_no: number; page_size: number; name?: string }) => {
+  const res = await AgEmbedderAPI.listAgEmbedder({ ...params });
+  const items = (res.data?.data?.items || []).map((item: any) => ({
+    value: String(item.id),
+    label: item.name || String(item.id),
+    raw: item,
+  }));
+  return { items, total: res.data?.data?.total || 0 };
+};
+
+// LazySelect fetcher for model
+const modelFetcher = async (params: { page_no: number; page_size: number; name?: string }) => {
+  const res = await AgModelAPI.listAgModel({ ...params });
+  const items = (res.data?.data?.items || []).map((item: any) => ({
+    value: String(item.id),
+    label: item.name || String(item.id),
+    raw: item,
+  }));
+  return { items, total: res.data?.data?.total || 0 };
+};
+
+// 名称缓存（LazySelect 模式）
+const embedderNameCache = ref<Record<string, string>>({});
+const modelNameCache = ref<Record<string, string>>({});
+
+function getEmbedderName(id?: string | number): string {
+  if (!id) return "-";
+  const key = String(id);
+  if (embedderNameCache.value[key]) return embedderNameCache.value[key];
+  AgEmbedderAPI.detailAgEmbedder(Number(id))
+    .then((res: any) => {
+      embedderNameCache.value[key] = res.data?.data?.name || key;
+    })
+    .catch(() => {
+      embedderNameCache.value[key] = key;
+    });
+  return key;
+}
+
+function getModelName(id?: string | number): string {
+  if (!id) return "-";
+  const key = String(id);
+  if (modelNameCache.value[key]) return modelNameCache.value[key];
+  AgModelAPI.detailAgModel(Number(id))
+    .then((res: any) => {
+      modelNameCache.value[key] = res.data?.data?.name || key;
+    })
+    .catch(() => {
+      modelNameCache.value[key] = key;
+    });
+  return key;
+}
+
 // 表格列配置
 const tableColumns = ref([
   { prop: "selection", label: "选择框", show: true },
   { prop: "index", label: "序号", show: true },
   { prop: "name", label: "Reader名称", show: true },
-  { prop: "reader_type", label: "Reader类型(pdf/csv/excel/docx/pptx/json/markdown/text/website/firecrawl/tavily/youtube/arxiv/wikipedia/web_search/field_labeled_csv)", show: true },
-  { prop: "chunk", label: "是否对内容分块", show: true },
-  { prop: "chunk_size", label: "分块大小（字符数）", show: true },
-  { prop: "encoding", label: "文本编码（utf-8/gbk等，文本类Reader使用）", show: true },
-  { prop: "chunking_strategy", label: "Chunking策略(FixedSizeChunker/RecursiveChunker/DocumentChunker/MarkdownChunker/RowChunker/SemanticChunker/AgenticChunker/CodeChunker)", show: true },
-  { prop: "chunk_overlap", label: "Chunk重叠字符数（FixedSize/Recursive/Document/Markdown策略支持）", show: true },
-  { prop: "reader_config", label: "Reader专属参数（按reader_type不同，见表注释）", show: true },
-  { prop: "embedder_id", label: "关联Embedder ID（SemanticChunker使用）", show: true },
-  { prop: "model_id", label: "关联Model ID（AgenticChunker使用）", show: true },
-  { prop: "status", label: "是否启用(0:启用 1:禁用)", show: true },
-  { prop: "description", label: "备注/描述", show: true },
+  { prop: "reader_type", label: "Reader类型", show: true },
+  { prop: "chunk", label: "是否分块", show: true },
+  { prop: "chunk_size", label: "分块大小", show: true },
+  { prop: "encoding", label: "文本编码", show: false },
+  { prop: "chunking_strategy", label: "Chunking策略", show: true },
+  { prop: "chunk_overlap", label: "Chunk重叠字符数", show: false },
+  { prop: "embedder_id", label: "关联Embedder", show: true },
+  { prop: "model_id", label: "关联模型", show: true },
+  { prop: "status", label: "状态", show: true },
+  { prop: "description", label: "备注/描述", show: false },
   { prop: "created_time", label: "创建时间", show: true },
-  { prop: "updated_time", label: "更新时间", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "updated_time", label: "更新时间", show: false },
+  { prop: "created_id", label: "创建人", show: true },
+  { prop: "updated_id", label: "更新人", show: false },
   { prop: "operation", label: "操作", show: true },
 ]);
 
 // 导出列（不含选择/序号/操作）
 const exportColumns = [
   { prop: "name", label: "Reader名称" },
-  { prop: "reader_type", label: "Reader类型(pdf/csv/excel/docx/pptx/json/markdown/text/website/firecrawl/tavily/youtube/arxiv/wikipedia/web_search/field_labeled_csv)" },
-  { prop: "chunk", label: "是否对内容分块" },
-  { prop: "chunk_size", label: "分块大小（字符数）" },
-  { prop: "encoding", label: "文本编码（utf-8/gbk等，文本类Reader使用）" },
-  { prop: "chunking_strategy", label: "Chunking策略(FixedSizeChunker/RecursiveChunker/DocumentChunker/MarkdownChunker/RowChunker/SemanticChunker/AgenticChunker/CodeChunker)" },
-  { prop: "chunk_overlap", label: "Chunk重叠字符数（FixedSize/Recursive/Document/Markdown策略支持）" },
-  { prop: "reader_config", label: "Reader专属参数（按reader_type不同，见表注释）" },
-  { prop: "embedder_id", label: "关联Embedder ID（SemanticChunker使用）" },
-  { prop: "model_id", label: "关联Model ID（AgenticChunker使用）" },
-  { prop: "status", label: "是否启用(0:启用 1:禁用)" },
+  { prop: "reader_type", label: "Reader类型" },
+  { prop: "chunk", label: "是否分块" },
+  { prop: "chunk_size", label: "分块大小" },
+  { prop: "encoding", label: "文本编码" },
+  { prop: "chunking_strategy", label: "Chunking策略" },
+  { prop: "chunk_overlap", label: "Chunk重叠字符数" },
+  { prop: "embedder_id", label: "关联Embedder ID" },
+  { prop: "model_id", label: "关联模型 ID" },
+  { prop: "status", label: "状态" },
   { prop: "description", label: "备注/描述" },
   { prop: "created_time", label: "创建时间" },
   { prop: "updated_time", label: "更新时间" },
-  { prop: "created_id", label: "created_id" },
-  { prop: "updated_id", label: "updated_id" },
 ];
 
 // 导入/导出配置
@@ -709,16 +871,15 @@ const curdContentConfig = {
   importTemplate: () => AgReaderAPI.downloadTemplateAgReader(),
   exportsAction: async (params: any) => {
     const query: any = { ...params };
-    query.status = "0";
     query.page_no = 1;
     query.page_size = 9999;
     const all: any[] = [];
     while (true) {
       const res = await AgReaderAPI.listAgReader(query);
       const items = res.data?.data?.items || [];
-      const total = res.data?.data?.total || 0;
+      const totalCount = res.data?.data?.total || 0;
       all.push(...items);
-      if (all.length >= total || items.length === 0) break;
+      if (all.length >= totalCount || items.length === 0) break;
       query.page_no += 1;
     }
     return all;
@@ -759,11 +920,8 @@ const queryFormData = reactive<AgReaderPageQuery>({
   name: undefined,
   reader_type: undefined,
   chunk: undefined,
-  chunk_size: undefined,
   encoding: undefined,
   chunking_strategy: undefined,
-  chunk_overlap: undefined,
-  reader_config: undefined,
   embedder_id: undefined,
   model_id: undefined,
   status: undefined,
@@ -778,22 +936,21 @@ const formData = reactive<AgReaderForm>({
   id: undefined,
   name: undefined,
   reader_type: undefined,
-  chunk: undefined,
-  chunk_size: undefined,
+  chunk: null,
+  chunk_size: null,
   encoding: undefined,
   chunking_strategy: undefined,
-  chunk_overlap: undefined,
+  chunk_overlap: null,
   reader_config: undefined,
   embedder_id: undefined,
   model_id: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 });
 
 // 字典仓库与需要加载的字典类型
 const dictStore = useDictStore();
-const dictTypes: any = [
-];
+const dictTypes: any = [];
 
 // 弹窗状态
 const dialogVisible = reactive({
@@ -804,24 +961,18 @@ const dialogVisible = reactive({
 
 // 表单验证规则
 const rules = reactive({
-  id: [{ required: false, message: "请输入id", trigger: "blur" }],
-  uuid: [{ required: false, message: "请输入uuid", trigger: "blur" }],
-  name: [{ required: false, message: "请输入Reader名称", trigger: "blur" }],
-  reader_type: [{ required: false, message: "请输入Reader类型(pdf/csv/excel/docx/pptx/json/markdown/text/website/firecrawl/tavily/youtube/arxiv/wikipedia/web_search/field_labeled_csv)", trigger: "blur" }],
-  chunk: [{ required: false, message: "请输入是否对内容分块", trigger: "blur" }],
-  chunk_size: [{ required: false, message: "请输入分块大小（字符数）", trigger: "blur" }],
-  encoding: [{ required: true, message: "请输入文本编码（utf-8/gbk等，文本类Reader使用）", trigger: "blur" }],
-  chunking_strategy: [{ required: true, message: "请输入Chunking策略(FixedSizeChunker/RecursiveChunker/DocumentChunker/MarkdownChunker/RowChunker/SemanticChunker/AgenticChunker/CodeChunker)", trigger: "blur" }],
-  chunk_overlap: [{ required: false, message: "请输入Chunk重叠字符数（FixedSize/Recursive/Document/Markdown策略支持）", trigger: "blur" }],
-  reader_config: [{ required: false, message: "请输入Reader专属参数（按reader_type不同，见表注释）", trigger: "blur" }],
-  embedder_id: [{ required: true, message: "请输入关联Embedder ID（SemanticChunker使用）", trigger: "blur" }],
-  model_id: [{ required: true, message: "请输入关联Model ID（AgenticChunker使用）", trigger: "blur" }],
-  status: [{ required: false, message: "请输入是否启用(0:启用 1:禁用)", trigger: "blur" }],
-  description: [{ required: true, message: "请输入备注/描述", trigger: "blur" }],
-  created_time: [{ required: false, message: "请输入创建时间", trigger: "blur" }],
-  updated_time: [{ required: false, message: "请输入更新时间", trigger: "blur" }],
-  created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
-  updated_id: [{ required: true, message: "请输入updated_id", trigger: "blur" }],
+  name: [{ required: true, message: "请输入Reader名称", trigger: "blur" }],
+  reader_type: [{ required: true, message: "请选择Reader类型", trigger: "change" }],
+  chunk: [{ required: false, trigger: "change" }],
+  chunk_size: [{ required: false, trigger: "blur" }],
+  encoding: [{ required: false, trigger: "blur" }],
+  chunking_strategy: [{ required: false, trigger: "change" }],
+  chunk_overlap: [{ required: false, trigger: "blur" }],
+  reader_config: [{ required: false, trigger: "blur" }],
+  embedder_id: [{ required: false, trigger: "change" }],
+  model_id: [{ required: false, trigger: "change" }],
+  status: [{ required: false, trigger: "change" }],
+  description: [{ required: false, trigger: "blur" }],
 });
 
 // 导入弹窗显示状态
@@ -888,15 +1039,15 @@ const initialFormData: AgReaderForm = {
   id: undefined,
   name: undefined,
   reader_type: undefined,
-  chunk: undefined,
-  chunk_size: undefined,
+  chunk: null,
+  chunk_size: null,
   encoding: undefined,
   chunking_strategy: undefined,
-  chunk_overlap: undefined,
+  chunk_overlap: null,
   reader_config: undefined,
   embedder_id: undefined,
   model_id: undefined,
-  status: undefined,
+  status: "0",
   description: undefined,
 };
 
@@ -935,20 +1086,9 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
       Object.assign(formData, response.data.data);
     }
   } else {
-    dialogVisible.title = "新增AgReader";
-    formData.id = undefined;
-    formData.name = undefined;
-    formData.reader_type = undefined;
-    formData.chunk = undefined;
-    formData.chunk_size = undefined;
-    formData.encoding = undefined;
-    formData.chunking_strategy = undefined;
-    formData.chunk_overlap = undefined;
-    formData.reader_config = undefined;
-    formData.embedder_id = undefined;
-    formData.model_id = undefined;
-    formData.status = undefined;
-    formData.description = undefined;
+    dialogVisible.title = "新增Reader";
+    Object.assign(formData, initialFormData);
+    formData.status = "0";
   }
   dialogVisible.visible = true;
 }
@@ -959,7 +1099,7 @@ async function handleSubmit() {
   dataFormRef.value.validate(async (valid: any) => {
     if (valid) {
       loading.value = true;
-      // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
+      // 根据弹窗传入的参数(detail\create\update)判断走什么逻辑
       const submitData = { ...formData };
       const id = formData.id;
       if (id) {
@@ -1040,10 +1180,10 @@ async function handleMoreClick(status: string) {
 }
 
 // 处理上传
-const handleUpload = async (formData: FormData) => {
+const handleUpload = async (uploadFormData: FormData) => {
   try {
     uploadLoading.value = true;
-    const response = await AgReaderAPI.importAgReader(formData);
+    const response = await AgReaderAPI.importAgReader(uploadFormData);
     if (response.data.code === ResultEnum.SUCCESS) {
       ElMessage.success(`${response.data.msg}，${response.data.data}`);
       importDialogVisible.value = false;
@@ -1056,11 +1196,32 @@ const handleUpload = async (formData: FormData) => {
   }
 };
 
+// 加载Reader类型列表
+async function loadReaderTypeList() {
+  try {
+    const res = await AgReaderAPI.listReaderTypes();
+    readerTypeList.value = res.data?.data || [];
+  } catch (error) {
+    console.error("加载Reader类型失败", error);
+  }
+}
+
+// 加载Chunking策略列表
+async function loadChunkingStrategyList() {
+  try {
+    const res = await AgReaderAPI.listChunkingStrategies();
+    chunkingStrategyList.value = res.data?.data || [];
+  } catch (error) {
+    console.error("加载Chunking策略失败", error);
+  }
+}
+
 onMounted(async () => {
   // 预加载字典数据
   if (dictTypes.length > 0) {
     await dictStore.getDict(dictTypes);
   }
+  await Promise.all([loadReaderTypeList(), loadChunkingStrategyList()]);
   loadingData();
 });
 </script>
