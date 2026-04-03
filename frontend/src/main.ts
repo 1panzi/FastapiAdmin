@@ -14,6 +14,9 @@ import "uno.css";
 // 过渡动画
 import "animate.css";
 
+// markstream-vue 样式
+import "markstream-vue/index.css";
+
 import { useConfigStore } from "@/store";
 
 const app = createApp(App);
