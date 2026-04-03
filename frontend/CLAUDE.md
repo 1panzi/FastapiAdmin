@@ -100,6 +100,22 @@ const AgXxxAPI = {
 
 **tableColumns 规范**：每项格式为 `{ prop, label, show: true }`，`prop` 与 `AgXxxTable` 字段名对应。`status`、`created_id`、`updated_id` 存在重复列是有意为之——一列显示原始值，一列通过 slot 模板渲染（如标签/用户名）。
 
+**status 字段规范**：
+- 表单中使用 `el-radio-group`（不用 el-select），`:required="false"`，默认值为 `"0"`（启用）
+- `formData` 和 `initialFormData` 中 `status` 初始值设为 `"0"`
+- `handleOpenDialog` 新增分支中 `formData.status = "0"`（不得设为 `undefined`）
+- 表格列使用 el-tag 渲染（`"0"` → success 绿色"启用"，其他 → info 灰色"停用"）
+
+```vue
+<!-- 表单 -->
+<el-form-item label="状态" prop="status" :required="false">
+  <el-radio-group v-model="formData.status">
+    <el-radio value="0">启用</el-radio>
+    <el-radio value="1">停用</el-radio>
+  </el-radio-group>
+</el-form-item>
+```
+
 ### 字段类型处理规范
 
 #### 1. 布尔字段（三态：true/false/null）
@@ -433,9 +449,14 @@ function handleProviderChange() {
 5. **knowledge_bases** — ✅ 已完成
 6. **embedders** — ✅ 已完成
 7. **reasoning_configs** — ✅ 已完成（bool 三态 select、model_id 关联下拉、数字字段 input-number）
-8. **agents** — 大型复杂表单（50+ 字段）
-9. **teams** — 多 Agent 群组配置
-10. **workflows** / **workflow_nodes** — 工作流自动化
+8. **hooks** — ✅ 已完成（hook_type 枚举 select、run_in_background 三态 select、status 非必须 select）
+9. **guardrails** — ✅ 已完成（type 枚举 select、hook_type 枚举 select、status 非必须 select）
+10. **memory_managers** — ✅ 已完成（model_id 关联模型下拉、bool 四字段三态 select、文本字段 textarea）
+11. **learning_configs** — ✅ 已完成（model_id 关联模型下拉、六个 JSON 字段 DictEditor、搜索表单删除 JSON 字段）
+12. **compression_configs** — ✅ 已完成（model_id 关联模型下拉、整数字段 input-number、指令字段 textarea）
+13. **agents** — 大型复杂表单（50+ 字段）
+14. **teams** — 多 Agent 群组配置
+15. **workflows** / **workflow_nodes** — 工作流自动化
 
 每个视图完善时需检查以下内容：
 - `tableColumns` 的 `label` 全部填写完整（初始生成时很多为空字符串 `""`）

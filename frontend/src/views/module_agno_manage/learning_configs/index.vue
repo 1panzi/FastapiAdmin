@@ -25,29 +25,18 @@
             <el-form-item label="学习机配置名称" prop="name">
               <el-input v-model="queryFormData.name" placeholder="请输入学习机配置名称" clearable />
             </el-form-item>
-            <el-form-item label="关联模型ID" prop="model_id">
-              <el-input v-model="queryFormData.model_id" placeholder="请输入关联模型ID" clearable />
+            <el-form-item label="关联模型" prop="model_id">
+              <el-select v-model="queryFormData.model_id" placeholder="请选择关联模型" clearable filterable style="width: 200px">
+                <el-option
+                  v-for="item in modelList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="String(item.id)"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item label="命名空间" prop="namespace">
               <el-input v-model="queryFormData.namespace" placeholder="请输入命名空间" clearable />
-            </el-form-item>
-            <el-form-item label="用户画像配置" prop="user_profile">
-              <el-input v-model="queryFormData.user_profile" placeholder="请输入用户画像配置" clearable />
-            </el-form-item>
-            <el-form-item label="用户记忆配置" prop="user_memory">
-              <el-input v-model="queryFormData.user_memory" placeholder="请输入用户记忆配置" clearable />
-            </el-form-item>
-            <el-form-item label="会话上下文配置" prop="session_context">
-              <el-input v-model="queryFormData.session_context" placeholder="请输入会话上下文配置" clearable />
-            </el-form-item>
-            <el-form-item label="实体记忆配置" prop="entity_memory">
-              <el-input v-model="queryFormData.entity_memory" placeholder="请输入实体记忆配置" clearable />
-            </el-form-item>
-            <el-form-item label="学习知识配置" prop="learned_knowledge">
-              <el-input v-model="queryFormData.learned_knowledge" placeholder="请输入学习知识配置" clearable />
-            </el-form-item>
-            <el-form-item label="决策日志配置" prop="decision_log">
-              <el-input v-model="queryFormData.decision_log" placeholder="请输入决策日志配置" clearable />
             </el-form-item>
             <el-form-item prop="status" label="状态">
               <el-select
@@ -272,11 +261,15 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'model_id')?.show"
-          label="关联模型ID"
+          label="关联模型"
           prop="model_id"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <span>{{ getModelName(scope.row.model_id) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'namespace')?.show"
           label="命名空间"
@@ -328,14 +321,14 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
           min-width="140"
           show-overflow-tooltip
@@ -348,35 +341,35 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'description')?.show"
-          label=""
+          label="描述"
           prop="description"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
-          label=""
+          label="创建时间"
           prop="created_time"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
-          label=""
+          label="更新时间"
           prop="updated_time"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人ID"
           prop="created_id"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人"
           prop="created_id"
           min-width="140"
           show-overflow-tooltip
@@ -387,14 +380,14 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人ID"
           prop="updated_id"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人"
           prop="updated_id"
           min-width="140"
           show-overflow-tooltip
@@ -465,51 +458,51 @@
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="UUID" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
           <el-descriptions-item label="学习机配置名称" :span="2">
             {{ detailFormData.name }}
           </el-descriptions-item>
-          <el-descriptions-item label="关联模型ID" :span="2">
-            {{ detailFormData.model_id }}
+          <el-descriptions-item label="关联模型" :span="2">
+            {{ getModelName(detailFormData.model_id) }}
           </el-descriptions-item>
           <el-descriptions-item label="命名空间" :span="2">
             {{ detailFormData.namespace }}
           </el-descriptions-item>
-          <el-descriptions-item label="用户画像配置" :span="2">
-            {{ detailFormData.user_profile }}
+          <el-descriptions-item label="用户画像配置" :span="4">
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ JSON.stringify(detailFormData.user_profile, null, 2) }}</pre>
           </el-descriptions-item>
-          <el-descriptions-item label="用户记忆配置" :span="2">
-            {{ detailFormData.user_memory }}
+          <el-descriptions-item label="用户记忆配置" :span="4">
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ JSON.stringify(detailFormData.user_memory, null, 2) }}</pre>
           </el-descriptions-item>
-          <el-descriptions-item label="会话上下文配置" :span="2">
-            {{ detailFormData.session_context }}
+          <el-descriptions-item label="会话上下文配置" :span="4">
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ JSON.stringify(detailFormData.session_context, null, 2) }}</pre>
           </el-descriptions-item>
-          <el-descriptions-item label="实体记忆配置" :span="2">
-            {{ detailFormData.entity_memory }}
+          <el-descriptions-item label="实体记忆配置" :span="4">
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ JSON.stringify(detailFormData.entity_memory, null, 2) }}</pre>
           </el-descriptions-item>
-          <el-descriptions-item label="学习知识配置" :span="2">
-            {{ detailFormData.learned_knowledge }}
+          <el-descriptions-item label="学习知识配置" :span="4">
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ JSON.stringify(detailFormData.learned_knowledge, null, 2) }}</pre>
           </el-descriptions-item>
-          <el-descriptions-item label="决策日志配置" :span="2">
-            {{ detailFormData.decision_log }}
+          <el-descriptions-item label="决策日志配置" :span="4">
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ JSON.stringify(detailFormData.decision_log, null, 2) }}</pre>
           </el-descriptions-item>
           <el-descriptions-item label="状态" :span="2">
             <el-tag :type="detailFormData.status == '0' ? 'success' : 'danger'">
               {{ detailFormData.status == "0" ? "启用" : "停用" }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="描述" :span="2">
             {{ detailFormData.description }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="创建时间" :span="2">
             {{ detailFormData.created_time }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="更新时间" :span="2">
             {{ detailFormData.updated_time }}
           </el-descriptions-item>
           <el-descriptions-item label="创建人" :span="2">
@@ -534,31 +527,48 @@
           <el-form-item label="学习机配置名称" prop="name" :required="false">
             <el-input v-model="formData.name" placeholder="请输入学习机配置名称" />
           </el-form-item>
-          <el-form-item label="关联模型ID" prop="model_id" :required="false">
-            <el-input v-model="formData.model_id" placeholder="请输入关联模型ID" />
+          <el-form-item label="关联模型" prop="model_id" :required="false">
+            <el-select v-model="formData.model_id" placeholder="请选择关联模型" clearable filterable style="width: 100%">
+              <el-option
+                v-for="item in modelList"
+                :key="item.id"
+                :label="item.name"
+                :value="String(item.id)"
+              >
+                <el-tooltip
+                  :content="`ID: ${item.id} | ${item.provider} | ${item.model_id}`"
+                  placement="right"
+                  :show-after="300"
+                  :teleported="true"
+                  :enterable="false"
+                >
+                  <span style="display: block; width: 100%;">{{ item.name }}</span>
+                </el-tooltip>
+              </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="命名空间" prop="namespace" :required="false">
             <el-input v-model="formData.namespace" placeholder="请输入命名空间" />
           </el-form-item>
           <el-form-item label="用户画像配置" prop="user_profile" :required="false">
-            <el-input v-model="formData.user_profile" placeholder="请输入用户画像配置" />
+            <DictEditor v-model="formData.user_profile" />
           </el-form-item>
           <el-form-item label="用户记忆配置" prop="user_memory" :required="false">
-            <el-input v-model="formData.user_memory" placeholder="请输入用户记忆配置" />
+            <DictEditor v-model="formData.user_memory" />
           </el-form-item>
           <el-form-item label="会话上下文配置" prop="session_context" :required="false">
-            <el-input v-model="formData.session_context" placeholder="请输入会话上下文配置" />
+            <DictEditor v-model="formData.session_context" />
           </el-form-item>
           <el-form-item label="实体记忆配置" prop="entity_memory" :required="false">
-            <el-input v-model="formData.entity_memory" placeholder="请输入实体记忆配置" />
+            <DictEditor v-model="formData.entity_memory" />
           </el-form-item>
           <el-form-item label="学习知识配置" prop="learned_knowledge" :required="false">
-            <el-input v-model="formData.learned_knowledge" placeholder="请输入学习知识配置" />
+            <DictEditor v-model="formData.learned_knowledge" />
           </el-form-item>
           <el-form-item label="决策日志配置" prop="decision_log" :required="false">
-            <el-input v-model="formData.decision_log" placeholder="请输入决策日志配置" />
+            <DictEditor v-model="formData.decision_log" />
           </el-form-item>
-          <el-form-item label="状态" prop="status" :required="true">
+          <el-form-item label="状态" prop="status" :required="false">
             <el-radio-group v-model="formData.status">
               <el-radio value="0">启用</el-radio>
               <el-radio value="1">停用</el-radio>
@@ -629,8 +639,29 @@ import AgLearningConfigAPI, {
   AgLearningConfigTable,
   AgLearningConfigForm,
 } from "@/api/module_agno_manage/learning_configs";
+import AgModelAPI from "@/api/module_agno_manage/models";
+import DictEditor from "@/views/module_agno_manage/components/DictEditor/index.vue";
 
 const visible = ref(false);
+
+// 关联模型列表
+const modelList = ref<any[]>([]);
+
+async function loadModelList() {
+  const res = await AgModelAPI.listAgModel({ page_no: 1, page_size: 100 });
+  modelList.value = (res.data?.data?.items || []).map((item: any) => ({
+    id: item.id,
+    name: item.name || `Model#${item.id}`,
+    model_id: item.model_id || "",
+    provider: item.provider || "",
+  }));
+}
+
+function getModelName(modelId?: string | number): string {
+  if (!modelId) return "-";
+  const found = modelList.value.find((m) => String(m.id) === String(modelId));
+  return found ? found.name : String(modelId);
+}
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
@@ -656,12 +687,14 @@ const tableColumns = ref([
   { prop: "entity_memory", label: "实体记忆配置（EntityMemoryConfig JSON）", show: true },
   { prop: "learned_knowledge", label: "学习知识配置（LearnedKnowledgeConfig JSON）", show: true },
   { prop: "decision_log", label: "决策日志配置（DecisionLogConfig JSON）", show: true },
-  { prop: "status", label: "status", show: true },
-  { prop: "description", label: "description", show: true },
-  { prop: "created_time", label: "created_time", show: true },
-  { prop: "updated_time", label: "updated_time", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "status", label: "状态", show: true },
+  { prop: "description", label: "描述", show: true },
+  { prop: "created_time", label: "创建时间", show: true },
+  { prop: "updated_time", label: "更新时间", show: true },
+  { prop: "created_id", label: "创建人ID", show: true },
+  { prop: "created_id", label: "创建人", show: true },
+  { prop: "updated_id", label: "更新人ID", show: true },
+  { prop: "updated_id", label: "更新人", show: true },
   { prop: "operation", label: "操作", show: true },
 ]);
 
@@ -787,20 +820,20 @@ const rules = reactive({
   id: [{ required: false, message: "请输入id", trigger: "blur" }],
   uuid: [{ required: false, message: "请输入uuid", trigger: "blur" }],
   name: [{ required: false, message: "请输入学习机配置名称", trigger: "blur" }],
-  model_id: [{ required: true, message: "请输入关联模型ID", trigger: "blur" }],
+  model_id: [{ required: false, message: "请输入关联模型ID", trigger: "blur" }],
   namespace: [{ required: false, message: "请输入命名空间（用于隔离不同租户/场景的学习数据）", trigger: "blur" }],
-  user_profile: [{ required: true, message: "请输入用户画像配置（UserProfileConfig JSON）", trigger: "blur" }],
-  user_memory: [{ required: true, message: "请输入用户记忆配置（UserMemoryConfig JSON）", trigger: "blur" }],
-  session_context: [{ required: true, message: "请输入会话上下文配置（SessionContextConfig JSON）", trigger: "blur" }],
-  entity_memory: [{ required: true, message: "请输入实体记忆配置（EntityMemoryConfig JSON）", trigger: "blur" }],
-  learned_knowledge: [{ required: true, message: "请输入学习知识配置（LearnedKnowledgeConfig JSON）", trigger: "blur" }],
-  decision_log: [{ required: true, message: "请输入决策日志配置（DecisionLogConfig JSON）", trigger: "blur" }],
+  user_profile: [{ required: false, message: "请输入用户画像配置（UserProfileConfig JSON）", trigger: "blur" }],
+  user_memory: [{ required: false, message: "请输入用户记忆配置（UserMemoryConfig JSON）", trigger: "blur" }],
+  session_context: [{ required: false, message: "请输入会话上下文配置（SessionContextConfig JSON）", trigger: "blur" }],
+  entity_memory: [{ required: false, message: "请输入实体记忆配置（EntityMemoryConfig JSON）", trigger: "blur" }],
+  learned_knowledge: [{ required: false, message: "请输入学习知识配置（LearnedKnowledgeConfig JSON）", trigger: "blur" }],
+  decision_log: [{ required: false, message: "请输入决策日志配置（DecisionLogConfig JSON）", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
   description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
-  created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
-  updated_id: [{ required: true, message: "请输入updated_id", trigger: "blur" }],
+  created_id: [{ required: false, message: "请输入created_id", trigger: "blur" }],
+  updated_id: [{ required: false, message: "请输入updated_id", trigger: "blur" }],
 });
 
 // 导入弹窗显示状态
@@ -924,7 +957,7 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     formData.entity_memory = undefined;
     formData.learned_knowledge = undefined;
     formData.decision_log = undefined;
-    formData.status = undefined;
+    formData.status = "0";
     formData.description = undefined;
   }
   dialogVisible.visible = true;
@@ -1038,7 +1071,7 @@ onMounted(async () => {
   if (dictTypes.length > 0) {
     await dictStore.getDict(dictTypes);
   }
-  loadingData();
+  await Promise.all([loadModelList(), loadingData()]);
 });
 </script>
 

@@ -298,14 +298,14 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
           min-width="140"
           show-overflow-tooltip
@@ -318,35 +318,35 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'description')?.show"
-          label=""
+          label="描述"
           prop="description"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
-          label=""
+          label="创建时间"
           prop="created_time"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
-          label=""
+          label="更新时间"
           prop="updated_time"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人ID"
           prop="created_id"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人"
           prop="created_id"
           min-width="140"
           show-overflow-tooltip
@@ -357,14 +357,14 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人ID"
           prop="updated_id"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人"
           prop="updated_id"
           min-width="140"
           show-overflow-tooltip
@@ -435,10 +435,10 @@
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="UUID" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
           <el-descriptions-item label="护栏名称" :span="2">
@@ -464,13 +464,13 @@
               {{ detailFormData.status == "0" ? "启用" : "停用" }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="描述" :span="2">
             {{ detailFormData.description }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="创建时间" :span="2">
             {{ detailFormData.created_time }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="更新时间" :span="2">
             {{ detailFormData.updated_time }}
           </el-descriptions-item>
           <el-descriptions-item label="创建人" :span="2">
@@ -495,11 +495,19 @@
           <el-form-item label="护栏名称" prop="name" :required="false">
             <el-input v-model="formData.name" placeholder="请输入护栏名称" />
           </el-form-item>
-          <el-form-item label="护栏类型(openai_moderation/pii/prompt_injection/custom)" prop="type" :required="false">
-            <el-input v-model="formData.type" placeholder="请输入护栏类型(openai_moderation/pii/prompt_injection/custom)" />
+          <el-form-item label="护栏类型" prop="type" :required="false">
+            <el-select v-model="formData.type" placeholder="请选择护栏类型" clearable style="width: 100%">
+              <el-option label="openai_moderation（OpenAI审核）" value="openai_moderation" />
+              <el-option label="pii（个人信息保护）" value="pii" />
+              <el-option label="prompt_injection（提示注入防护）" value="prompt_injection" />
+              <el-option label="custom（自定义）" value="custom" />
+            </el-select>
           </el-form-item>
-          <el-form-item label="作用阶段(pre/post)" prop="hook_type" :required="false">
-            <el-input v-model="formData.hook_type" placeholder="请输入作用阶段(pre/post)" />
+          <el-form-item label="作用阶段" prop="hook_type" :required="false">
+            <el-select v-model="formData.hook_type" placeholder="请选择作用阶段" clearable style="width: 100%">
+              <el-option label="pre（请求前）" value="pre" />
+              <el-option label="post（请求后）" value="post" />
+            </el-select>
           </el-form-item>
           <el-form-item label="护栏配置参数" prop="config" :required="false">
             <DictEditor v-model="formData.config" />
@@ -510,7 +518,7 @@
           <el-form-item label="自定义护栏类名" prop="class_name" :required="false">
             <el-input v-model="formData.class_name" placeholder="请输入自定义护栏类名" />
           </el-form-item>
-          <el-form-item label="状态" prop="status" :required="true">
+          <el-form-item label="状态" prop="status" :required="false">
             <el-radio-group v-model="formData.status">
               <el-radio value="0">启用</el-radio>
               <el-radio value="1">停用</el-radio>
@@ -605,12 +613,12 @@ const tableColumns = ref([
   { prop: "config", label: "护栏配置参数", show: true },
   { prop: "module_path", label: "自定义护栏模块路径（type=custom时使用）", show: true },
   { prop: "class_name", label: "自定义护栏类名（type=custom时使用）", show: true },
-  { prop: "status", label: "status", show: true },
-  { prop: "description", label: "description", show: true },
-  { prop: "created_time", label: "created_time", show: true },
-  { prop: "updated_time", label: "updated_time", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "status", label: "状态", show: true },
+  { prop: "description", label: "描述", show: true },
+  { prop: "created_time", label: "创建时间", show: true },
+  { prop: "updated_time", label: "更新时间", show: true },
+  { prop: "created_id", label: "创建人ID", show: true },
+  { prop: "updated_id", label: "更新人ID", show: true },
   { prop: "operation", label: "操作", show: true },
 ]);
 
@@ -730,14 +738,14 @@ const rules = reactive({
   type: [{ required: false, message: "请输入护栏类型(openai_moderation/pii/prompt_injection/custom)", trigger: "blur" }],
   hook_type: [{ required: false, message: "请输入作用阶段(pre/post)", trigger: "blur" }],
   config: [{ required: false, message: "请输入护栏配置参数", trigger: "blur" }],
-  module_path: [{ required: true, message: "请输入自定义护栏模块路径（type=custom时使用）", trigger: "blur" }],
-  class_name: [{ required: true, message: "请输入自定义护栏类名（type=custom时使用）", trigger: "blur" }],
+  module_path: [{ required: false, message: "请输入自定义护栏模块路径（type=custom时使用）", trigger: "blur" }],
+  class_name: [{ required: false, message: "请输入自定义护栏类名（type=custom时使用）", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
   description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
-  created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
-  updated_id: [{ required: true, message: "请输入updated_id", trigger: "blur" }],
+  created_id: [{ required: false, message: "请输入created_id", trigger: "blur" }],
+  updated_id: [{ required: false, message: "请输入updated_id", trigger: "blur" }],
 });
 
 // 导入弹窗显示状态
@@ -855,7 +863,7 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     formData.config = undefined;
     formData.module_path = undefined;
     formData.class_name = undefined;
-    formData.status = undefined;
+    formData.status = "0";
     formData.description = undefined;
   }
   dialogVisible.visible = true;

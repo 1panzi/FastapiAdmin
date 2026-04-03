@@ -294,18 +294,23 @@
           label="是否后台运行"
           prop="run_in_background"
           min-width="140"
-          show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.run_in_background === true ? 'success' : scope.row.run_in_background === false ? 'danger' : undefined">
+              {{ scope.row.run_in_background === true ? '是' : scope.row.run_in_background === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
           min-width="140"
           show-overflow-tooltip
@@ -318,35 +323,35 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'description')?.show"
-          label=""
+          label="描述"
           prop="description"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
-          label=""
+          label="创建时间"
           prop="created_time"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
-          label=""
+          label="更新时间"
           prop="updated_time"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人ID"
           prop="created_id"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人"
           prop="created_id"
           min-width="140"
           show-overflow-tooltip
@@ -357,14 +362,14 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人ID"
           prop="updated_id"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人"
           prop="updated_id"
           min-width="140"
           show-overflow-tooltip
@@ -435,10 +440,10 @@
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="UUID" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
           <el-descriptions-item label="Hook名称" :span="2">
@@ -457,20 +462,22 @@
             {{ detailFormData.config }}
           </el-descriptions-item>
           <el-descriptions-item label="是否后台运行" :span="2">
-            {{ detailFormData.run_in_background }}
+            <el-tag :type="detailFormData.run_in_background === true ? 'success' : detailFormData.run_in_background === false ? 'danger' : undefined">
+              {{ detailFormData.run_in_background === true ? '是' : detailFormData.run_in_background === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="状态" :span="2">
             <el-tag :type="detailFormData.status == '0' ? 'success' : 'danger'">
               {{ detailFormData.status == "0" ? "启用" : "停用" }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="描述" :span="2">
             {{ detailFormData.description }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="创建时间" :span="2">
             {{ detailFormData.created_time }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="更新时间" :span="2">
             {{ detailFormData.updated_time }}
           </el-descriptions-item>
           <el-descriptions-item label="创建人" :span="2">
@@ -495,8 +502,12 @@
           <el-form-item label="Hook名称" prop="name" :required="false">
             <el-input v-model="formData.name" placeholder="请输入Hook名称" />
           </el-form-item>
-          <el-form-item label="Hook类型(pre/post/tool)" prop="hook_type" :required="false">
-            <el-input v-model="formData.hook_type" placeholder="请输入Hook类型(pre/post/tool)" />
+          <el-form-item label="Hook类型" prop="hook_type" :required="false">
+            <el-select v-model="formData.hook_type" placeholder="请选择Hook类型" clearable style="width: 100%">
+              <el-option label="pre（请求前）" value="pre" />
+              <el-option label="post（请求后）" value="post" />
+              <el-option label="tool（工具调用）" value="tool" />
+            </el-select>
           </el-form-item>
           <el-form-item label="Python模块路径" prop="module_path" :required="false">
             <el-input v-model="formData.module_path" placeholder="请输入Python模块路径" />
@@ -508,9 +519,12 @@
             <DictEditor v-model="formData.config" />
           </el-form-item>
           <el-form-item label="是否后台运行" prop="run_in_background" :required="false">
-            <el-input v-model="formData.run_in_background" placeholder="请输入是否后台运行" />
+            <el-select v-model="formData.run_in_background" placeholder="默认" clearable style="width: 100%">
+              <el-option label="开启" :value="true" />
+              <el-option label="关闭" :value="false" />
+            </el-select>
           </el-form-item>
-          <el-form-item label="状态" prop="status" :required="true">
+          <el-form-item label="状态" prop="status" :required="false">
             <el-radio-group v-model="formData.status">
               <el-radio value="0">启用</el-radio>
               <el-radio value="1">停用</el-radio>
@@ -605,12 +619,12 @@ const tableColumns = ref([
   { prop: "func_name", label: "函数名", show: true },
   { prop: "config", label: "额外配置参数", show: true },
   { prop: "run_in_background", label: "是否后台运行（不阻塞响应）", show: true },
-  { prop: "status", label: "status", show: true },
-  { prop: "description", label: "description", show: true },
-  { prop: "created_time", label: "created_time", show: true },
-  { prop: "updated_time", label: "updated_time", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "status", label: "状态", show: true },
+  { prop: "description", label: "描述", show: true },
+  { prop: "created_time", label: "创建时间", show: true },
+  { prop: "updated_time", label: "更新时间", show: true },
+  { prop: "created_id", label: "创建人ID", show: true },
+  { prop: "updated_id", label: "更新人ID", show: true },
   { prop: "operation", label: "操作", show: true },
 ]);
 
@@ -736,8 +750,8 @@ const rules = reactive({
   description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
-  created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
-  updated_id: [{ required: true, message: "请输入updated_id", trigger: "blur" }],
+  created_id: [{ required: false, message: "请输入created_id", trigger: "blur" }],
+  updated_id: [{ required: false, message: "请输入updated_id", trigger: "blur" }],
 });
 
 // 导入弹窗显示状态
@@ -855,7 +869,7 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     formData.func_name = undefined;
     formData.config = undefined;
     formData.run_in_background = undefined;
-    formData.status = undefined;
+    formData.status = "0";
     formData.description = undefined;
   }
   dialogVisible.visible = true;

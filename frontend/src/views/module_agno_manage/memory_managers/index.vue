@@ -25,20 +25,39 @@
             <el-form-item label="记忆管理器名称" prop="name">
               <el-input v-model="queryFormData.name" placeholder="请输入记忆管理器名称" clearable />
             </el-form-item>
-            <el-form-item label="关联模型ID" prop="model_id">
-              <el-input v-model="queryFormData.model_id" placeholder="请输入关联模型ID" clearable />
+            <el-form-item label="关联模型" prop="model_id">
+              <el-select v-model="queryFormData.model_id" placeholder="请选择关联模型" clearable filterable style="width: 200px">
+                <el-option
+                  v-for="item in modelList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="String(item.id)"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item label="是否允许删除记忆" prop="delete_memories">
-              <el-input v-model="queryFormData.delete_memories" placeholder="请输入是否允许删除记忆" clearable />
+              <el-select v-model="queryFormData.delete_memories" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
+              </el-select>
             </el-form-item>
             <el-form-item label="是否允许更新记忆" prop="update_memories">
-              <el-input v-model="queryFormData.update_memories" placeholder="请输入是否允许更新记忆" clearable />
+              <el-select v-model="queryFormData.update_memories" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
+              </el-select>
             </el-form-item>
             <el-form-item label="是否允许新增记忆" prop="add_memories">
-              <el-input v-model="queryFormData.add_memories" placeholder="请输入是否允许新增记忆" clearable />
+              <el-select v-model="queryFormData.add_memories" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
+              </el-select>
             </el-form-item>
             <el-form-item label="是否允许清空记忆" prop="clear_memories">
-              <el-input v-model="queryFormData.clear_memories" placeholder="请输入是否允许清空记忆" clearable />
+              <el-select v-model="queryFormData.clear_memories" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
+              </el-select>
             </el-form-item>
             <el-form-item label="记忆捕获指令" prop="memory_capture_instructions">
               <el-input v-model="queryFormData.memory_capture_instructions" placeholder="请输入记忆捕获指令" clearable />
@@ -269,39 +288,63 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'model_id')?.show"
-          label="关联模型ID"
+          label="关联模型"
           prop="model_id"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <span>{{ getModelName(scope.row.model_id) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'delete_memories')?.show"
           label="是否允许删除记忆"
           prop="delete_memories"
           min-width="140"
-          show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.delete_memories === true ? 'success' : scope.row.delete_memories === false ? 'danger' : undefined">
+              {{ scope.row.delete_memories === true ? '是' : scope.row.delete_memories === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'update_memories')?.show"
           label="是否允许更新记忆"
           prop="update_memories"
           min-width="140"
-          show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.update_memories === true ? 'success' : scope.row.update_memories === false ? 'danger' : undefined">
+              {{ scope.row.update_memories === true ? '是' : scope.row.update_memories === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'add_memories')?.show"
           label="是否允许新增记忆"
           prop="add_memories"
           min-width="140"
-          show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.add_memories === true ? 'success' : scope.row.add_memories === false ? 'danger' : undefined">
+              {{ scope.row.add_memories === true ? '是' : scope.row.add_memories === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'clear_memories')?.show"
           label="是否允许清空记忆"
           prop="clear_memories"
           min-width="140"
-          show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.clear_memories === true ? 'success' : scope.row.clear_memories === false ? 'danger' : undefined">
+              {{ scope.row.clear_memories === true ? '是' : scope.row.clear_memories === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'memory_capture_instructions')?.show"
           label="记忆捕获指令"
@@ -318,14 +361,14 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
           min-width="140"
           show-overflow-tooltip
@@ -338,35 +381,35 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'description')?.show"
-          label=""
+          label="描述"
           prop="description"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
-          label=""
+          label="创建时间"
           prop="created_time"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
-          label=""
+          label="更新时间"
           prop="updated_time"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人ID"
           prop="created_id"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人"
           prop="created_id"
           min-width="140"
           show-overflow-tooltip
@@ -377,14 +420,14 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人ID"
           prop="updated_id"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人"
           prop="updated_id"
           min-width="140"
           show-overflow-tooltip
@@ -455,29 +498,37 @@
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="UUID" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
           <el-descriptions-item label="记忆管理器名称" :span="2">
             {{ detailFormData.name }}
           </el-descriptions-item>
-          <el-descriptions-item label="关联模型ID" :span="2">
-            {{ detailFormData.model_id }}
+          <el-descriptions-item label="关联模型" :span="2">
+            {{ getModelName(detailFormData.model_id) }}
           </el-descriptions-item>
           <el-descriptions-item label="是否允许删除记忆" :span="2">
-            {{ detailFormData.delete_memories }}
+            <el-tag :type="detailFormData.delete_memories === true ? 'success' : detailFormData.delete_memories === false ? 'danger' : undefined">
+              {{ detailFormData.delete_memories === true ? '是' : detailFormData.delete_memories === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="是否允许更新记忆" :span="2">
-            {{ detailFormData.update_memories }}
+            <el-tag :type="detailFormData.update_memories === true ? 'success' : detailFormData.update_memories === false ? 'danger' : undefined">
+              {{ detailFormData.update_memories === true ? '是' : detailFormData.update_memories === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="是否允许新增记忆" :span="2">
-            {{ detailFormData.add_memories }}
+            <el-tag :type="detailFormData.add_memories === true ? 'success' : detailFormData.add_memories === false ? 'danger' : undefined">
+              {{ detailFormData.add_memories === true ? '是' : detailFormData.add_memories === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="是否允许清空记忆" :span="2">
-            {{ detailFormData.clear_memories }}
+            <el-tag :type="detailFormData.clear_memories === true ? 'success' : detailFormData.clear_memories === false ? 'danger' : undefined">
+              {{ detailFormData.clear_memories === true ? '是' : detailFormData.clear_memories === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="记忆捕获指令" :span="2">
             {{ detailFormData.memory_capture_instructions }}
@@ -490,13 +541,13 @@
               {{ detailFormData.status == "0" ? "启用" : "停用" }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="描述" :span="2">
             {{ detailFormData.description }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="创建时间" :span="2">
             {{ detailFormData.created_time }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="更新时间" :span="2">
             {{ detailFormData.updated_time }}
           </el-descriptions-item>
           <el-descriptions-item label="创建人" :span="2">
@@ -521,28 +572,57 @@
           <el-form-item label="记忆管理器名称" prop="name" :required="false">
             <el-input v-model="formData.name" placeholder="请输入记忆管理器名称" />
           </el-form-item>
-          <el-form-item label="关联模型ID" prop="model_id" :required="false">
-            <el-input v-model="formData.model_id" placeholder="请输入关联模型ID" />
+          <el-form-item label="关联模型" prop="model_id" :required="false">
+            <el-select v-model="formData.model_id" placeholder="请选择关联模型" clearable filterable style="width: 100%">
+              <el-option
+                v-for="item in modelList"
+                :key="item.id"
+                :label="item.name"
+                :value="String(item.id)"
+              >
+                <el-tooltip
+                  :content="`ID: ${item.id} | ${item.provider} | ${item.model_id}`"
+                  placement="right"
+                  :show-after="300"
+                  :teleported="true"
+                  :enterable="false"
+                >
+                  <span style="display: block; width: 100%;">{{ item.name }}</span>
+                </el-tooltip>
+              </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="是否允许删除记忆" prop="delete_memories" :required="false">
-            <el-input v-model="formData.delete_memories" placeholder="请输入是否允许删除记忆" />
+            <el-select v-model="formData.delete_memories" placeholder="默认" clearable style="width: 100%">
+              <el-option label="开启" :value="true" />
+              <el-option label="关闭" :value="false" />
+            </el-select>
           </el-form-item>
           <el-form-item label="是否允许更新记忆" prop="update_memories" :required="false">
-            <el-input v-model="formData.update_memories" placeholder="请输入是否允许更新记忆" />
+            <el-select v-model="formData.update_memories" placeholder="默认" clearable style="width: 100%">
+              <el-option label="开启" :value="true" />
+              <el-option label="关闭" :value="false" />
+            </el-select>
           </el-form-item>
           <el-form-item label="是否允许新增记忆" prop="add_memories" :required="false">
-            <el-input v-model="formData.add_memories" placeholder="请输入是否允许新增记忆" />
+            <el-select v-model="formData.add_memories" placeholder="默认" clearable style="width: 100%">
+              <el-option label="开启" :value="true" />
+              <el-option label="关闭" :value="false" />
+            </el-select>
           </el-form-item>
           <el-form-item label="是否允许清空记忆" prop="clear_memories" :required="false">
-            <el-input v-model="formData.clear_memories" placeholder="请输入是否允许清空记忆" />
+            <el-select v-model="formData.clear_memories" placeholder="默认" clearable style="width: 100%">
+              <el-option label="开启" :value="true" />
+              <el-option label="关闭" :value="false" />
+            </el-select>
           </el-form-item>
           <el-form-item label="记忆捕获指令" prop="memory_capture_instructions" :required="false">
-            <el-input v-model="formData.memory_capture_instructions" placeholder="请输入记忆捕获指令" />
+            <el-input v-model="formData.memory_capture_instructions" type="textarea" :rows="3" placeholder="请输入记忆捕获指令" />
           </el-form-item>
           <el-form-item label="附加指令" prop="additional_instructions" :required="false">
-            <el-input v-model="formData.additional_instructions" placeholder="请输入附加指令" />
+            <el-input v-model="formData.additional_instructions" type="textarea" :rows="3" placeholder="请输入附加指令" />
           </el-form-item>
-          <el-form-item label="状态" prop="status" :required="true">
+          <el-form-item label="状态" prop="status" :required="false">
             <el-radio-group v-model="formData.status">
               <el-radio value="0">启用</el-radio>
               <el-radio value="1">停用</el-radio>
@@ -613,8 +693,28 @@ import AgMemoryManagerAPI, {
   AgMemoryManagerTable,
   AgMemoryManagerForm,
 } from "@/api/module_agno_manage/memory_managers";
+import AgModelAPI from "@/api/module_agno_manage/models";
 
 const visible = ref(false);
+
+// 关联模型列表
+const modelList = ref<any[]>([]);
+
+async function loadModelList() {
+  const res = await AgModelAPI.listAgModel({ page_no: 1, page_size: 100 });
+  modelList.value = (res.data?.data?.items || []).map((item: any) => ({
+    id: item.id,
+    name: item.name || `Model#${item.id}`,
+    model_id: item.model_id || "",
+    provider: item.provider || "",
+  }));
+}
+
+function getModelName(modelId?: string | number): string {
+  if (!modelId) return "-";
+  const found = modelList.value.find((m) => String(m.id) === String(modelId));
+  return found ? found.name : String(modelId);
+}
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
@@ -639,12 +739,12 @@ const tableColumns = ref([
   { prop: "clear_memories", label: "是否允许清空记忆", show: true },
   { prop: "memory_capture_instructions", label: "记忆捕获指令", show: true },
   { prop: "additional_instructions", label: "附加指令", show: true },
-  { prop: "status", label: "status", show: true },
-  { prop: "description", label: "description", show: true },
-  { prop: "created_time", label: "created_time", show: true },
-  { prop: "updated_time", label: "updated_time", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "status", label: "状态", show: true },
+  { prop: "description", label: "描述", show: true },
+  { prop: "created_time", label: "创建时间", show: true },
+  { prop: "updated_time", label: "更新时间", show: true },
+  { prop: "created_id", label: "创建人ID", show: true },
+  { prop: "updated_id", label: "更新人ID", show: true },
   { prop: "operation", label: "操作", show: true },
 ]);
 
@@ -767,19 +867,19 @@ const rules = reactive({
   id: [{ required: false, message: "请输入id", trigger: "blur" }],
   uuid: [{ required: false, message: "请输入uuid", trigger: "blur" }],
   name: [{ required: false, message: "请输入记忆管理器名称", trigger: "blur" }],
-  model_id: [{ required: true, message: "请输入关联模型ID（用于记忆处理）", trigger: "blur" }],
+  model_id: [{ required: false, message: "请输入关联模型ID（用于记忆处理）", trigger: "blur" }],
   delete_memories: [{ required: false, message: "请输入是否允许删除记忆", trigger: "blur" }],
   update_memories: [{ required: false, message: "请输入是否允许更新记忆", trigger: "blur" }],
   add_memories: [{ required: false, message: "请输入是否允许新增记忆", trigger: "blur" }],
   clear_memories: [{ required: false, message: "请输入是否允许清空记忆", trigger: "blur" }],
-  memory_capture_instructions: [{ required: true, message: "请输入记忆捕获指令", trigger: "blur" }],
-  additional_instructions: [{ required: true, message: "请输入附加指令", trigger: "blur" }],
+  memory_capture_instructions: [{ required: false, message: "请输入记忆捕获指令", trigger: "blur" }],
+  additional_instructions: [{ required: false, message: "请输入附加指令", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
   description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
-  created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
-  updated_id: [{ required: true, message: "请输入updated_id", trigger: "blur" }],
+  created_id: [{ required: false, message: "请输入created_id", trigger: "blur" }],
+  updated_id: [{ required: false, message: "请输入updated_id", trigger: "blur" }],
 });
 
 // 导入弹窗显示状态
@@ -901,7 +1001,7 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     formData.clear_memories = undefined;
     formData.memory_capture_instructions = undefined;
     formData.additional_instructions = undefined;
-    formData.status = undefined;
+    formData.status = "0";
     formData.description = undefined;
   }
   dialogVisible.visible = true;
@@ -1015,7 +1115,7 @@ onMounted(async () => {
   if (dictTypes.length > 0) {
     await dictStore.getDict(dictTypes);
   }
-  loadingData();
+  await Promise.all([loadModelList(), loadingData()]);
 });
 </script>
 

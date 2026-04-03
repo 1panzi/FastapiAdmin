@@ -25,8 +25,15 @@
             <el-form-item label="压缩配置名称" prop="name">
               <el-input v-model="queryFormData.name" placeholder="请输入压缩配置名称" clearable />
             </el-form-item>
-            <el-form-item label="关联压缩模型ID" prop="model_id">
-              <el-input v-model="queryFormData.model_id" placeholder="请输入关联压缩模型ID" clearable />
+            <el-form-item label="关联压缩模型" prop="model_id">
+              <el-select v-model="queryFormData.model_id" placeholder="请选择关联压缩模型" clearable filterable style="width: 200px">
+                <el-option
+                  v-for="item in modelList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="String(item.id)"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item label="触发工具结果压缩的条数阈值" prop="compress_tool_results_limit">
               <el-input v-model="queryFormData.compress_tool_results_limit" placeholder="请输入触发工具结果压缩的条数阈值" clearable />
@@ -260,11 +267,15 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'model_id')?.show"
-          label="关联压缩模型ID"
+          label="关联压缩模型"
           prop="model_id"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <span>{{ getModelName(scope.row.model_id) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'compress_tool_results_limit')?.show"
           label="触发工具结果压缩的条数阈值"
@@ -288,14 +299,14 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
           min-width="140"
           show-overflow-tooltip
@@ -308,35 +319,35 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'description')?.show"
-          label=""
+          label="描述"
           prop="description"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
-          label=""
+          label="创建时间"
           prop="created_time"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
-          label=""
+          label="更新时间"
           prop="updated_time"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人ID"
           prop="created_id"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人"
           prop="created_id"
           min-width="140"
           show-overflow-tooltip
@@ -347,14 +358,14 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人ID"
           prop="updated_id"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人"
           prop="updated_id"
           min-width="140"
           show-overflow-tooltip
@@ -425,17 +436,17 @@
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="UUID" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
           <el-descriptions-item label="压缩配置名称" :span="2">
             {{ detailFormData.name }}
           </el-descriptions-item>
-          <el-descriptions-item label="关联压缩模型ID" :span="2">
-            {{ detailFormData.model_id }}
+          <el-descriptions-item label="关联压缩模型" :span="2">
+            {{ getModelName(detailFormData.model_id) }}
           </el-descriptions-item>
           <el-descriptions-item label="触发工具结果压缩的条数阈值" :span="2">
             {{ detailFormData.compress_tool_results_limit }}
@@ -451,13 +462,13 @@
               {{ detailFormData.status == "0" ? "启用" : "停用" }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="描述" :span="2">
             {{ detailFormData.description }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="创建时间" :span="2">
             {{ detailFormData.created_time }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="更新时间" :span="2">
             {{ detailFormData.updated_time }}
           </el-descriptions-item>
           <el-descriptions-item label="创建人" :span="2">
@@ -482,19 +493,36 @@
           <el-form-item label="压缩配置名称" prop="name" :required="false">
             <el-input v-model="formData.name" placeholder="请输入压缩配置名称" />
           </el-form-item>
-          <el-form-item label="关联压缩模型ID" prop="model_id" :required="false">
-            <el-input v-model="formData.model_id" placeholder="请输入关联压缩模型ID" />
+          <el-form-item label="关联压缩模型" prop="model_id" :required="false">
+            <el-select v-model="formData.model_id" placeholder="请选择关联压缩模型" clearable filterable style="width: 100%">
+              <el-option
+                v-for="item in modelList"
+                :key="item.id"
+                :label="item.name"
+                :value="String(item.id)"
+              >
+                <el-tooltip
+                  :content="`ID: ${item.id} | ${item.provider} | ${item.model_id}`"
+                  placement="right"
+                  :show-after="300"
+                  :teleported="true"
+                  :enterable="false"
+                >
+                  <span style="display: block; width: 100%;">{{ item.name }}</span>
+                </el-tooltip>
+              </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="触发工具结果压缩的条数阈值" prop="compress_tool_results_limit" :required="false">
-            <el-input v-model="formData.compress_tool_results_limit" placeholder="请输入触发工具结果压缩的条数阈值" />
+            <el-input-number v-model="formData.compress_tool_results_limit" :min="0" placeholder="请输入条数阈值" style="width: 100%" />
           </el-form-item>
           <el-form-item label="触发压缩的Token数阈值" prop="compress_token_limit" :required="false">
-            <el-input v-model="formData.compress_token_limit" placeholder="请输入触发压缩的Token数阈值" />
+            <el-input-number v-model="formData.compress_token_limit" :min="0" placeholder="请输入Token阈值" style="width: 100%" />
           </el-form-item>
           <el-form-item label="工具调用压缩指令" prop="compress_tool_call_instructions" :required="false">
-            <el-input v-model="formData.compress_tool_call_instructions" placeholder="请输入工具调用压缩指令" />
+            <el-input v-model="formData.compress_tool_call_instructions" type="textarea" :rows="3" placeholder="请输入工具调用压缩指令" />
           </el-form-item>
-          <el-form-item label="状态" prop="status" :required="true">
+          <el-form-item label="状态" prop="status" :required="false">
             <el-radio-group v-model="formData.status">
               <el-radio value="0">启用</el-radio>
               <el-radio value="1">停用</el-radio>
@@ -565,8 +593,28 @@ import AgCompressionConfigAPI, {
   AgCompressionConfigTable,
   AgCompressionConfigForm,
 } from "@/api/module_agno_manage/compression_configs";
+import AgModelAPI from "@/api/module_agno_manage/models";
 
 const visible = ref(false);
+
+// 关联模型列表
+const modelList = ref<any[]>([]);
+
+async function loadModelList() {
+  const res = await AgModelAPI.listAgModel({ page_no: 1, page_size: 100 });
+  modelList.value = (res.data?.data?.items || []).map((item: any) => ({
+    id: item.id,
+    name: item.name || `Model#${item.id}`,
+    model_id: item.model_id || "",
+    provider: item.provider || "",
+  }));
+}
+
+function getModelName(modelId?: string | number): string {
+  if (!modelId) return "-";
+  const found = modelList.value.find((m) => String(m.id) === String(modelId));
+  return found ? found.name : String(modelId);
+}
 const queryFormRef = ref();
 const dataFormRef = ref();
 const total = ref(0);
@@ -588,12 +636,12 @@ const tableColumns = ref([
   { prop: "compress_tool_results_limit", label: "触发工具结果压缩的条数阈值", show: true },
   { prop: "compress_token_limit", label: "触发压缩的Token数阈值", show: true },
   { prop: "compress_tool_call_instructions", label: "工具调用压缩指令", show: true },
-  { prop: "status", label: "status", show: true },
-  { prop: "description", label: "description", show: true },
-  { prop: "created_time", label: "created_time", show: true },
-  { prop: "updated_time", label: "updated_time", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "status", label: "状态", show: true },
+  { prop: "description", label: "描述", show: true },
+  { prop: "created_time", label: "创建时间", show: true },
+  { prop: "updated_time", label: "更新时间", show: true },
+  { prop: "created_id", label: "创建人ID", show: true },
+  { prop: "updated_id", label: "更新人ID", show: true },
   { prop: "operation", label: "操作", show: true },
 ]);
 
@@ -707,16 +755,16 @@ const rules = reactive({
   id: [{ required: false, message: "请输入id", trigger: "blur" }],
   uuid: [{ required: false, message: "请输入uuid", trigger: "blur" }],
   name: [{ required: false, message: "请输入压缩配置名称", trigger: "blur" }],
-  model_id: [{ required: true, message: "请输入关联压缩模型ID", trigger: "blur" }],
-  compress_tool_results_limit: [{ required: true, message: "请输入触发工具结果压缩的条数阈值", trigger: "blur" }],
-  compress_token_limit: [{ required: true, message: "请输入触发压缩的Token数阈值", trigger: "blur" }],
-  compress_tool_call_instructions: [{ required: true, message: "请输入工具调用压缩指令", trigger: "blur" }],
+  model_id: [{ required: false, message: "请输入关联压缩模型ID", trigger: "blur" }],
+  compress_tool_results_limit: [{ required: false, message: "请输入触发工具结果压缩的条数阈值", trigger: "blur" }],
+  compress_token_limit: [{ required: false, message: "请输入触发压缩的Token数阈值", trigger: "blur" }],
+  compress_tool_call_instructions: [{ required: false, message: "请输入工具调用压缩指令", trigger: "blur" }],
   status: [{ required: false, message: "请输入status", trigger: "blur" }],
   description: [{ required: false, message: "请输入description", trigger: "blur" }],
   created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
   updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
-  created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
-  updated_id: [{ required: true, message: "请输入updated_id", trigger: "blur" }],
+  created_id: [{ required: false, message: "请输入created_id", trigger: "blur" }],
+  updated_id: [{ required: false, message: "请输入updated_id", trigger: "blur" }],
 });
 
 // 导入弹窗显示状态
@@ -832,7 +880,7 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     formData.compress_tool_results_limit = undefined;
     formData.compress_token_limit = undefined;
     formData.compress_tool_call_instructions = undefined;
-    formData.status = undefined;
+    formData.status = "0";
     formData.description = undefined;
   }
   dialogVisible.visible = true;
@@ -946,7 +994,7 @@ onMounted(async () => {
   if (dictTypes.length > 0) {
     await dictStore.getDict(dictTypes);
   }
-  loadingData();
+  await Promise.all([loadModelList(), loadingData()]);
 });
 </script>
 
