@@ -74,6 +74,10 @@ knowledge.insert(text_content="张杰的个人简介")
 kg_result = knowledge.search("个人简介")
 print(kg_result)
 
+## 推理模型
+from agno.knowledge.reasoning import Reasoning
+reasoning = Reasoning(knowledge=knowledge, model=model)
+print(reasoning("你好"))
 
 
 # agent_os = AgentOS(
