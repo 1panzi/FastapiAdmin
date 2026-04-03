@@ -191,7 +191,13 @@ Record 类型字段通常不在搜索表单中出现。
 
 当字段存储的是另一张表的 ID（如 `embedder_id`、`model_id`、`owner_id`、`resource_id`），必须用下拉选择器而非文本输入框。
 
-**通用模式：**
+**选择方案：**
+- **数据量小（≤100条）**：使用 `el-select` + `onMounted` 全量加载（见下方"全量加载模式"）
+- **数据量大或不确定**：使用 `LazySelect` 懒加载组件（见下方"懒加载模式"，**推荐**）
+
+---
+
+#### 3a. 全量加载模式（数据量小时使用）
 
 ```typescript
 // 脚本：声明列表 ref
@@ -203,9 +209,7 @@ async function loadEmbedderList() {
   embedderList.value = (res.data?.data?.items || []).map((item: any) => ({
     id: item.id,
     name: item.name || `Embedder#${item.id}`,
-    // 额外保留用于 tooltip 显示的字段
     provider: item.provider || "",
-    model_id: item.model_id || "",
   }));
 }
 
@@ -278,6 +282,108 @@ function getEmbedderName(embedderId?: string): string {
   ```typescript
   await Promise.all([loadEmbedderList(), loadVectordbTypeList()]);
   ```
+
+---
+
+#### 3b. 懒加载模式（数据量大时使用，推荐）
+
+使用封装好的 `LazySelect` 组件（`@/views/module_agno_manage/components/LazySelect/index.vue`），支持滚动触底自动加载下一页、服务端关键字搜索、300ms 防抖。
+
+**前提条件：** 对应列表接口的 `PageQuery` 须支持 `name?: string` 过滤参数。
+
+**脚本：定义 fetcher 函数**
+```typescript
+import LazySelect from "@/views/module_agno_manage/components/LazySelect/index.vue";
+
+// fetcher：传给 LazySelect 的数据拉取函数
+const modelFetcher = async (params: { page_no: number; page_size: number; name?: string }) => {
+  const res = await AgModelAPI.listAgModel({ ...params });
+  const items = (res.data?.data?.items || []).map((item: any) => ({
+    value: String(item.id),   // 必须是 string
+    label: item.name || String(item.id),
+    raw: item,                // 可选，保留原始数据
+  }));
+  return { items, total: res.data?.data?.total || 0 };
+};
+```
+
+**脚本：表格/详情中的名称显示（按需 + cache，同步函数）**
+```typescript
+// 缓存已查询过的 ID → 名称映射
+const modelNameCache = ref<Record<string, string>>({});
+
+// 同步函数：首次调用时异步填充 cache，响应式触发重渲染
+function getModelName(id?: string | number): string {
+  if (!id) return "-";
+  const key = String(id);
+  if (modelNameCache.value[key]) return modelNameCache.value[key];
+  // 触发异步填充，不阻塞模板渲染
+  AgModelAPI.detailAgModel(Number(id))
+    .then((res) => {
+      modelNameCache.value[key] = res.data?.data?.name || key;
+    })
+    .catch(() => {
+      modelNameCache.value[key] = key;
+    });
+  return key; // 首次渲染暂显 ID，异步回来后自动刷新
+}
+```
+
+**表单（搜索区 + 新增/编辑区）：**
+```vue
+<!-- 搜索表单 -->
+<el-form-item label="主模型" prop="model_id">
+  <LazySelect
+    v-model="queryFormData.model_id"
+    :fetcher="modelFetcher"
+    placeholder="请选择主模型"
+    style="width: 200px"
+  />
+</el-form-item>
+
+<!-- 新增/编辑表单 -->
+<el-form-item label="主模型" prop="model_id" :required="false">
+  <LazySelect
+    v-model="formData.model_id"
+    :fetcher="modelFetcher"
+    placeholder="请选择主模型"
+  />
+</el-form-item>
+```
+
+**表格列（显示名称而非 ID）：**
+```vue
+<el-table-column label="主模型" prop="model_id" min-width="160" show-overflow-tooltip>
+  <template #default="scope">
+    <span>{{ getModelName(scope.row.model_id) }}</span>
+  </template>
+</el-table-column>
+```
+
+**详情展示：**
+```vue
+<el-descriptions-item label="主模型" :span="2">
+  {{ getModelName(detailFormData.model_id) }}
+</el-descriptions-item>
+```
+
+**onMounted 无需预加载**（LazySelect 在下拉打开时自动请求）：
+```typescript
+onMounted(async () => {
+  if (dictTypes.length > 0) await dictStore.getDict(dictTypes);
+  loadingData(); // 无需 loadModelList()
+});
+```
+
+**LazySelect Props 说明：**
+| Prop | 类型 | 说明 |
+|---|---|---|
+| `modelValue` | `string` | 绑定值（`v-model`） |
+| `fetcher` | `Function` | 必填，签名见上方 |
+| `placeholder` | `string` | 占位文本 |
+| `clearable` | `boolean` | 是否可清空，默认 `true` |
+| `pageSize` | `number` | 每页条数，默认 `20` |
+| `initialLabel` | `string` | 编辑场景回显标签（可选） |
 
 ### 4. 枚举类型下拉（来自后端 /agno/types 接口）
 
@@ -455,7 +561,7 @@ function handleProviderChange() {
 11. **learning_configs** — ✅ 已完成（model_id 关联模型下拉、六个 JSON 字段 DictEditor、搜索表单删除 JSON 字段）
 12. **compression_configs** — ✅ 已完成（model_id 关联模型下拉、整数字段 input-number、指令字段 textarea）
 13. **agents** — 大型复杂表单（50+ 字段）
-14. **teams** — 多 Agent 群组配置
+14. **teams** — ✅ 已完成（LazySelect 懒加载 model_id/memory_manager_id、布尔三态 select、整数 input-number、DictEditor、el-tabs 分组表单）
 15. **workflows** / **workflow_nodes** — 工作流自动化
 
 每个视图完善时需检查以下内容：
