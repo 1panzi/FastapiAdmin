@@ -84,7 +84,19 @@ class NoticeService:
         search: NoticeQueryParam | None = None,
         order_by: list[dict] | None = None,
     ) -> dict:
-        """分页查询公告（数据库 OFFSET/LIMIT）。"""
+        """
+        分页查询公告（数据库 OFFSET/LIMIT）。
+
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - page_no (int): 页码（从 1 开始）
+        - page_size (int): 每页条数
+        - search (NoticeQueryParam | None): 查询条件
+        - order_by (list[dict] | None): 排序字段列表
+
+        返回:
+        - dict: 分页结果（结构由 `CRUD.page` 返回约定）
+        """
         offset = (page_no - 1) * page_size
         return await NoticeCRUD(auth).page(
             offset=offset,
@@ -96,7 +108,15 @@ class NoticeService:
 
     @classmethod
     async def get_notice_available_page_service(cls, auth: AuthSchema) -> dict:
-        """已启用公告分页（与历史行为一致：默认第 1 页、每页 10 条）。"""
+        """
+        已启用公告分页（与历史行为一致：固定第 1 页、每页 10 条）。
+
+        参数:
+        - auth (AuthSchema): 认证信息模型
+
+        返回:
+        - dict: 分页结果（结构由 `CRUD.page` 返回约定）
+        """
         return await NoticeCRUD(auth).page(
             offset=0,
             limit=10,
@@ -164,6 +184,9 @@ class NoticeService:
 
         异常:
         - CustomException: 删除失败，删除对象不能为空或该公告通知不存在。
+
+        返回:
+        - None
         """
         if len(ids) < 1:
             raise CustomException(msg="删除失败，删除对象不能为空")
@@ -184,6 +207,9 @@ class NoticeService:
 
         异常:
         - CustomException: 批量设置失败，该公告通知不存在。
+
+        返回:
+        - None
         """
         await NoticeCRUD(auth).set_available_crud(ids=data.ids, status=data.status)
 

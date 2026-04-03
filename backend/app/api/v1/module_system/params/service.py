@@ -112,7 +112,19 @@ class ParamsService:
         search: ParamsQueryParam | None = None,
         order_by: list[dict[str, str]] | None = None,
     ) -> dict:
-        """分页查询参数（数据库 OFFSET/LIMIT）。"""
+        """
+        分页查询系统参数（数据库 OFFSET/LIMIT）。
+
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - page_no (int): 页码（从 1 开始）
+        - page_size (int): 每页条数
+        - search (ParamsQueryParam | None): 查询条件
+        - order_by (list[dict[str, str]] | None): 排序字段列表
+
+        返回:
+        - dict: 分页结果（结构由 `CRUD.page` 返回约定）
+        """
         offset = (page_no - 1) * page_size
         return await ParamsCRUD(auth).page(
             offset=offset,

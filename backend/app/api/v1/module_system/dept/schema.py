@@ -22,6 +22,18 @@ class DeptCreateSchema(BaseModel):
     @field_validator("name")
     @classmethod
     def validate_name(cls, value: str):
+        """
+        校验并规范化部门名称（去空格、非空）。
+
+        参数:
+        - value (str): 部门名称。
+
+        返回:
+        - str: 规范化后的部门名称。
+
+        异常:
+        - ValueError: 部门名称为空时抛出。
+        """
         if not value or len(value.strip()) == 0:
             raise ValueError("部门名称不能为空")
         value = value.replace(" ", "")
@@ -30,6 +42,18 @@ class DeptCreateSchema(BaseModel):
     @field_validator("code")
     @classmethod
     def validate_code(cls, value: str | None):
+        """
+        校验部门编码：字母开头，仅包含字母/数字/下划线；空字符串视为 None。
+
+        参数:
+        - value (str | None): 部门编码。
+
+        返回:
+        - str | None: 规范化后的部门编码或 None。
+
+        异常:
+        - ValueError: 编码不满足格式要求时抛出。
+        """
         if value is None:
             return value
         v = value.strip()

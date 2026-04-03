@@ -119,13 +119,16 @@ def sanitize_html(content: str) -> str:
 
 def sanitize_html_with_styles(content: str) -> str:
     """
-    清理 HTML 内容（包含样式），移除潜在的 XSS 攻击代码。
+    清理 HTML 内容；标签与属性白名单与 `sanitize_html` 一致。
 
     参数:
-    - content (str): 需要清理的 HTML 内容
+    - content (str): 需要清理的 HTML 内容。
 
     返回:
-    - str: 清理后的安全 HTML 内容
+    - str: 清理后的 HTML 字符串。
+
+    说明:
+    - `ALLOWED_STYLES` 供后续接入 bleach 样式清洗时使用，当前实现与 `sanitize_html` 相同。
     """
     if not content:
         return content

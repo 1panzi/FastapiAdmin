@@ -22,11 +22,17 @@ async def websocket_chat_controller(
     websocket: WebSocket,
 ) -> None:
     """
-    WebSocket聊天接口
+    WebSocket 聊天接口。
+
+    参数:
+    - websocket (WebSocket): WebSocket 连接。
+
+    返回:
+    - None: 长连接处理完毕或关闭后无返回值。
 
     支持两种消息格式：
     1. 纯文本：直接发送消息内容
-    2. JSON格式：{"message": "消息内容", "session_id": "会话ID", "files": [...]}
+    2. JSON 格式：{"message": "消息内容", "session_id": "会话ID", "files": [...]}
 
     ws://127.0.0.1:8001/api/v1/ai/chat/ws?token=xxx
     """

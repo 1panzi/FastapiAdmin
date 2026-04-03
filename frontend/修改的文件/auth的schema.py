@@ -14,6 +14,7 @@ class AuthSchema(BaseModel):
     user: UserModel | None = Field(default=None, description="用户信息")
     check_data_scope: bool = Field(default=True, description="是否检查数据权限")
     db: AsyncSession = Field(description="数据库会话")
+    current_permission: str | None = Field(default=None, description="当前请求的权限标识")
 
 
 class JWTPayloadSchema(BaseModel):
@@ -25,15 +26,6 @@ class JWTPayloadSchema(BaseModel):
 
     @model_validator(mode="after")
     def validate_fields(self):
-        """
-        校验 JWT 载荷字段的基本合法性。
-
-        返回:
-        - JWTPayloadSchema: 校验后的载荷实例。
-
-        异常:
-        - ValueError: 必填字段为空或格式不正确时抛出。
-        """
         if not self.sub or len(self.sub.strip()) == 0:
             raise ValueError("会话编号不能为空")
         return self

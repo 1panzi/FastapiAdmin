@@ -299,6 +299,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         参数:
         - ids (List[int]): 对象ID列表
 
+        返回:
+        - None
+
         异常:
         - CustomException: 删除失败时抛出异常
         """
@@ -321,6 +324,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         清空对象表
 
+        返回:
+        - None
+
         异常:
         - CustomException: 清空失败时抛出异常
         """
@@ -338,6 +344,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         参数:
         - ids (List[int]): 对象ID列表
         - **kwargs: 更新的属性及值
+
+        返回:
+        - None
 
         异常:
         - CustomException: 更新失败时抛出异常

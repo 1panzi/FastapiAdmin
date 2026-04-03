@@ -24,6 +24,15 @@ class InterceptHandler(logging.Handler):
 
     @override
     def emit(self, record: logging.LogRecord) -> None:
+        """
+        将标准库 LogRecord 转发到 Loguru。
+
+        参数:
+        - record (logging.LogRecord): 标准库日志记录。
+
+        返回:
+        - None
+        """
         # 尝试获取日志级别名称
         try:
             level = logger.level(record.levelname).name
@@ -42,8 +51,10 @@ class InterceptHandler(logging.Handler):
 
 def cleanup_logging() -> None:
     """
-    清理日志资源
-    在程序退出时调用,确保所有日志处理器被正确关闭
+    清理日志资源；在程序退出时调用，移除已注册的 Loguru 处理器。
+
+    返回:
+    - None
     """
     global _logger_handlers
 
@@ -59,12 +70,10 @@ def cleanup_logging() -> None:
 
 def setup_logging() -> None:
     """
-    配置日志系统
+    配置日志系统：控制台彩色输出、文件轮转、错误日志分文件。
 
-    功能：
-    1. 控制台彩色输出
-    2. 文件日志轮转
-    3. 错误日志单独存储
+    返回:
+    - None
     """
     global _logger_handlers
 

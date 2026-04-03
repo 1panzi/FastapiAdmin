@@ -9,7 +9,9 @@ from openpyxl.worksheet.datavalidation import DataValidation
 
 
 class ExcelUtil:
-    """Excel文件处理工具类"""
+    """
+    Excel 模板生成与列表导出（openpyxl / pandas）。
+    """
 
     @classmethod
     def __mapping_list(cls, list_data: list[dict[str, Any]], mapping_dict: dict) -> list:

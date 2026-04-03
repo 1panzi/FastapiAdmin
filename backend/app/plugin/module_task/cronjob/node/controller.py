@@ -33,6 +33,12 @@ async def get_node_options_controller(
 ) -> JSONResponse:
     """
     获取数据库中的定时任务节点定义（task_node），与编排节点类型无关。
+
+    参数:
+    - auth (AuthSchema): 认证信息。
+
+    返回:
+    - JSONResponse: 成功响应，data 为选项列表。
     """
     result = await NodeService.get_node_options_service(auth=auth)
     log.info("获取定时任务节点选项成功")

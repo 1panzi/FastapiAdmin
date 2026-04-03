@@ -59,14 +59,38 @@ class GenTableModel(ModelMixin, UserMixin):
 
     @validates("table_name")
     def validate_table_name(self, key: str, table_name: str) -> str:
-        """验证表名不为空"""
+        """
+        验证表名非空并去首尾空格。
+
+        参数:
+        - key (str): 字段名。
+        - table_name (str): 表名。
+
+        返回:
+        - str: 规范化后的表名。
+
+        异常:
+        - ValueError: 表名为空时抛出。
+        """
         if not table_name or not table_name.strip():
             raise ValueError("表名称不能为空")
         return table_name.strip()
 
     @validates("class_name")
     def validate_class_name(self, key: str, class_name: str) -> str:
-        """验证类名不为空"""
+        """
+        验证实体类名非空并去首尾空格。
+
+        参数:
+        - key (str): 字段名。
+        - class_name (str): 类名。
+
+        返回:
+        - str: 规范化后的类名。
+
+        异常:
+        - ValueError: 类名为空时抛出。
+        """
         if not class_name or not class_name.strip():
             raise ValueError("实体类名称不能为空")
         return class_name.strip()
@@ -190,14 +214,38 @@ class GenTableColumnModel(ModelMixin, UserMixin):
 
     @validates("column_name")
     def validate_column_name(self, key: str, column_name: str) -> str:
-        """验证列名不为空"""
+        """
+        验证列名非空并去首尾空格。
+
+        参数:
+        - key (str): 字段名。
+        - column_name (str): 列名。
+
+        返回:
+        - str: 规范化后的列名。
+
+        异常:
+        - ValueError: 列名为空时抛出。
+        """
         if not column_name or not column_name.strip():
             raise ValueError("列名称不能为空")
         return column_name.strip()
 
     @validates("column_type")
     def validate_column_type(self, key: str, column_type: str) -> str:
-        """验证列类型不为空"""
+        """
+        验证列类型非空并去首尾空格。
+
+        参数:
+        - key (str): 字段名。
+        - column_type (str): 列类型字符串。
+
+        返回:
+        - str: 规范化后的列类型。
+
+        异常:
+        - ValueError: 列类型为空时抛出。
+        """
         if not column_type or not column_type.strip():
             raise ValueError("列类型不能为空")
         return column_type.strip()

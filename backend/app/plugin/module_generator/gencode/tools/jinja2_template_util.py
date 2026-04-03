@@ -25,6 +25,12 @@ class Jinja2TemplateUtil:
     def normalize_db_column_type_for_mapping(cls, column_type: str | None) -> str:
         """
         与 ``GenUtils.get_db_type`` 一致地去掉 COLLATE / UNSIGNED，便于与 ``DB_TO_SQLALCHEMY`` 键匹配。
+
+        参数:
+        - column_type (str | None): 原始列类型字符串。
+
+        返回:
+        - str: 规范化后的类型片段；空输入返回空字符串。
         """
         ct = (column_type or "").strip()
         if not ct:
@@ -92,11 +98,16 @@ class Jinja2TemplateUtil:
         return cls.get_env().get_template(template_path)
 
     @classmethod
-    @classmethod
     def business_name_to_slug(cls, business_name: str | None) -> str:
         """
         业务路径可含斜杠（如 ``demo/demo01``）用于目录与路由前缀；
         Python 函数/方法名仅使用最后一段并规范为合法 snake_case 片段。
+
+        参数:
+        - business_name (str | None): 业务路径或名称。
+
+        返回:
+        - str: 用于 Python 标识的 slug，默认 entity。
         """
         s = (business_name or "").strip().strip("/")
         if not s:
@@ -117,6 +128,12 @@ class Jinja2TemplateUtil:
         约定：`business_name` 允许 `a/b/c` 表示多级菜单目录。
         - 目录/路由：使用完整多段
         - 文件名/route_name：使用最后一段 slug（见 `business_name_to_slug`）
+
+        参数:
+        - business_name (str | None): 业务路径或名称。
+
+        返回:
+        - str: 多段路径字符串（小写 slug），默认 entity。
         """
         s = (business_name or "").strip().strip("/")
         if not s:
@@ -230,6 +247,12 @@ class Jinja2TemplateUtil:
         前端页面路由首段（与写入菜单 ``route_path`` 第一段一致）：始终为 ``module_xxx``。
 
         懒加载 ``GenTableService`` 避免与 ``service`` 模块循环依赖。
+
+        参数:
+        - gen_table (GenTableOutSchema): 生成表配置。
+
+        返回:
+        - str: 路由首段（module_xxx）。
         """
         from app.plugin.module_generator.gencode.service import GenTableService
 
@@ -246,6 +269,13 @@ class Jinja2TemplateUtil:
     ) -> dict[str, Any]:
         """
         子表业务代码渲染上下文（与主表同模块、独立业务目录）。
+
+        参数:
+        - parent (GenTableOutSchema): 主表配置。
+        - sub (GenTableOutSchema): 子表配置。
+
+        返回:
+        - dict[str, Any]: 子表模板上下文字典。
         """
         ctx = cls.prepare_context(sub)
         scn = (sub.class_name or GenUtils.convert_class_name(sub.table_name or "")).strip()
@@ -351,10 +381,13 @@ class Jinja2TemplateUtil:
     @classmethod
     def get_schema_import_list(cls, gen_table: GenTableOutSchema):
         """
-        获取schema模板导入包列表
+        获取 schema 模板所需的 Python 导入语句集合。
 
-        :param gen_table: 生成表的配置信息
-        :return: 导入包列表
+        参数:
+        - gen_table (GenTableOutSchema): 生成表配置（含主子表列）。
+
+        返回:
+        - set[str]: 导入语句字符串集合。
         """
         columns = gen_table.columns or []
         import_list = set()
@@ -418,11 +451,14 @@ class Jinja2TemplateUtil:
         cls, gen_table: GenTableOutSchema, *, is_sub_entity: bool = False
     ) -> list[str]:
         """
-        获取do模板导入包列表
+        获取 model 模板所需的 Python 导入语句列表（含合并后的 sqlalchemy 导入）。
 
-        :param gen_table: 生成表的配置信息
-        :param is_sub_entity: 是否为子表独立生成（含外键与 relationship）
-        :return: 导入包列表
+        参数:
+        - gen_table (GenTableOutSchema): 生成表配置。
+        - is_sub_entity (bool): 是否为子表独立生成（含外键与 relationship）。
+
+        返回:
+        - list[str]: 导入语句列表。
         """
         columns = gen_table.columns or []
         import_list = set()
@@ -620,6 +656,12 @@ class Jinja2TemplateUtil:
         将列上的 Python 类型（`get_db_type` + `DB_TO_PYTHON` 映射结果）转为前端 TS 类型片段。
 
         与 JSON 序列化习惯一致：Decimal、日期时间多为字符串；dict/list 用宽松类型。
+
+        参数:
+        - python_type (str | None): Python 类型名。
+
+        返回:
+        - str: 前端 TypeScript 类型片段。
         """
         if not python_type or not str(python_type).strip():
             return "string"

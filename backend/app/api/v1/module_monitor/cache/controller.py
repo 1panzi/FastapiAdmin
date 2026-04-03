@@ -29,6 +29,9 @@ async def get_monitor_cache_info_controller(
     """
     获取缓存监控统计信息
 
+    参数:
+    - redis (Redis): Redis 客户端对象
+
     返回:
     - JSONResponse: 包含缓存监控统计信息的JSON响应
     """
@@ -179,6 +182,9 @@ async def clear_monitor_cache_all_controller(
 ) -> JSONResponse:
     """
     清除所有缓存
+
+    参数:
+    - redis (Redis): Redis 客户端对象
 
     返回:
     - JSONResponse: 包含清除结果的JSON响应

@@ -27,6 +27,19 @@ class WorkflowService:
 
     @classmethod
     async def get_workflow_detail_service(cls, auth: AuthSchema, id: int) -> dict:
+        """
+        获取工作流详情。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - id (int): 工作流 ID。
+
+        返回:
+        - dict: 序列化后的工作流详情。
+
+        异常:
+        - CustomException: 不存在时抛出。
+        """
         obj = await WorkflowCRUD(auth).get_obj_by_id_crud(id=id)
         if not obj:
             raise CustomException(msg="工作流不存在")
@@ -39,6 +52,17 @@ class WorkflowService:
         search: WorkflowQueryParam | None = None,
         order_by: list[dict[str, str]] | None = None,
     ) -> list[dict]:
+        """
+        获取工作流列表（非分页）。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - search (WorkflowQueryParam | None): 查询条件。
+        - order_by (list[dict[str, str]] | None): 排序。
+
+        返回:
+        - list[dict]: 工作流字典列表。
+        """
         if order_by is None:
             order_by = [{"updated_time": "desc"}]
         obj_list = await WorkflowCRUD(auth).get_obj_list_crud(
@@ -56,7 +80,19 @@ class WorkflowService:
         search: WorkflowQueryParam | None = None,
         order_by: list[dict[str, str]] | None = None,
     ) -> dict:
-        """分页查询工作流（数据库 OFFSET/LIMIT）。"""
+        """
+        分页查询工作流（数据库 OFFSET/LIMIT）。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - page_no (int): 页码。
+        - page_size (int): 每页条数。
+        - search (WorkflowQueryParam | None): 查询条件。
+        - order_by (list[dict[str, str]] | None): 排序。
+
+        返回:
+        - dict: 分页结果（items 已 JSON 友好序列化）。
+        """
         offset = (page_no - 1) * page_size
         order = order_by or [{"updated_time": "desc"}]
         result = await WorkflowCRUD(auth).page(
@@ -73,6 +109,19 @@ class WorkflowService:
 
     @classmethod
     async def create_workflow_service(cls, auth: AuthSchema, data: WorkflowCreateSchema) -> dict:
+        """
+        创建工作流草稿。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - data (WorkflowCreateSchema): 创建体。
+
+        返回:
+        - dict: 新建工作流字典。
+
+        异常:
+        - CustomException: 编码重复或创建失败。
+        """
         exist = await WorkflowCRUD(auth).get(code=data.code)
         if exist:
             raise CustomException(msg="流程编码已存在")
@@ -85,6 +134,20 @@ class WorkflowService:
     async def update_workflow_service(
         cls, auth: AuthSchema, id: int, data: WorkflowUpdateSchema
     ) -> dict:
+        """
+        更新工作流。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - id (int): 工作流 ID。
+        - data (WorkflowUpdateSchema): 更新体。
+
+        返回:
+        - dict: 更新后工作流字典。
+
+        异常:
+        - CustomException: 不存在、编码冲突或更新失败。
+        """
         exist = await WorkflowCRUD(auth).get_obj_by_id_crud(id=id)
         if not exist:
             raise CustomException(msg="工作流不存在")
@@ -99,6 +162,19 @@ class WorkflowService:
 
     @classmethod
     async def delete_workflow_service(cls, auth: AuthSchema, ids: list[int]) -> None:
+        """
+        批量删除工作流。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - ids (list[int]): ID 列表。
+
+        返回:
+        - None
+
+        异常:
+        - CustomException: ID 为空时抛出。
+        """
         if not ids:
             raise CustomException(msg="删除ID不能为空")
         await WorkflowCRUD(auth).delete_obj_crud(ids=ids)
@@ -107,6 +183,20 @@ class WorkflowService:
     async def publish_workflow_service(
         cls, auth: AuthSchema, id: int, body: WorkflowPublishSchema | None = None
     ) -> dict:
+        """
+        校验 DAG 后发布工作流。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - id (int): 工作流 ID。
+        - body (WorkflowPublishSchema | None): 可选附加参数。
+
+        返回:
+        - dict: 发布后工作流字典。
+
+        异常:
+        - CustomException: 不存在、图无效或发布失败。
+        """
         obj = await WorkflowCRUD(auth).get_obj_by_id_crud(id=id)
         if not obj:
             raise CustomException(msg="工作流不存在")
@@ -135,6 +225,19 @@ class WorkflowService:
     async def execute_workflow_service(
         cls, auth: AuthSchema, body: WorkflowExecuteSchema
     ) -> dict:
+        """
+        执行已发布工作流（Prefect 同步入口在线程池中运行）。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - body (WorkflowExecuteSchema): 工作流 ID 与变量。
+
+        返回:
+        - dict: 执行结果摘要（成功或失败结构）。
+
+        异常:
+        - CustomException: 未发布、缺节点、节点类型未注册等。
+        """
         obj = await WorkflowCRUD(auth).get_obj_by_id_crud(id=body.workflow_id)
         if not obj:
             raise CustomException(msg="工作流不存在")

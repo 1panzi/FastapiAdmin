@@ -61,6 +61,8 @@ def run_migrations_offline() -> None:
     Calls to context.execute() here emit the given string to the
     script output.
 
+    返回:
+    - None
     """
     url = alembic_config.get_main_option("sqlalchemy.url")
     # 确保URL不为None
@@ -84,6 +86,8 @@ def run_migrations_online() -> None:
     In this scenario we need to create an Engine
     and associate a connection with the context.
 
+    返回:
+    - None
     """
     url = alembic_config.get_main_option("sqlalchemy.url")
     # 确保URL不为None

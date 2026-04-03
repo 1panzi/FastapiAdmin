@@ -14,10 +14,13 @@ class RoleCRUD(CRUDBase[RoleModel, RoleCreateSchema, RoleUpdateSchema]):
 
     def __init__(self, auth: AuthSchema) -> None:
         """
-        初始化角色模块数据层
+        初始化角色数据层。
 
         参数:
-        - auth (AuthSchema): 认证信息模型
+        - auth (AuthSchema): 认证信息模型（含 DB 会话等上下文）。
+
+        返回:
+        - None
         """
         self.auth = auth
         super().__init__(model=RoleModel, auth=auth)
@@ -59,8 +62,8 @@ class RoleCRUD(CRUDBase[RoleModel, RoleCreateSchema, RoleUpdateSchema]):
         设置角色的菜单权限
 
         参数:
-        - role_ids (List[int]): 角色ID列表
-        - menu_ids (List[int]): 菜单ID列表
+        - role_ids (list[int]): 角色ID列表
+        - menu_ids (list[int]): 菜单ID列表
 
         返回:
         - None

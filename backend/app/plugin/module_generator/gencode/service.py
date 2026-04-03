@@ -41,6 +41,16 @@ from .tools.jinja2_template_util import Jinja2TemplateUtil
 
 
 def handle_service_exception(func: Callable) -> Callable:
+    """
+    服务层异步方法装饰器：透传 CustomException，其余异常包装为 CustomException。
+
+    参数:
+    - func (Callable): 被装饰的异步可调用对象。
+
+    返回:
+    - Callable: 包装后的可调用对象（异步）。
+    """
+
     async def wrapper(*args, **kwargs):
         try:
             return await func(*args, **kwargs)
@@ -93,7 +103,6 @@ class GenTableService:
             raise CustomException(msg="包名不能为空")
         return pn if pn.startswith("module_") else f"module_{pn}"
 
-    @classmethod
     @classmethod
     async def _assert_parent_menu_is_catalog(cls, auth: AuthSchema, parent_menu_id: int | None) -> None:
         """上级菜单仅允许目录：与前端树只展示目录一致，避免挂到菜单/按钮下。"""
@@ -208,7 +217,18 @@ class GenTableService:
 
     @classmethod
     def normalize_and_validate_master_sub(cls, data: GenTableSchema) -> None:
-        """主子表业务规则：两字段同填或同空；子表表名不得与主表相同。"""
+        """
+        主子表业务规则：子表表名与外键列同填或同空；子表表名不得与主表相同。
+
+        参数:
+        - data (GenTableSchema): 主表配置。
+
+        返回:
+        - None
+
+        异常:
+        - CustomException: 规则不满足时抛出。
+        """
         sn = data.sub_table_name
         fk = data.sub_table_fk_name
         if bool(sn) ^ bool(fk):
@@ -260,7 +280,19 @@ class GenTableService:
         search: GenTableQueryParam,
         order_by: list[dict[str, str]] | None = None,
     ) -> dict:
-        """分页查询代码生成业务表（数据库 OFFSET/LIMIT）。"""
+        """
+        分页查询代码生成业务表（数据库 OFFSET/LIMIT）。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - page_no (int): 页码。
+        - page_size (int): 每页条数。
+        - search (GenTableQueryParam): 查询条件。
+        - order_by (list[dict[str, str]] | None): 排序。
+
+        返回:
+        - dict: 分页结果。
+        """
         offset = (page_no - 1) * page_size
         order = order_by or [{"created_time": "desc"}]
         return await GenTableCRUD(auth=auth).page(
@@ -297,7 +329,18 @@ class GenTableService:
         page_size: int,
         search: GenTableQueryParam,
     ) -> dict[str, Any]:
-        """数据库表列表分页（数据库侧 OFFSET/LIMIT）。"""
+        """
+        数据库表列表分页（数据库侧 OFFSET/LIMIT）。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - page_no (int): 页码。
+        - page_size (int): 每页条数。
+        - search (GenTableQueryParam): 查询条件。
+
+        返回:
+        - dict[str, Any]: 含 items、total、has_next 等字段。
+        """
         offset = (page_no - 1) * page_size
         items, total = await GenTableCRUD(auth=auth).get_db_table_page(
             search=search, offset=offset, limit=page_size
@@ -1041,9 +1084,17 @@ class GenTableService:
 
     @classmethod
     async def hydrate_sub_table(cls, auth: AuthSchema, gen_table: GenTableOutSchema) -> None:
-        """主子表：优先使用“已导入的子表配置”，否则回退 DB 结构只读。
+        """
+        主子表：优先使用已导入的子表配置，否则回退为只读 DB 结构。
 
-        对齐 RuoYi 的更佳体验：子表应当是一个可配置的 gen_table（可单独编辑字段），主表只引用它。
+        对齐 RuoYi：子表宜为独立 gen_table；主表仅引用。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - gen_table (GenTableOutSchema): 主表输出模型（原地填充 sub_table、master_sub_hint 等）。
+
+        返回:
+        - None
         """
         gen_table.master_sub_hint = None
         sub_name_raw = (gen_table.sub_table_name or "").strip()
@@ -1210,7 +1261,19 @@ class GenTableService:
     async def sync_db_preview_service(
         cls, auth: AuthSchema, table_name: str
     ) -> dict[str, Any]:
-        """同步数据库前差异预览（主表 + 可选子表）。"""
+        """
+        同步数据库前差异预览（主表 + 可选子表）。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - table_name (str): 主表物理表名。
+
+        返回:
+        - dict[str, Any]: 预览差异结构（可序列化）。
+
+        异常:
+        - CustomException: 表名无效或业务表不存在等。
+        """
         if not table_name or not table_name.strip():
             raise CustomException(msg="表名不能为空")
         gen_table = await GenTableCRUD(auth).get_gen_table_by_name(table_name, preload=["columns"])

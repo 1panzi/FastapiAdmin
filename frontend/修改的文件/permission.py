@@ -1,6 +1,6 @@
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.sql.elements import ColumnElement
 
 from app.api.v1.module_system.auth.schema import AuthSchema
@@ -40,13 +40,13 @@ class Permission:
 
     async def filter_query(self, query: Any) -> Any:
         """
-        按数据权限为 SQLAlchemy 查询追加 WHERE 条件。
+        异步过滤查询对象
 
-        参数:
-        - query (Any): SQLAlchemy 查询对象。
+        Args:
+            query: SQLAlchemy查询对象
 
-        返回:
-        - Any: 附加条件后的查询对象（无权限条件时原样返回）。
+        Returns:
+            过滤后的查询对象
         """
         condition = await self.__permission_condition()
         return query.where(condition) if condition is not None else query
@@ -147,14 +147,10 @@ class Permission:
                     return id_attr == user_dept_id
             return None
 
-        # 获取用户所有角色的权限范围
-        data_scopes = set()
-        custom_dept_ids = set()
-
-        for role in roles:
-            data_scopes.add(role.data_scope)
-            if role.data_scope == self.DATA_SCOPE_CUSTOM and hasattr(role, "depts") and role.depts:
-                custom_dept_ids.update(dept.id for dept in role.depts)
+        # 获取用户所有角色的权限范围（支持菜单/按钮级覆盖）
+        data_scopes, custom_dept_ids = await self.__resolve_menu_data_scope(
+            roles, self.auth.current_permission
+        )
 
         # 全部数据权限最高优先级
         if self.DATA_SCOPE_ALL in data_scopes:
@@ -198,14 +194,10 @@ class Permission:
                 return created_id_attr == self.auth.user.id
             return None
 
-        # 获取用户所有角色的权限范围
-        data_scopes = set()
-        custom_dept_ids = set()
-
-        for role in roles:
-            data_scopes.add(role.data_scope)
-            if role.data_scope == self.DATA_SCOPE_CUSTOM and hasattr(role, "depts") and role.depts:
-                custom_dept_ids.update(dept.id for dept in role.depts)
+        # 获取用户所有角色的权限范围（支持菜单/按钮级覆盖）
+        data_scopes, custom_dept_ids = await self.__resolve_menu_data_scope(
+            roles, self.auth.current_permission
+        )
 
         # 全部数据权限最高优先级
         if self.DATA_SCOPE_ALL in data_scopes:
@@ -245,6 +237,132 @@ class Permission:
         if created_id_attr is not None and self.auth.user:
             return created_id_attr == self.auth.user.id
         return None
+
+    async def __resolve_menu_data_scope(
+        self, roles: list, current_permission: str | None
+    ) -> tuple[set[int], set[int]]:
+        """
+        解析数据权限范围，支持菜单/按钮级覆盖
+
+        三级继承链路：按钮自身 data_scope → 父菜单 data_scope → 角色 data_scope
+        多角色场景采用并集策略（权限最大化）
+
+        Args:
+            roles: 用户的角色列表
+            current_permission: 当前请求的权限标识（如 "module_system:user:query"）
+
+        Returns:
+            (data_scopes, custom_dept_ids) 元组
+        """
+        data_scopes: set[int] = set()
+        custom_dept_ids: set[int] = set()
+
+        if not current_permission:
+            # 回退：使用角色级 data_scope（现有行为）
+            for role in roles:
+                data_scopes.add(role.data_scope)
+                if role.data_scope == self.DATA_SCOPE_CUSTOM and hasattr(role, "depts") and role.depts:
+                    custom_dept_ids.update(dept.id for dept in role.depts)
+            return data_scopes, custom_dept_ids
+
+        # 在所有角色中查找匹配 current_permission 的菜单，同时记录菜单对象以获取 type 和 parent_id
+        role_menu_pairs: list[tuple[int, int, Any, Any]] = []  # (role_id, menu_id, role, menu)
+        for role in roles:
+            for menu in (getattr(role, "menus", None) or []):
+                if (
+                    getattr(menu, "permission", None) == current_permission
+                    and getattr(menu, "status", None) == "0"
+                ):
+                    role_menu_pairs.append((role.id, menu.id, role, menu))
+                    break  # 每个角色只取一个匹配
+
+        if not role_menu_pairs:
+            # 没有角色包含此权限——回退到角色级
+            for role in roles:
+                data_scopes.add(role.data_scope)
+                if role.data_scope == self.DATA_SCOPE_CUSTOM and hasattr(role, "depts") and role.depts:
+                    custom_dept_ids.update(dept.id for dept in role.depts)
+            return data_scopes, custom_dept_ids
+
+        # 批量查询 RoleMenusModel 中的菜单级 data_scope
+        from app.api.v1.module_system.role.model import RoleMenuDeptsModel, RoleMenusModel
+
+        pairs_filter = or_(
+            *[
+                and_(RoleMenusModel.role_id == rid, RoleMenusModel.menu_id == mid)
+                for rid, mid, _, _ in role_menu_pairs
+            ]
+        )
+        result = await self.auth.db.execute(
+            select(RoleMenusModel.role_id, RoleMenusModel.menu_id, RoleMenusModel.data_scope).where(
+                pairs_filter
+            )
+        )
+        per_menu_scopes = {(row.role_id, row.menu_id): row.data_scope for row in result}
+
+        # 对 type=3 且自身 data_scope 为 NULL 的按钮，收集需要查询父菜单 data_scope 的对
+        parent_lookups: list[tuple[int, int]] = []  # (role_id, parent_menu_id)
+        for role_id, menu_id, _, menu in role_menu_pairs:
+            scope = per_menu_scopes.get((role_id, menu_id))
+            parent_id = getattr(menu, "parent_id", None)
+            if scope is None and getattr(menu, "type", None) == 3 and parent_id:
+                parent_lookups.append((role_id, parent_id))
+
+        # 批量查询父菜单 data_scope
+        parent_scopes: dict[tuple[int, int], int | None] = {}
+        if parent_lookups:
+            parent_filter = or_(
+                *[
+                    and_(RoleMenusModel.role_id == rid, RoleMenusModel.menu_id == pid)
+                    for rid, pid in parent_lookups
+                ]
+            )
+            parent_result = await self.auth.db.execute(
+                select(
+                    RoleMenusModel.role_id, RoleMenusModel.menu_id, RoleMenusModel.data_scope
+                ).where(parent_filter)
+            )
+            parent_scopes = {(row.role_id, row.menu_id): row.data_scope for row in parent_result}
+
+        # 解析每个角色在该权限下的实际 data_scope（三级继承）
+        for role_id, menu_id, role, menu in role_menu_pairs:
+            scope = per_menu_scopes.get((role_id, menu_id))
+            # 记录 scope 实际来源的 menu_id（用于查找自定义部门）
+            scope_menu_id: int | None = menu_id
+
+            # 三级继承：按钮自身 → 父菜单 → 角色
+            if scope is None and getattr(menu, "type", None) == 3 and getattr(menu, "parent_id", None):
+                parent_scope = parent_scopes.get((role_id, menu.parent_id))
+                if parent_scope is not None:
+                    scope = parent_scope
+                    scope_menu_id = menu.parent_id  # scope 来源于父菜单
+
+            if scope is None:
+                scope = role.data_scope  # 最终回退到角色级
+                scope_menu_id = None  # scope 来源于角色级
+
+            data_scopes.add(scope)
+
+            if scope == self.DATA_SCOPE_CUSTOM:
+                if scope_menu_id is not None:
+                    # 从 scope 来源的菜单级查找自定义部门
+                    dept_result = await self.auth.db.execute(
+                        select(RoleMenuDeptsModel.dept_id).where(
+                            RoleMenuDeptsModel.role_id == role_id,
+                            RoleMenuDeptsModel.menu_id == scope_menu_id,
+                        )
+                    )
+                    menu_dept_ids = {row.dept_id for row in dept_result}
+                    if menu_dept_ids:
+                        custom_dept_ids.update(menu_dept_ids)
+                    elif hasattr(role, "depts") and role.depts:
+                        # 菜单级没有配置部门，回退到角色级自定义部门
+                        custom_dept_ids.update(dept.id for dept in role.depts)
+                elif hasattr(role, "depts") and role.depts:
+                    # scope 来源于角色级，直接使用角色级自定义部门
+                    custom_dept_ids.update(dept.id for dept in role.depts)
+
+        return data_scopes, custom_dept_ids
 
     async def __get_accessible_dept_ids(
         self, data_scopes: set, custom_dept_ids: set

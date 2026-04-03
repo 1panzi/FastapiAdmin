@@ -34,7 +34,19 @@ def _parse_kwargs(kwargs_str: str | None) -> dict[str, Any]:
 
 
 def validate_workflow_graph(nodes: list[dict], edges: list[dict]) -> None:
-    """校验图有效且无环。"""
+    """
+    校验画布图有效且无环。
+
+    参数:
+    - nodes (list[dict]): 节点列表（须含 id）。
+    - edges (list[dict]): 边列表（source/target）。
+
+    返回:
+    - None
+
+    异常:
+    - ValueError: 图为空、边引用非法或存在环。
+    """
     if not nodes:
         raise ValueError("工作流至少需要一个节点")
     ids = {n["id"] for n in nodes}
@@ -60,6 +72,16 @@ def validate_workflow_graph(nodes: list[dict], edges: list[dict]) -> None:
 
 
 def topological_sort(nodes: list[dict], edges: list[dict]) -> list[dict]:
+    """
+    按拓扑顺序返回节点（调用方须先保证无环）。
+
+    参数:
+    - nodes (list[dict]): 节点列表。
+    - edges (list[dict]): 边列表。
+
+    返回:
+    - list[dict]: 拓扑有序节点。
+    """
     id_to_node = {n["id"]: n for n in nodes}
     in_degree: dict[str, int] = {n["id"]: 0 for n in nodes}
     adj: dict[str, list[str]] = defaultdict(list)
@@ -88,6 +110,21 @@ def prefect_node_task(
     upstream: dict[str, Any],
     flow_variables: dict[str, Any],
 ) -> Any:
+    """
+    单个画布节点的 Prefect Task：通过 SchedulerUtil 执行用户代码块。
+
+    参数:
+    - vue_node_id (str): 画布节点 id。
+    - node_type_code (str): 节点类型编码。
+    - code_block (str): 可执行代码字符串。
+    - args_str (str | None): 逗号分隔位置参数说明。
+    - kwargs_str (str | None): JSON 关键字参数。
+    - upstream (dict[str, Any]): 上游节点输出。
+    - flow_variables (dict[str, Any]): 流程级变量。
+
+    返回:
+    - Any: 任务执行结果。
+    """
     job_id = f"wfnode-{vue_node_id}"
     args = _parse_args(args_str)
     kw = _parse_kwargs(kwargs_str)
@@ -104,7 +141,16 @@ def run_workflow_prefect_flow(
     flow_variables: dict[str, Any],
 ) -> dict[str, Any]:
     """
-    node_templates: code -> {func, args, kwargs} 来自 task_workflow_node_type
+    Prefect Flow：按拓扑顺序提交并收集各节点结果。
+
+    参数:
+    - ordered_nodes (list[dict]): 已排序节点列表。
+    - edges (list[dict]): 边列表。
+    - node_templates (dict[str, dict[str, Any]]): 类型编码到 {func, args, kwargs}，来自 task_workflow_node_type。
+    - flow_variables (dict[str, Any]): 流程变量。
+
+    返回:
+    - dict[str, Any]: 含 node_results、status 等。
     """
     results: dict[str, Any] = {}
     for node in ordered_nodes:
@@ -148,6 +194,15 @@ def run_prefect_workflow_sync(
 ) -> dict[str, Any]:
     """
     同步入口：校验 DAG、拓扑排序后执行 Prefect Flow。
+
+    参数:
+    - nodes (list[dict]): 画布节点。
+    - edges (list[dict]): 画布边。
+    - node_templates (dict[str, dict[str, Any]]): 节点类型模板。
+    - flow_variables (dict[str, Any]): 流程变量。
+
+    返回:
+    - dict[str, Any]: Flow 执行汇总结果。
     """
     validate_workflow_graph(nodes, edges)
     ordered = topological_sort(nodes, edges)
@@ -160,4 +215,10 @@ def run_prefect_workflow_sync(
 
 
 def utc_now_iso() -> str:
+    """
+    当前 UTC 时间的 ISO 8601 字符串。
+
+    返回:
+    - str: ISO 格式时间戳。
+    """
     return datetime.now(timezone.utc).isoformat()

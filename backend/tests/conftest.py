@@ -15,5 +15,11 @@ app = create_app()
 
 @pytest.fixture(scope="module")
 def test_client():
+    """
+    模块级 HTTP 测试客户端（复用同一应用实例与生命周期）。
+
+    返回:
+    - TestClient: 供用例发起的同步测试客户端（yield 注入）。
+    """
     with TestClient(app) as client:
         yield client

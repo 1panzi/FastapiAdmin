@@ -34,19 +34,15 @@ class RoleCreateSchema(BaseModel):
     @field_validator("code")
     @classmethod
     def validate_code(cls, value: str | None):
-        """
-        校验角色编码（委托到 `code_validator`）。
-
-        参数:
-        - value (str | None): 角色编码。
-
-        返回:
-        - str | None: 校验后的角色编码。
-
-        异常:
-        - CustomException: 不满足编码规则时抛出。
-        """
         return code_validator(value)
+
+
+class MenuDataScopeItem(BaseModel):
+    """菜单级数据权限配置项"""
+
+    menu_id: int = Field(..., description="菜单ID")
+    data_scope: int | None = Field(default=None, description="数据权限范围(NULL继承角色级)")
+    dept_ids: list[int] = Field(default_factory=list, description="自定义部门ID列表(data_scope=5时)")
 
 
 class RolePermissionSettingSchema(BaseModel):
@@ -59,21 +55,13 @@ class RolePermissionSettingSchema(BaseModel):
     role_ids: list[int] = Field(default_factory=list, description="角色ID列表")
     menu_ids: list[int] = Field(default_factory=list, description="菜单ID列表")
     dept_ids: list[int] = Field(default_factory=list, description="部门ID列表")
+    menu_data_scopes: list[MenuDataScopeItem] = Field(
+        default_factory=list, description="菜单级数据权限配置列表"
+    )
 
     @model_validator(mode="after")
     def validate_fields(self):
-        """
-        校验角色权限配置字段（数据范围与关联 ID 等）。
-
-        参数:
-        - self: 当前模型实例（校验后状态）。
-
-        返回:
-        - RolePermissionSettingSchema: 通过 `role_permission_request_validator` 校验后的同一实例。
-
-        异常:
-        - CustomException: 不满足权限配置约束时抛出。
-        """
+        """验证权限配置字段"""
         return role_permission_request_validator(self)
 
 
@@ -88,6 +76,9 @@ class RoleOutSchema(RoleCreateSchema, BaseSchema):
 
     menus: list[MenuOutSchema] = Field(default_factory=list, description="角色菜单列表")
     depts: list[DeptOutSchema] = Field(default_factory=list, description="角色部门列表")
+    menu_data_scopes: list[MenuDataScopeItem] = Field(
+        default_factory=list, description="菜单级数据权限配置列表"
+    )
 
 
 class RoleQueryParam:

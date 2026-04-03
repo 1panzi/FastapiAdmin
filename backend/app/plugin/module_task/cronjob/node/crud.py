@@ -89,6 +89,9 @@ class NodeCRUD(CRUDBase[NodeModel, NodeCreateSchema, NodeUpdateSchema]):
 
         参数:
         - ids (list[int]): 节点ID列表
+
+        返回:
+        - None
         """
         return await self.delete(ids=ids)
 
@@ -99,6 +102,9 @@ class NodeCRUD(CRUDBase[NodeModel, NodeCreateSchema, NodeUpdateSchema]):
         参数:
         - ids (list[int]): 节点ID列表
         - kwargs: 其他要设置的字段,例如 available=True 或 available=False
+
+        返回:
+        - None
         """
         return await self.set(ids=ids, **kwargs)
 
@@ -108,5 +114,8 @@ class NodeCRUD(CRUDBase[NodeModel, NodeCreateSchema, NodeUpdateSchema]):
 
         注意:
         - 此操作会删除所有节点日志,请谨慎操作
+
+        返回:
+        - None
         """
         return await self.clear()

@@ -31,7 +31,12 @@ class RoleService:
         - dict: 角色详情字典
         """
         role = await RoleCRUD(auth).get_by_id_crud(id=id)
-        return RoleOutSchema.model_validate(role).model_dump()
+        role_dict = RoleOutSchema.model_validate(role).model_dump()
+        # 加载菜单级数据权限配置
+        role_dict["menu_data_scopes"] = await RoleCRUD(auth).get_role_menu_data_scopes_crud(
+            role_id=id
+        )
+        return role_dict
 
     @classmethod
     async def get_role_list_service(
@@ -53,37 +58,6 @@ class RoleService:
         """
         role_list = await RoleCRUD(auth).get_list_crud(search=search.__dict__, order_by=order_by)
         return [RoleOutSchema.model_validate(role).model_dump() for role in role_list]
-
-    @classmethod
-    async def get_role_page_service(
-        cls,
-        auth: AuthSchema,
-        page_no: int,
-        page_size: int,
-        search: RoleQueryParam | None = None,
-        order_by: list[dict[str, str]] | None = None,
-    ) -> dict:
-        """
-        分页查询角色（数据库 OFFSET/LIMIT）。
-
-        参数:
-        - auth (AuthSchema): 认证信息模型
-        - page_no (int): 页码（从 1 开始）
-        - page_size (int): 每页条数
-        - search (RoleQueryParam | None): 查询条件
-        - order_by (list[dict[str, str]] | None): 排序字段列表
-
-        返回:
-        - dict: 分页结果（结构由 `CRUD.page` 返回约定）
-        """
-        offset = (page_no - 1) * page_size
-        return await RoleCRUD(auth).page(
-            offset=offset,
-            limit=page_size,
-            order_by=order_by or [{"id": "asc"}],
-            search=search.__dict__ if search else {},
-            out_schema=RoleOutSchema,
-        )
 
     @classmethod
     async def create_role_service(cls, auth: AuthSchema, data: RoleCreateSchema) -> dict:
@@ -175,6 +149,13 @@ class RoleService:
             await RoleCRUD(auth).set_role_depts_crud(role_ids=data.role_ids, dept_ids=data.dept_ids)
         else:
             await RoleCRUD(auth).set_role_depts_crud(role_ids=data.role_ids, dept_ids=[])
+
+        # 设置菜单级数据权限
+        if data.menu_data_scopes:
+            for role_id in data.role_ids:
+                await RoleCRUD(auth).set_role_menu_data_scopes_crud(
+                    role_id=role_id, menu_data_scopes=data.menu_data_scopes
+                )
 
     @classmethod
     async def set_role_available_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:

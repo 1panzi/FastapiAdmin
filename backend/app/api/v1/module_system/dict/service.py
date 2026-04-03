@@ -76,7 +76,19 @@ class DictTypeService:
         search: DictTypeQueryParam | None = None,
         order_by: list[dict] | None = None,
     ) -> dict:
-        """分页查询字典类型（数据库 OFFSET/LIMIT）。"""
+        """
+        分页查询字典类型（数据库 OFFSET/LIMIT）。
+
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - page_no (int): 页码（从 1 开始）
+        - page_size (int): 每页条数
+        - search (DictTypeQueryParam | None): 查询条件
+        - order_by (list[dict] | None): 排序字段列表
+
+        返回:
+        - dict: 分页结果（结构由 `CRUD.page` 返回约定）
+        """
         offset = (page_no - 1) * page_size
         return await DictTypeCRUD(auth).page(
             offset=offset,
@@ -336,7 +348,19 @@ class DictDataService:
         search: DictDataQueryParam | None = None,
         order_by: list[dict] | None = None,
     ) -> dict:
-        """分页查询字典数据（数据库 OFFSET/LIMIT）。"""
+        """
+        分页查询字典数据（数据库 OFFSET/LIMIT）。
+
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - page_no (int): 页码（从 1 开始）
+        - page_size (int): 每页条数
+        - search (DictDataQueryParam | None): 查询条件
+        - order_by (list[dict] | None): 排序字段列表
+
+        返回:
+        - dict: 分页结果（结构由 `CRUD.page` 返回约定）
+        """
         offset = (page_no - 1) * page_size
         return await DictDataCRUD(auth).page(
             offset=offset,

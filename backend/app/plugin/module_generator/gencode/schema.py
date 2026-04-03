@@ -142,7 +142,18 @@ class GenTableSchema(BaseModel):
     @field_validator("table_name")
     @classmethod
     def table_name_update(cls, v: str) -> str:
-        """更新表名称"""
+        """
+        校验并规范化表名称。
+
+        参数:
+        - v (str): 原始表名。
+
+        返回:
+        - str: 去空白后的表名。
+
+        异常:
+        - ValueError: 表名为空时抛出。
+        """
         if not v:
             raise ValueError("表名称不能为空")
         return v.strip()
@@ -156,7 +167,15 @@ class GenTableSchema(BaseModel):
     )
     @classmethod
     def strip_optional_text_fields(cls, v: str | None) -> str | None:
-        """文本类字段统一去首尾空格；空串视为 None。"""
+        """
+        文本类字段统一去首尾空格；空串视为 None。
+
+        参数:
+        - v (str | None): 原始值。
+
+        返回:
+        - str | None: 非空字符串或 None。
+        """
         if v is None:
             return None
         s = str(v).strip()
@@ -165,7 +184,15 @@ class GenTableSchema(BaseModel):
     @field_validator("package_name", mode="before")
     @classmethod
     def normalize_package_name(cls, v: str | None) -> str | None:
-        """包名规范：必须是 module_xxx 形态（工程约定）。"""
+        """
+        包名规范：必须是 module_xxx 形态（工程约定）。
+
+        参数:
+        - v (str | None): 原始包名。
+
+        返回:
+        - str | None: 规范化后的包名或 None。
+        """
         if v is None:
             return None
         s = cls._normalize_slug_segment(str(v), allow_slash=False)
@@ -176,7 +203,15 @@ class GenTableSchema(BaseModel):
     @field_validator("module_name", mode="before")
     @classmethod
     def normalize_module_name(cls, v: str | None) -> str | None:
-        """模块名规范：示例模式下要求不带 module_ 前缀；统一按 slug 规范。"""
+        """
+        模块名规范：不带 module_ 前缀；统一按 slug 规范。
+
+        参数:
+        - v (str | None): 原始模块名。
+
+        返回:
+        - str | None: 规范化后的模块名或 None。
+        """
         if v is None:
             return None
         s = cls._normalize_slug_segment(str(v), allow_slash=False)
@@ -187,7 +222,15 @@ class GenTableSchema(BaseModel):
     @field_validator("business_name", mode="before")
     @classmethod
     def normalize_business_name(cls, v: str | None) -> str | None:
-        """业务名允许多段：demo/demo01；统一按 slug 规范。"""
+        """
+        业务名允许多段（如 demo/demo01）；统一按 slug 规范。
+
+        参数:
+        - v (str | None): 原始业务名。
+
+        返回:
+        - str | None: 规范化后的业务名或 None。
+        """
         if v is None:
             return None
         s = cls._normalize_slug_segment(str(v), allow_slash=True)
@@ -196,7 +239,15 @@ class GenTableSchema(BaseModel):
     @field_validator("sub_table_name", "sub_table_fk_name", mode="before")
     @classmethod
     def strip_optional_sub_fields(cls, v: str | None) -> str | None:
-        """主子表字段去首尾空格，空串视为未填。"""
+        """
+        主子表字段去首尾空格，空串视为未填。
+
+        参数:
+        - v (str | None): 原始值。
+
+        返回:
+        - str | None: 非空字符串或 None。
+        """
         if v is None:
             return None
         s = str(v).strip()

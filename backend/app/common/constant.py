@@ -193,12 +193,22 @@ class RET(Enum):
 
     @property
     def code(self) -> int:
-        """获取错误码"""
+        """
+        获取错误码。
+
+        返回:
+        - int: 错误码数值。
+        """
         return self._code
 
     @property
     def msg(self) -> str:
-        """获取错误信息"""
+        """
+        获取错误信息。
+
+        返回:
+        - str: 错误信息文本。
+        """
         return self._msg
 
 
@@ -766,6 +776,10 @@ class GenConstant:
 
 
 class TypedContextProtocol(Protocol):
+    """
+    请求上下文中与日志/鉴权相关的结构化字段协议（供类型检查使用）。
+    """
+
     perf_time: float
 
     ip: str

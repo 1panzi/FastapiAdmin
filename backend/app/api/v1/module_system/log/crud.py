@@ -16,7 +16,13 @@ class OperationLogCRUD(
 
     def __init__(self, auth: AuthSchema) -> None:
         """
-        初始化操作日志CRUD。
+        初始化操作日志数据层。
+
+        参数:
+        - auth (AuthSchema): 认证信息模型（含 DB 会话等上下文）。
+
+        返回:
+        - None
         """
         self.auth = auth
         super().__init__(model=OperationLogModel, auth=auth)
@@ -58,9 +64,9 @@ class OperationLogCRUD(
         获取操作日志列表。
 
         参数:
-        - search (Dict | None): 搜索条件字典。
-        - order_by (List[Dict[str, str]] | None): 排序字段列表。
-        - preload (Optional[List[Union[str, Any]]]): 预加载关系，未提供时使用模型默认项
+        - search (dict | None): 搜索条件字典。
+        - order_by (list | None): 排序字段列表。
+        - preload (list | None): 预加载关系，未提供时使用模型默认项
 
         返回:
         - Sequence[OperationLogModel]: 操作日志列表。

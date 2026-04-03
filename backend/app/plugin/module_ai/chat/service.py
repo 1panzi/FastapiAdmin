@@ -130,7 +130,16 @@ class ChatService:
     async def chat_query(
         cls, query: ChatQuerySchema, auth: AuthSchema
     ) -> AsyncGenerator[str, None]:
-        """处理聊天查询并返回流式响应"""
+        """
+        处理聊天查询并流式返回文本片段。
+
+        参数:
+        - query (ChatQuerySchema): 用户消息与会话等查询参数。
+        - auth (AuthSchema): 当前用户认证信息。
+
+        返回:
+        - AsyncGenerator[str, None]: 逐段输出的回复文本。
+        """
         try:
             # 创建 CRUD 实例获取数据库连接
             crud = ChatSessionCRUD(auth)
@@ -171,7 +180,17 @@ class ChatService:
     async def chat_non_stream(
         cls, message: str, session_id: str | None, auth: AuthSchema
     ) -> dict[str, Any]:
-        """处理聊天查询并返回非流式响应"""
+        """
+        处理聊天查询并返回非流式 JSON 结构（含 session_id、操作建议等）。
+
+        参数:
+        - message (str): 用户输入文本。
+        - session_id (str | None): 已有会话 ID；为空则新建会话。
+        - auth (AuthSchema): 当前用户认证信息。
+
+        返回:
+        - dict[str, Any]: 包含 response、session_id、action 等字段的字典。
+        """
         try:
             # 创建 CRUD 实例获取数据库连接
             crud = ChatSessionCRUD(auth)
@@ -298,7 +317,16 @@ class ChatService:
     async def create_service(
         cls, auth: AuthSchema, data: ChatSessionCreateSchema
     ) -> dict[str, Any] | None:
-        """创建会话"""
+        """
+        创建会话。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - data (ChatSessionCreateSchema): 创建参数。
+
+        返回:
+        - dict[str, Any] | None: 格式化后的会话字典；失败为 None。
+        """
         crud = ChatSessionCRUD(auth)
         session = await crud.create_crud(data=data)
         if session:
@@ -309,7 +337,16 @@ class ChatService:
     async def get_session_service(
         cls, auth: AuthSchema, session_id: str
     ) -> dict[str, Any] | None:
-        """获取单个会话详情"""
+        """
+        获取单个会话详情。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - session_id (str): 会话 ID。
+
+        返回:
+        - dict[str, Any] | None: 格式化后的会话字典；不存在为 None。
+        """
         crud = ChatSessionCRUD(auth)
         session: TeamSession | None = await crud.get_by_id_crud(session_id=session_id)
         if session:
@@ -325,7 +362,19 @@ class ChatService:
         search: ChatSessionQueryParam,
         order_by: list[dict[str, str]] | None = None,
     ) -> dict[str, Any]:
-        """分页获取会话列表。会话由 Agno 存储，无统一 SQL 分页接口，仅能对内存列表切片。"""
+        """
+        分页获取会话列表。会话由 Agno 存储，无统一 SQL 分页，仅对内存列表切片。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - page_no (int): 页码。
+        - page_size (int): 每页条数。
+        - search (ChatSessionQueryParam): 查询条件。
+        - order_by (list[dict[str, str]] | None): 排序，可选。
+
+        返回:
+        - dict[str, Any]: 分页结果（含 items、total 等）。
+        """
         crud = ChatSessionCRUD(auth)
         # 获取所有会话
         sessions = await crud.list_crud()
@@ -346,12 +395,31 @@ class ChatService:
     async def update_service(
         cls, auth: AuthSchema, session_id: str, data: ChatSessionUpdateSchema
     ) -> bool:
-        """更新会话"""
+        """
+        更新会话。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - session_id (str): 会话 ID。
+        - data (ChatSessionUpdateSchema): 更新数据。
+
+        返回:
+        - bool: 是否成功。
+        """
         crud = ChatSessionCRUD(auth)
         success = await crud.update_crud(session_id=session_id, data=data)
         return success
 
     @classmethod
     async def delete_service(cls, auth: AuthSchema, session_ids: list[str]) -> None:
-        """删除会话"""
+        """
+        删除会话。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - session_ids (list[str]): 待删除会话 ID 列表。
+
+        返回:
+        - None
+        """
         await ChatSessionCRUD(auth).delete_crud(session_ids=session_ids)

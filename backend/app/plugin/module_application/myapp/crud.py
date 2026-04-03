@@ -86,6 +86,9 @@ class ApplicationCRUD(CRUDBase[ApplicationModel, ApplicationCreateSchema, Applic
 
         参数:
         - ids (list[int]): 应用ID列表
+
+        返回:
+        - None
         """
         return await self.delete(ids=ids)
 
@@ -96,5 +99,8 @@ class ApplicationCRUD(CRUDBase[ApplicationModel, ApplicationCreateSchema, Applic
         参数:
         - ids (list[int]): 应用ID列表
         - status (str): 可用状态,True为可用,False为不可用
+
+        返回:
+        - None
         """
         return await self.set(ids=ids, status=status)

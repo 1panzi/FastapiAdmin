@@ -72,6 +72,15 @@ class MenuCreateSchema(BaseModel):
 
     @model_validator(mode="after")
     def validate_fields(self):
+        """
+        统一校验菜单请求字段（委托到 `menu_request_validator`）。
+
+        返回:
+        - MenuCreateSchema: 校验后的同一实例。
+
+        异常:
+        - CustomException: 字段不满足菜单类型约束时抛出。
+        """
         return menu_request_validator(self)
 
 

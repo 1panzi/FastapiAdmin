@@ -16,10 +16,13 @@ class DictTypeCRUD(CRUDBase[DictTypeModel, DictTypeCreateSchema, DictTypeUpdateS
 
     def __init__(self, auth: AuthSchema) -> None:
         """
-        初始化数据字典类型CRUD
+        初始化数据字典类型数据层。
 
         参数:
-        - auth (AuthSchema): 认证信息模型
+        - auth (AuthSchema): 认证信息模型（含 DB 会话等上下文）。
+
+        返回:
+        - None
         """
         self.auth = auth
         super().__init__(model=DictTypeModel, auth=auth)
@@ -119,7 +122,7 @@ class DictTypeCRUD(CRUDBase[DictTypeModel, DictTypeCreateSchema, DictTypeUpdateS
         批量删除数据字典类型
 
         参数:
-        - ids (List[int]): 数据字典类型ID列表
+        - ids (list[int]): 数据字典类型ID列表
 
         返回:
         - int: 删除的记录数量
@@ -133,10 +136,13 @@ class DictDataCRUD(CRUDBase[DictDataModel, DictDataCreateSchema, DictDataUpdateS
 
     def __init__(self, auth: AuthSchema) -> None:
         """
-        初始化数据字典数据CRUD
+        初始化数据字典项数据层。
 
         参数:
-        - auth (AuthSchema): 认证信息模型
+        - auth (AuthSchema): 认证信息模型（含 DB 会话等上下文）。
+
+        返回:
+        - None
         """
         self.auth = auth
         super().__init__(model=DictDataModel, auth=auth)
@@ -236,7 +242,7 @@ class DictDataCRUD(CRUDBase[DictDataModel, DictDataCreateSchema, DictDataUpdateS
         批量删除数据字典数据
 
         参数:
-        - ids (List[int]): 数据字典数据ID列表
+        - ids (list[int]): 数据字典数据ID列表
         - exclude_system (bool): 是否排除系统默认数据，默认为True
 
         返回:

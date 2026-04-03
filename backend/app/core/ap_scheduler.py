@@ -86,8 +86,13 @@ class SchedulerUtil:
     @classmethod
     def scheduler_event_listener(cls, event: JobEvent | JobExecutionEvent) -> None:
         """
-        监听任务执行事件，记录执行日志
-        每次执行都创建新记录，保留所有历史执行记录
+        监听任务执行事件，记录执行日志；每次执行新建日志行，保留历史。
+
+        参数:
+        - event (JobEvent | JobExecutionEvent): APScheduler 事件对象。
+
+        返回:
+        - None
         """
         try:
             # 事件处理器映射
@@ -628,7 +633,13 @@ class SchedulerUtil:
     @classmethod
     async def init_scheduler(cls, redis: Redis | None = None) -> None:
         """
-        应用启动时初始化定时任务。
+        应用启动时初始化定时任务调度器。
+
+        参数:
+        - redis (Redis | None): 可选 Redis 实例，供任务侧使用。
+
+        返回:
+        - None
         """
         if redis:
             cls.redis_instance = redis
@@ -646,6 +657,12 @@ class SchedulerUtil:
         import types
 
         def run_sync_handler():
+            """
+            在独立模块命名空间中执行代码块并调用 handler。
+
+            返回:
+            - Any: handler 返回值；无代码块时为 None。
+            """
             if not code_block:
                 return None
 
@@ -683,6 +700,15 @@ class SchedulerUtil:
         state = job.__getstate__()
 
         def serialize_value(obj):
+            """
+            将 job state 中的嵌套对象转为可 JSON 化的 Python 结构。
+
+            参数:
+            - obj (Any): 任意嵌套对象。
+
+            返回:
+            - Any: 标量、dict、list 或简化后的描述。
+            """
             if obj is None:
                 return None
             if isinstance(obj, (str, int, float, bool)):
@@ -728,6 +754,15 @@ class SchedulerUtil:
             return None
 
         def serialize_value(obj: Any) -> Any:
+            """
+            递归反序列化 BLOB 中的嵌套结构为可 JSON 化数据。
+
+            参数:
+            - obj (Any): 节点对象。
+
+            返回:
+            - Any: 标量、dict、list 或字符串化结果。
+            """
             if obj is None:
                 return None
             if isinstance(obj, (str, int, float, bool)):
@@ -954,7 +989,13 @@ class SchedulerUtil:
     @classmethod
     def get_job_status(cls, job_id: str | int) -> str:
         """
-        获取单个任务的当前状态。
+        获取单个任务的当前状态文案。
+
+        参数:
+        - job_id (str | int): 调度器任务 ID。
+
+        返回:
+        - str: 运行中 / 暂停中 / 已停止 / 未知 等。
         """
         job = cls.get_job(job_id=str(job_id))
         if not job:
@@ -972,7 +1013,13 @@ class SchedulerUtil:
     @classmethod
     def add_and_run_job_now(cls, job_info: NodeModel) -> Job:
         """
-        立即执行任务（添加到调度器并立即运行）
+        立即执行任务（加入调度器并尽快触发一次）。
+
+        参数:
+        - job_info (NodeModel): 节点/任务配置。
+
+        返回:
+        - Job: APScheduler Job 对象。
         """
         # 使用稍微延迟的时间，确保事件监听器能够捕获事件
         from datetime import timedelta
@@ -990,13 +1037,16 @@ class SchedulerUtil:
         end_date: str | None = None,
     ) -> Job:
         """
-        创建Cron定时任务
+        创建 Cron 定时任务。
 
         参数:
-        - job_info: 任务信息
-        - trigger_args: Cron表达式
-        - start_date: 开始时间
-        - end_date: 结束时间
+        - job_info (NodeModel): 任务信息。
+        - trigger_args (str | None): Cron 表达式，默认取节点配置。
+        - start_date (str | None): 开始时间。
+        - end_date (str | None): 结束时间。
+
+        返回:
+        - Job: 已注册的 APScheduler Job。
         """
         cron_expr = trigger_args or job_info.trigger_args
         if not cron_expr:
@@ -1040,13 +1090,16 @@ class SchedulerUtil:
         end_date: str | None = None,
     ) -> Job:
         """
-        创建间隔执行任务
+        创建间隔执行任务。
 
         参数:
-        - job_info: 任务信息
-        - trigger_args: 间隔参数 (秒 分 时 天 周)
-        - start_date: 开始时间
-        - end_date: 结束时间
+        - job_info (NodeModel): 任务信息。
+        - trigger_args (str | None): 间隔参数「秒 分 时 天 周」，默认取节点配置。
+        - start_date (str | None): 开始时间。
+        - end_date (str | None): 结束时间。
+
+        返回:
+        - Job: 已注册的 APScheduler Job。
         """
         interval_args = trigger_args or job_info.trigger_args
         if not interval_args:
@@ -1074,11 +1127,14 @@ class SchedulerUtil:
     @classmethod
     def add_date_job(cls, job_info: NodeModel, run_date: str | None = None) -> Job:
         """
-        创建指定时间执行任务
+        创建指定时刻执行一次的任务。
 
         参数:
-        - job_info: 任务信息
-        - run_date: 执行时间
+        - job_info (NodeModel): 任务信息。
+        - run_date (str | None): 执行时间字符串，默认取节点 trigger 配置。
+
+        返回:
+        - Job: 已注册的 APScheduler Job。
         """
         date_str = run_date or job_info.trigger_args
         if not date_str:
@@ -1151,30 +1207,83 @@ class SchedulerUtil:
 
     @classmethod
     def start(cls, paused: bool = False) -> None:
+        """
+        启动全局调度器。
+
+        参数:
+        - paused (bool): 是否以暂停状态启动。
+
+        返回:
+        - None
+        """
         scheduler.start(paused=paused)
 
     @classmethod
     async def shutdown(cls, wait: bool = False):
+        """
+        关闭调度器。
+
+        参数:
+        - wait (bool): 是否等待当前任务结束。
+
+        返回:
+        - 与 APScheduler shutdown 返回值一致。
+        """
         return scheduler.shutdown(wait=wait)
 
     @classmethod
     def configure(cls, gconfig: dict | None = None, prefix: str = "apscheduler.", **options) -> None:
+        """
+        透传配置底层 APScheduler。
+
+        参数:
+        - gconfig (dict | None): 全局配置字典。
+        - prefix (str): 配置键前缀。
+        - **options: 其它 configure 关键字参数。
+
+        返回:
+        - None
+        """
         scheduler.configure(gconfig or {}, prefix, **options)
 
     @classmethod
     def pause(cls) -> None:
+        """
+        暂停调度器。
+
+        返回:
+        - None
+        """
         scheduler.pause()
 
     @classmethod
     def resume(cls) -> None:
+        """
+        恢复调度器。
+
+        返回:
+        - None
+        """
         scheduler.resume()
 
     @classmethod
     def is_running(cls) -> bool:
+        """
+        调度器是否处于运行态。
+
+        返回:
+        - bool: 是否 running。
+        """
         return scheduler.running
 
     @classmethod
     def get_scheduler_state(cls) -> str:
+        """
+        将调度器内部 state 码映射为中文状态。
+
+        返回:
+        - str: 停止 / 运行中 / 暂停 / 未知。
+        """
         if scheduler.state == 0:
             return "停止"
         if scheduler.state == 1:
@@ -1185,22 +1294,63 @@ class SchedulerUtil:
 
     @classmethod
     def get_job(cls, job_id: str | int, jobstore: str | None = None) -> Job | None:
+        """
+        按 ID 获取单个任务。
+
+        参数:
+        - job_id (str | int): 任务 ID。
+        - jobstore (str | None): 存储器别名。
+
+        返回:
+        - Job | None: 任务对象或不存在。
+        """
         return scheduler.get_job(str(job_id), jobstore)
 
     @classmethod
     def get_jobs(cls, jobstore: str | None = None) -> list[Job]:
+        """
+        列出指定存储器中的任务。
+
+        参数:
+        - jobstore (str | None): 存储器别名，None 表示默认存储。
+
+        返回:
+        - list[Job]: 任务列表。
+        """
         return scheduler.get_jobs(jobstore)
 
     @classmethod
     def get_all_jobs(cls) -> list[Job]:
+        """
+        列出所有存储器中的任务。
+
+        返回:
+        - list[Job]: 任务列表。
+        """
         return scheduler.get_jobs()
 
     @classmethod
     def remove_job(cls, job_id: str | int, jobstore: str | None = None) -> None:
+        """
+        从调度器移除指定任务。
+
+        参数:
+        - job_id (str | int): 任务 ID。
+        - jobstore (str | None): 存储器别名。
+
+        返回:
+        - None
+        """
         scheduler.remove_job(str(job_id), jobstore)
 
     @classmethod
     def clear_jobs(cls) -> None:
+        """
+        移除所有存储器中的全部任务。
+
+        返回:
+        - None
+        """
         scheduler.remove_all_jobs()
 
     @classmethod
@@ -1259,23 +1409,61 @@ class SchedulerUtil:
 
     @classmethod
     def pause_job(cls, job_id: str | int, jobstore: str | None = None) -> Job | None:
+        """
+        暂停单个任务。
+
+        参数:
+        - job_id (str | int): 任务 ID。
+        - jobstore (str | None): 存储器别名。
+
+        返回:
+        - Job | None: 暂停后的 Job 或 None。
+        """
         return scheduler.pause_job(str(job_id), jobstore)
 
     @classmethod
     def resume_job(cls, job_id: str | int, jobstore: str | None = None) -> Job | None:
+        """
+        恢复单个任务。
+
+        参数:
+        - job_id (str | int): 任务 ID。
+        - jobstore (str | None): 存储器别名。
+
+        返回:
+        - Job | None: 恢复后的 Job 或 None。
+        """
         return scheduler.resume_job(str(job_id), jobstore)
 
     @classmethod
     def modify_job(cls, job_id: str | int, jobstore: str | None = None, **changes) -> Job | None:
+        """
+        修改已存在任务的属性。
+
+        参数:
+        - job_id (str | int): 任务 ID。
+        - jobstore (str | None): 存储器别名。
+        - **changes: 传给 modify_job 的变更字段。
+
+        返回:
+        - Job | None: 修改后的 Job 或 None。
+        """
         return scheduler.modify_job(str(job_id), jobstore, **changes)
 
     @classmethod
     def run_job_now(cls, job_id: str | int, jobstore: str | None = None) -> Job | None:
         """
-        立即执行任务
+        立即执行任务（通过临时 Job，不修改原任务 trigger）。
 
-        注意：为了不改变原任务的触发器配置，我们创建一个新的临时任务来执行，
-        而不是修改原任务的 trigger。
+        参数:
+        - job_id (str | int): 原任务 ID。
+        - jobstore (str | None): 存储器别名。
+
+        返回:
+        - Job | None: 临时任务对象；原任务不存在时为 None。
+
+        注意:
+        - 不改变原任务的触发器配置，仅追加一次性执行。
         """
         job = cls.get_job(job_id=job_id, jobstore=jobstore)
         if not job:

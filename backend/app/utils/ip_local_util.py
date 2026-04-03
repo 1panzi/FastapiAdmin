@@ -44,10 +44,16 @@ class IpLocalUtil:
     @classmethod
     async def resolve_location_for_log(cls, ip: str | None) -> str | None:
         """
-        登录与操作日志写入 ``login_location`` 时统一入口。
+        登录与操作日志写入 ``login_location`` 时的统一解析入口。
 
-        与 ``settings.LOGIN_RESOLVE_IP_LOCATION`` 一致：为 ``False`` 时不请求外网，
-        避免登录 POST 在 ``OperationLogRoute`` 收尾阶段仍触发 IP 归属地查询导致变慢。
+        与 ``settings.LOGIN_RESOLVE_IP_LOCATION`` 联动：关闭时不请求外网，仅返回占位描述，
+        避免登录 POST 在 ``OperationLogRoute`` 收尾阶段因外网查询变慢。
+
+        参数:
+        - ip (str | None): 客户端 IP，可为空。
+
+        返回:
+        - str | None: 展示用归属地文案；无需解析时可能为 ``None``。
         """
         if not ip:
             return None

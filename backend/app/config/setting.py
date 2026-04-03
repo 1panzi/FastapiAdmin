@@ -197,7 +197,12 @@ class Settings(BaseSettings):
     # ================================================= #
     @property
     def MIDDLEWARE_LIST(self) -> list[str | None]:
-        """获取项目根目录"""
+        """
+        根据开关组装的中间件类路径列表（未启用的项为 None）。
+
+        返回:
+        - list[str | None]: 中间件 import 路径或 None。
+        """
         # 中间件列表
         MIDDLEWARES: list[str | None] = [
             "app.core.middlewares.CustomCORSMiddleware" if self.CORS_ORIGIN_ENABLE else None,
@@ -208,7 +213,12 @@ class Settings(BaseSettings):
 
     @property
     def EVENT_LIST(self) -> list[str | None]:
-        """获取事件列表"""
+        """
+        应用启动时加载的全局异步事件模块路径列表。
+
+        返回:
+        - list[str | None]: 事件模块路径或 None。
+        """
         EVENTS: list[str | None] = [
             "app.core.database.redis_connect" if self.REDIS_ENABLE else None,
         ]
@@ -216,7 +226,15 @@ class Settings(BaseSettings):
 
     @property
     def ASYNC_DB_URI(self) -> str:
-        """获取异步数据库连接"""
+        """
+        异步 SQLAlchemy 数据库 URL。
+
+        返回:
+        - str: 异步驱动连接串。
+
+        异常:
+        - ValueError: 数据库类型不支持时抛出。
+        """
         if self.DATABASE_TYPE not in ("mysql", "postgres", "sqlite"):
             raise ValueError(
                 f"数据库驱动不支持: {self.DATABASE_TYPE}, 异步数据库请选择 mysql、postgres、sqlite"
@@ -232,7 +250,15 @@ class Settings(BaseSettings):
 
     @property
     def DB_URI(self) -> str:
-        """获取同步数据库连接"""
+        """
+        同步 SQLAlchemy 数据库 URL。
+
+        返回:
+        - str: 同步驱动连接串。
+
+        异常:
+        - ValueError: 数据库类型不支持时抛出。
+        """
         if self.DATABASE_TYPE not in ("mysql", "postgres", "sqlite"):
             raise ValueError(
                 f"数据库驱动不支持: {self.DATABASE_TYPE}, 同步数据库请选择 mysql、postgres、sqlite"
@@ -248,12 +274,22 @@ class Settings(BaseSettings):
 
     @property
     def REDIS_URI(self) -> str:
-        """获取Redis连接"""
+        """
+        Redis 连接 URL。
+
+        返回:
+        - str: redis:// 连接串。
+        """
         return f"redis://{self.REDIS_USER}:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB_NAME}"
 
     @property
     def FASTAPI_CONFIG(self) -> dict[str, Any]:
-        """获取FastAPI应用属性"""
+        """
+        创建 FastAPI 应用实例时使用的关键字参数子集。
+
+        返回:
+        - dict[str, Any]: debug、title、responses 等配置。
+        """
         return {
             "debug": self.DEBUG,
             "title": self.TITLE,
@@ -277,7 +313,12 @@ class Settings(BaseSettings):
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    """获取配置实例"""
+    """
+    获取全局 Settings 单例（lru_cache 缓存）。
+
+    返回:
+    - Settings: 配置实例。
+    """
     return Settings()
 
 

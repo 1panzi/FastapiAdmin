@@ -12,23 +12,31 @@ from app.core.exceptions import CustomException
 
 
 class ImportUtil:
+    """
+    扫描工程中的 ORM 模型文件并做有效性校验的辅助类。
+    """
+
     @classmethod
     def find_project_root(cls) -> Path:
         """
-        查找项目根目录
+        返回项目根目录（与配置中的 `BASE_DIR` 一致）。
 
-        :return: 项目根目录路径
+        返回:
+        - Path: 项目根路径。
         """
         return BASE_DIR
 
     @classmethod
     def is_valid_model(cls, obj: Any, base_class: type) -> bool:
         """
-        验证是否为有效的SQLAlchemy模型类
+        判断是否为可映射的 SQLAlchemy 模型类（含表名与非空列）。
 
-        :param obj: 待验证的对象
-        :param base_class: SQLAlchemy的基类
-        :return: 验证结果
+        参数:
+        - obj (Any): 待验证对象（一般为类）。
+        - base_class (type): ORM 声明基类。
+
+        返回:
+        - bool: 是否为有效模型类。
         """
         # 必须继承自base_class且不是base_class本身
         if not (inspect.isclass(obj) and issubclass(obj, base_class) and obj is not base_class):
@@ -48,10 +56,17 @@ class ImportUtil:
     @lru_cache(maxsize=256)
     def find_models(cls, base_class: type) -> list[Any]:
         """
-        查找并过滤有效的模型类，避免重复和无效定义
+        遍历工程内 `model.py` / `models.py`，收集去重后的有效模型类。
 
-        :param base_class: SQLAlchemy的Base类，用于验证模型类
-        :return: 有效模型类列表
+        参数:
+        - base_class (type): SQLAlchemy 声明基类。
+
+        返回:
+        - list[Any]: 模型类列表。
+
+        异常:
+        - ImportError: 模块导入失败（非「无法从某名导入」类警告）。
+        - CustomException: 处理模块时发生未预期错误。
         """
         models = []
         # 按类对象去重
@@ -156,12 +171,19 @@ class ImportUtil:
         seen_tables: set[str],
     ) -> None:
         """
-        专门查找APScheduler相关的模型
+        尝试从调度相关模块补充 `apscheduler_jobs` 表对应模型。
 
-        :param base_class: SQLAlchemy的Base类
-        :param models: 模型列表
-        :param seen_models: 已处理的模型集合
-        :param seen_tables: 已处理的表名集合
+        参数:
+        - base_class (type): ORM 声明基类。
+        - models (list[Any]): 已收集模型列表（就地追加）。
+        - seen_models (set[Any]): 已见模型对象集合。
+        - seen_tables (set[str]): 已见表名集合。
+
+        返回:
+        - None
+
+        异常:
+        - CustomException: 扫描过程出现未预期错误。
         """
         # 尝试从apscheduler相关模块导入
         try:
