@@ -33,7 +33,7 @@ def _build_agno_db():
     if db_type not in db_mapping:
         raise ValueError(f"[AgentOS] 不支持的数据库类型: {db_type}")
 
-    return SqliteDb(db_file="./agno.db")  #TODO 临时测试用sqllite  db_mapping[db_type]()
+    return SqliteDb(db_file="./agno.db")  # TODO 临时测试用sqllite  db_mapping[db_type]()
 
 
 async def init_agent_os(app: FastAPI) -> None:

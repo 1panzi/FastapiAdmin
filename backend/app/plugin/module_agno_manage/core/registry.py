@@ -257,6 +257,7 @@ class RuntimeRegistry:
     def _build_toolkit(self, row, config: dict) -> object:
         """根据 row + config 实例化工具（懒加载时调用）。"""
         import importlib
+
         from agno.tools import Function
         from agno.tools.toolkit import Toolkit
 

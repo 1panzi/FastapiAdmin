@@ -16,8 +16,8 @@ from app.utils.excel_util import ExcelUtil
 from .agno_catalog import AgnoToolInfo, get_categories, list_agno_tools
 from .crud import AgToolkitCRUD
 from .schema import (
-    AgToolkitCodeValidateSchema,
     AgToolkitCodeValidateResultSchema,
+    AgToolkitCodeValidateSchema,
     AgToolkitCreateSchema,
     AgToolkitGlobalSwitchSchema,
     AgToolkitOutSchema,
@@ -425,7 +425,9 @@ class AgToolkitService:
         global_enabled=False 时从 registry 移除；True 时重新注册。
         """
         from sqlalchemy import update as sa_update
+
         from app.core.database import async_db_session
+
         from .model import AgToolkitModel
 
         obj = await AgToolkitCRUD(auth).get_by_id_toolkits_crud(id=id)
@@ -466,6 +468,7 @@ class AgToolkitService:
 
         # 检查是否已拉取
         from sqlalchemy import and_, select
+
         from app.core.database import async_db_session
         from app.plugin.module_agno_manage.bindings.model import AgBindingModel
         async with async_db_session() as db:
@@ -500,6 +503,7 @@ class AgToolkitService:
         用户取消拉取工具：删除对应 binding。
         """
         from sqlalchemy import and_, select
+
         from app.core.database import async_db_session
         from app.plugin.module_agno_manage.bindings.model import AgBindingModel
         async with async_db_session() as db:
@@ -525,8 +529,10 @@ class AgToolkitService:
         查询当前用户已拉取的工具列表。
         """
         from sqlalchemy import and_, select
+
         from app.core.database import async_db_session
         from app.plugin.module_agno_manage.bindings.model import AgBindingModel
+
         from .model import AgToolkitModel
 
         async with async_db_session() as db:

@@ -32,7 +32,7 @@ _sync_engine = _create_sync_engine()
 _SyncSession = sessionmaker(bind=_sync_engine)
 
 # ── namedtuple 轻量返回值 ──────────────────────────────────────────────────────
-Binding = namedtuple("Binding", ["resource_type", "resource_id","priority", "config_override"])
+Binding = namedtuple("Binding", ["resource_type", "resource_id", "priority", "config_override"])
 TeamMember = namedtuple("TeamMember", ["member_id", "member_type", "member_order", "role"])
 
 

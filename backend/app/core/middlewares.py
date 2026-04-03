@@ -9,7 +9,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
-from starlette.types import ASGIApp
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.api.v1.module_system.params.service import ParamsService
 from app.common.response import ErrorResponse
@@ -198,3 +198,14 @@ class CustomGZipMiddleware(GZipMiddleware):
             minimum_size=settings.GZIP_MIN_SIZE,
             compresslevel=settings.GZIP_COMPRESS_LEVEL,
         )
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        # SSE 路由跳过 gzip，直接透传
+        if scope["type"] == "http":
+            headers = dict(scope.get("headers", []))
+            accept = headers.get(b"accept", b"").decode()
+            path: str = scope.get("path", "")
+            if "text/event-stream" in accept or path.endswith("/runs"):
+                await self.app(scope, receive, send)
+                return
+        await super().__call__(scope, receive, send)
