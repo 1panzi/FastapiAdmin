@@ -91,6 +91,7 @@ class RuntimeRegistry:
         self._vectordb_rows: dict[str, object] = {}
         self._mcp_rows: dict[str, object] = {}
         self._kb_rows: dict[str, object] = {}
+        self._reader_rows: dict[str, object] = {}
         self._skill_rows: dict[str, object] = {}
         self._memory_manager_rows: dict[str, object] = {}
         self._learning_rows: dict[str, object] = {}
@@ -477,23 +478,162 @@ class RuntimeRegistry:
                     kbs.append(kb)
         return kbs[0] if kbs else None
 
-    def _build_knowledge(self, kb_id: str, row) -> object | None:
+    def _build_reader(self, reader_row, config_override: dict | None = None):
+        """
+        从 reader_row 构建 Agno Reader 实例。
+
+        构建顺序：
+          1. 从 reader_row 取基础参数（chunk / chunk_size / encoding / overlap）
+          2. 合并 config_override（binding 上的覆盖参数优先）
+          3. 构建 chunking_strategy 对象（按策略类型，注入 embedder/model）
+          4. 合并 reader_config（reader 专属参数）
+          5. 调用 ReaderFactory 实例化
+        """
+        from agno.knowledge.reader.reader_factory import ReaderFactory
+        from agno.knowledge.chunking.strategy import ChunkingStrategyFactory, ChunkingStrategyType
+
         try:
-            embedder = self.get_embedder(str(row.embedder_id)) if getattr(row, "embedder_id", None) else None
-            kb_type = getattr(row, "knowledge_type", "pdf")
-            config = dict(row.config or {})
-            # TODO 此处存在问题，知识库库，不分类型文件类型，只是区分 向量库和readers 以及向量DB  向量DB中才存入 embedder 还没有完全完成
-            if kb_type == "pdf":
-                from agno.knowledge.knowledge import Knowledge
-                # vector_db
-                # contents_db: Optional[Union[BaseDb, AsyncBaseDb]] = None  self._agno_db
-                return Knowledge(**config)
-            if kb_type == "filesystem":
-                from agno.knowledge.filesystem import FileSystemKnowledge
-                return FileSystemKnowledge(**config)
-            else:
-                log.warning(f"[Registry] unknown knowledge type: {kb_type}")
+            override = config_override or {}
+
+            # ── 基础参数（override 优先）──────────────────────────────────
+            reader_type = getattr(reader_row, "reader_type", None)
+            if not reader_type:
+                log.warning("[Registry] reader_row missing reader_type, skip")
                 return None
+
+            chunk      = override.get("chunk",         getattr(reader_row, "chunk",         True))
+            chunk_size = override.get("chunk_size",    getattr(reader_row, "chunk_size",    5000))
+            encoding   = override.get("encoding",      getattr(reader_row, "encoding",      None))
+            overlap    = override.get("chunk_overlap", getattr(reader_row, "chunk_overlap", 0))
+
+            # ── Chunking 策略 ──────────────────────────────────────────────
+            strategy_name = override.get(
+                "chunking_strategy",
+                getattr(reader_row, "chunking_strategy", None)
+            )
+            chunking_strategy = None
+
+            if chunk and strategy_name:
+                try:
+                    strategy_type = ChunkingStrategyType.from_string(strategy_name)
+                    strategy_kwargs: dict = {}
+
+                    if strategy_type == ChunkingStrategyType.SEMANTIC_CHUNKER:
+                        # 需要 embedder 实例
+                        embedder_id = override.get(
+                            "embedder_id", getattr(reader_row, "embedder_id", None)
+                        )
+                        if embedder_id:
+                            embedder = self.get_embedder(str(embedder_id))
+                            if embedder:
+                                strategy_kwargs["embedder"] = embedder
+
+                        # SemanticChunking 额外参数从 reader_config 取
+                        rc = dict(getattr(reader_row, "reader_config", None) or {})
+                        rc.update(override.get("reader_config", {}) or {})
+                        for k in ("similarity_threshold", "similarity_window", "min_sentences_per_chunk"):
+                            if k in rc:
+                                strategy_kwargs[k] = rc[k]
+
+                    elif strategy_type == ChunkingStrategyType.AGENTIC_CHUNKER:
+                        # AgenticChunking 的 max_chunk_size 用 chunk_size 字段
+                        model_id = override.get(
+                            "model_id", getattr(reader_row, "model_id", None)
+                        )
+                        if model_id:
+                            model = self.get_model(str(model_id))
+                            if model:
+                                strategy_kwargs["model"] = model
+
+                    chunking_strategy = ChunkingStrategyFactory.create_strategy(
+                        strategy_type,
+                        chunk_size=chunk_size,
+                        overlap=overlap,
+                        **strategy_kwargs,
+                    )
+                except Exception as e:
+                    log.warning(f"[Registry] build chunking_strategy '{strategy_name}' failed: {e}, use default")
+
+            # ── Reader 专属参数 ────────────────────────────────────────────
+            reader_config = dict(getattr(reader_row, "reader_config", None) or {})
+            # config_override 中的 reader_config 字段深度合并
+            reader_config.update(override.get("reader_config", {}) or {})
+            # 顶层 override 的其他 key（如 api_key 直接写在顶层）也合并
+            for k, v in override.items():
+                if k not in ("chunk", "chunk_size", "encoding", "chunk_overlap",
+                             "chunking_strategy", "embedder_id", "model_id", "reader_config"):
+                    reader_config[k] = v
+
+            # ── 实例化 ─────────────────────────────────────────────────────
+            kwargs: dict = {**reader_config}
+            if chunk is not None:
+                kwargs["chunk"] = chunk
+            if chunk_size is not None:
+                kwargs["chunk_size"] = chunk_size
+            if encoding:
+                kwargs["encoding"] = encoding
+            if chunking_strategy is not None:
+                kwargs["chunking_strategy"] = chunking_strategy
+
+            reader = ReaderFactory.create_reader(reader_type, **kwargs)
+            log.debug(f"[Registry] reader built: type={reader_type}, strategy={strategy_name}")
+            return reader
+
+        except Exception as e:
+            log.error(f"[Registry] failed to build reader type={getattr(reader_row, 'reader_type', '?')}: {e}")
+            return None
+
+    def _build_knowledge(self, kb_id: str, row) -> object | None:
+        """
+        从 kb_row 构建 Agno Knowledge 实例。
+
+        构建顺序：
+          1. 从 vectordb_rows 取 vector_db 实例
+          2. 从 ag_bindings 同步查 knowledge 绑定的所有 reader
+          3. 按 reader_row + config_override 构建 readers dict
+          4. 实例化 Knowledge
+        """
+        try:
+            from agno.knowledge.knowledge import Knowledge
+            from app.plugin.module_agno_manage.core.sync_db import SyncBindingRepo
+
+            # ── vector_db ──────────────────────────────────────────────────
+            vectordb_id = getattr(row, "vectordb_id", None)
+            vector_db = None
+            if vectordb_id:
+                vdb_row = self._vectordb_rows.get(str(vectordb_id))
+                if vdb_row:
+                    vector_db = self._build_vectordb(vdb_row)
+
+            if vector_db is None:
+                log.warning(f"[Registry] knowledge id={kb_id} has no valid vector_db, skip")
+                return None
+
+            # ── readers（从 binding 取）───────────────────────────────────
+            readers: dict = {}
+            for b in SyncBindingRepo.get_active(kb_id, "knowledge", resource_type="reader"):
+                reader_row = self._reader_rows.get(b.resource_id)
+                if not reader_row:
+                    log.warning(f"[Registry] reader id={b.resource_id} not in _reader_rows, skip")
+                    continue
+                reader = self._build_reader(reader_row, config_override=b.config_override)
+                if reader:
+                    readers[reader_row.reader_type] = reader
+
+            # ── Knowledge 参数 ──────────────────────────────────────────────
+            kwargs: dict = {
+                "name": getattr(row, "name", None),
+                "vector_db": vector_db,
+                "max_results": getattr(row, "max_results", 10) or 10,
+                "isolate_vector_search": getattr(row, "isolate_vector_search", False) or False,
+            }
+            if getattr(row, "description", None):
+                kwargs["description"] = row.description
+            if readers:
+                kwargs["readers"] = readers
+
+            return Knowledge(**kwargs)
+
         except Exception as e:
             log.error(f"[Registry] failed to build knowledge id={kb_id}: {e}")
             return None
@@ -507,6 +647,33 @@ class RuntimeRegistry:
     def remove_vectordb_row(self, vid: str) -> None:
         self._vectordb_rows.pop(vid, None)
 
+    def _build_vectordb(self, vdb_row) -> object | None:
+        """从 vdb_row 构建 Agno VectorDb 实例。"""
+        try:
+            import importlib
+            provider = getattr(vdb_row, "provider", None)
+            if not provider:
+                return None
+
+            embedder_id = getattr(vdb_row, "embedder_id", None)
+            embedder = self.get_embedder(str(embedder_id)) if embedder_id else None
+            config = dict(getattr(vdb_row, "config", None) or {})
+            if embedder:
+                config["embedder"] = embedder
+
+            from app.plugin.module_agno_manage.vectordbs.agno_catalog import _TYPES as _VDB_TYPES
+            vdb_meta = next((t for t in _VDB_TYPES if t["db_type"] == provider), None)
+            if not vdb_meta:
+                log.warning(f"[Registry] unknown vectordb provider: {provider}")
+                return None
+
+            mod = importlib.import_module(vdb_meta["agno_module"])
+            cls = getattr(mod, vdb_meta["agno_class"])
+            return cls(**config)
+        except Exception as e:
+            log.error(f"[Registry] failed to build vectordb provider={getattr(vdb_row, 'provider', '?')}: {e}")
+            return None
+
     def update_kb_row(self, kid: str, row) -> None:
         self._kb_rows[kid] = row
         # 行数据变了，让 LRU 缓存失效，下次 resolve 时重建
@@ -516,6 +683,28 @@ class RuntimeRegistry:
     def remove_kb_row(self, kid: str) -> None:
         self._kb_rows.pop(kid, None)
         self._knowledge_cache.remove(kid)
+
+    def update_reader_row(self, rid: str, row) -> None:
+        self._reader_rows[rid] = row
+        # reader 配置变了，需让所有引用该 reader 的知识库缓存失效
+        self._invalidate_kb_cache_by_reader(rid)
+        log.debug(f"[Registry] reader row updated: id={rid}")
+
+    def remove_reader_row(self, rid: str) -> None:
+        self._reader_rows.pop(rid, None)
+        self._invalidate_kb_cache_by_reader(rid)
+
+    def _invalidate_kb_cache_by_reader(self, reader_id: str) -> None:
+        """让所有绑定了指定 reader 的知识库 LRU 缓存失效。"""
+        from app.plugin.module_agno_manage.core.sync_db import SyncBindingRepo
+        try:
+            for kb_id in list(self._kb_rows.keys()):
+                bindings = SyncBindingRepo.get_active(kb_id, "knowledge", resource_type="reader")
+                if any(b.resource_id == reader_id for b in bindings):
+                    self._knowledge_cache.remove(kb_id)
+                    log.debug(f"[Registry] kb cache invalidated: id={kb_id} (reader {reader_id} changed)")
+        except Exception as e:
+            log.warning(f"[Registry] _invalidate_kb_cache_by_reader failed: {e}")
 
     def update_mcp_row(self, mid: str, row) -> None:
         self._mcp_rows[mid] = row

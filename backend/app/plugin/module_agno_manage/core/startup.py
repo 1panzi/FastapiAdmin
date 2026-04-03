@@ -73,6 +73,11 @@ async def _do_warm_up() -> None:
         for row in result.scalars().all():
             registry._kb_rows[str(row.id)] = row
 
+        from app.plugin.module_agno_manage.readers.model import AgReaderModel
+        result = await db.execute(select(AgReaderModel).where(AgReaderModel.status == "0"))
+        for row in result.scalars().all():
+            registry._reader_rows[str(row.id)] = row
+
         # ── 第三层：工具类 ────────────────────────────────────────────────
         from app.plugin.module_agno_manage.toolkits.model import AgToolkitModel
         result = await db.execute(

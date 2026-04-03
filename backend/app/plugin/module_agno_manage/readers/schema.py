@@ -11,18 +11,31 @@ from app.core.base_schema import BaseSchema, UserBySchema
 class AgReaderCreateSchema(BaseModel):
     """
     reader管理新增模型
+
+    chunking_strategy 参数说明：
+      FixedSizeChunker / RecursiveChunker / DocumentChunker / MarkdownChunker
+        → chunk_size + chunk_overlap 生效
+      RowChunker
+        → chunk_size / chunk_overlap 无效（每行即一个 chunk）
+      CodeChunker
+        → chunk_size 生效，chunk_overlap 无效
+      SemanticChunker
+        → chunk_size 生效，chunk_overlap 无效，需要 embedder_id
+          reader_config 可含: similarity_threshold / similarity_window / min_sentences_per_chunk
+      AgenticChunker
+        → chunk_size 作为 max_chunk_size，chunk_overlap 无效，需要 model_id
     """
     name: str = Field(default=..., description='Reader名称')
     reader_type: str = Field(default=..., description='Reader类型(pdf/csv/excel/docx/pptx/json/markdown/text/website/firecrawl/tavily/youtube/arxiv/wikipedia/web_search/field_labeled_csv)')
-    chunk: bool = Field(default=..., description='是否对内容分块')
-    chunk_size: int = Field(default=..., description='分块大小（字符数）')
-    encoding: str = Field(default=..., description='文本编码（utf-8/gbk等，文本类Reader使用）')
-    chunking_strategy: str = Field(default=..., description='Chunking策略(FixedSizeChunker/RecursiveChunker/DocumentChunker/MarkdownChunker/RowChunker/SemanticChunker/AgenticChunker/CodeChunker)')
-    chunk_overlap: int = Field(default=..., description='Chunk重叠字符数（FixedSize/Recursive/Document/Markdown策略支持）')
-    reader_config: dict = Field(default=..., description='Reader专属参数（按reader_type不同，见表注释）')
-    embedder_id: int = Field(default=..., description='关联Embedder ID（SemanticChunker使用）')
-    model_id: int = Field(default=..., description='关联Model ID（AgenticChunker使用）')
-    status: str = Field(default="0", description='是否启用(0:启用 1:禁用)')
+    chunk: bool = Field(default=True, description='是否对内容分块')
+    chunk_size: int = Field(default=5000, description='分块大小（字符数）')
+    encoding: str | None = Field(default=None, description='文本编码（utf-8/gbk等，文本类Reader使用，为空时自动检测）')
+    chunking_strategy: str | None = Field(default=None, description='Chunking策略，为空时使用该reader_type的默认策略')
+    chunk_overlap: int = Field(default=0, description='Chunk重叠字符数（FixedSize/Recursive/Document/Markdown策略支持）')
+    reader_config: dict | None = Field(default=None, description='Reader专属参数，按reader_type不同（参考 agno_catalog）')
+    embedder_id: int | None = Field(default=None, description='关联Embedder ID（SemanticChunker使用）')
+    model_id: int | None = Field(default=None, description='关联Model ID（AgenticChunker使用）')
+    status: str = Field(default="0", description='状态(0:启用 1:禁用)')
     description: str | None = Field(default=None, max_length=255, description='备注/描述')
 
 

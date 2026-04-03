@@ -10,12 +10,20 @@ from app.core.exceptions import CustomException
 from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
 
+from app.plugin.module_agno_manage.core.registry import get_registry
+
 from .crud import AgReaderCRUD
 from .schema import (
     AgReaderCreateSchema,
     AgReaderUpdateSchema,
     AgReaderOutSchema,
     AgReaderQueryParam
+)
+from .agno_catalog import (
+    ReaderInfo, ChunkingStrategyInfo,
+    list_reader_types, get_reader_info,
+    list_chunking_strategies, get_chunking_strategy_info,
+    get_supported_strategies_for_reader,
 )
 
 
@@ -97,6 +105,8 @@ class AgReaderService:
         - dict - 创建结果
         """
         obj = await AgReaderCRUD(auth).create_readers_crud(data=data)
+        if obj and obj.status == "0":
+            get_registry().update_reader_row(str(obj.id), obj)
         return AgReaderOutSchema.model_validate(obj).model_dump()
     
     @classmethod
@@ -120,6 +130,11 @@ class AgReaderService:
         # 检查唯一性约束
             
         obj = await AgReaderCRUD(auth).update_readers_crud(id=id, data=data)
+        if obj:
+            if obj.status == "0":
+                get_registry().update_reader_row(str(obj.id), obj)
+            else:
+                get_registry().remove_reader_row(str(obj.id))
         return AgReaderOutSchema.model_validate(obj).model_dump()
     
     @classmethod
@@ -140,6 +155,8 @@ class AgReaderService:
             obj = await AgReaderCRUD(auth).get_by_id_readers_crud(id=id)
             if not obj:
                 raise CustomException(msg=f'删除失败，ID为{id}的数据不存在')
+        for id in ids:
+            get_registry().remove_reader_row(str(id))
         await AgReaderCRUD(auth).delete_readers_crud(ids=ids)
     
     @classmethod
@@ -155,6 +172,13 @@ class AgReaderService:
         - None
         """
         await AgReaderCRUD(auth).set_available_readers_crud(ids=data.ids, status=data.status)
+        for id in data.ids:
+            if data.status == "0":
+                obj = await AgReaderCRUD(auth).get_by_id_readers_crud(id=id)
+                if obj:
+                    get_registry().update_reader_row(str(id), obj)
+            else:
+                get_registry().remove_reader_row(str(id))
     
     @classmethod
     async def batch_export_readers_service(cls, obj_list: list[dict]) -> bytes:
@@ -338,3 +362,28 @@ class AgReaderService:
             selector_header_list=selector_header_list,
             option_list=option_list
         )
+
+    @classmethod
+    def list_reader_types_service(cls) -> list[ReaderInfo]:
+        """返回所有支持的 Reader 类型元数据（供前端动态渲染表单）。"""
+        return list_reader_types()
+
+    @classmethod
+    def get_reader_info_service(cls, reader_type: str) -> ReaderInfo | None:
+        """返回指定 reader_type 的元数据，不存在返回 None。"""
+        return get_reader_info(reader_type)
+
+    @classmethod
+    def list_chunking_strategies_service(cls) -> list[ChunkingStrategyInfo]:
+        """返回所有支持的 Chunking 策略元数据。"""
+        return list_chunking_strategies()
+
+    @classmethod
+    def get_chunking_strategy_info_service(cls, strategy: str) -> ChunkingStrategyInfo | None:
+        """返回指定策略的详细参数 schema，不存在返回 None。"""
+        return get_chunking_strategy_info(strategy)
+
+    @classmethod
+    def get_supported_strategies_service(cls, reader_type: str) -> list[str]:
+        """返回指定 reader_type 支持的 chunking 策略名列表（直接调 Agno reader 类）。"""
+        return get_supported_strategies_for_reader(reader_type)

@@ -51,22 +51,34 @@
               <el-input v-model="queryFormData.parser_model_id" placeholder="请输入解析模型ID" clearable />
             </el-form-item>
             <el-form-item label="记忆管理器ID" prop="memory_manager_id">
-              <el-input v-model="queryFormData.memory_manager_id" placeholder="请输入记忆管理器ID" clearable />
+              <el-select v-model="queryFormData.memory_manager_id" placeholder="请选择记忆管理器" clearable filterable style="width: 200px">
+                <el-option v-for="item in memoryManagerList" :key="item.id" :label="item.name" :value="String(item.id)" />
+              </el-select>
             </el-form-item>
             <el-form-item label="学习机配置ID" prop="learning_config_id">
-              <el-input v-model="queryFormData.learning_config_id" placeholder="请输入学习机配置ID" clearable />
+              <el-select v-model="queryFormData.learning_config_id" placeholder="请选择学习机配置" clearable filterable style="width: 200px">
+                <el-option v-for="item in learningConfigList" :key="item.id" :label="item.name" :value="String(item.id)" />
+              </el-select>
             </el-form-item>
             <el-form-item label="推理配置ID" prop="reasoning_config_id">
-              <el-input v-model="queryFormData.reasoning_config_id" placeholder="请输入推理配置ID" clearable />
+              <el-select v-model="queryFormData.reasoning_config_id" placeholder="请选择推理配置" clearable filterable style="width: 200px">
+                <el-option v-for="item in reasoningConfigList" :key="item.id" :label="item.name" :value="String(item.id)" />
+              </el-select>
             </el-form-item>
             <el-form-item label="压缩管理器配置ID" prop="compression_config_id">
-              <el-input v-model="queryFormData.compression_config_id" placeholder="请输入压缩管理器配置ID" clearable />
+              <el-select v-model="queryFormData.compression_config_id" placeholder="请选择压缩配置" clearable filterable style="width: 200px">
+                <el-option v-for="item in compressionConfigList" :key="item.id" :label="item.name" :value="String(item.id)" />
+              </el-select>
             </el-form-item>
             <el-form-item label="会话摘要配置ID" prop="session_summary_config_id">
-              <el-input v-model="queryFormData.session_summary_config_id" placeholder="请输入会话摘要配置ID" clearable />
+              <el-select v-model="queryFormData.session_summary_config_id" placeholder="请选择会话摘要配置" clearable filterable style="width: 200px">
+                <el-option v-for="item in sessSummaryConfigList" :key="item.id" :label="item.name" :value="String(item.id)" />
+              </el-select>
             </el-form-item>
             <el-form-item label="文化管理器配置ID" prop="culture_config_id">
-              <el-input v-model="queryFormData.culture_config_id" placeholder="请输入文化管理器配置ID" clearable />
+              <el-select v-model="queryFormData.culture_config_id" placeholder="请选择文化管理器配置" clearable filterable style="width: 200px">
+                <el-option v-for="item in cultureConfigList" :key="item.id" :label="item.name" :value="String(item.id)" />
+              </el-select>
             </el-form-item>
             <el-form-item label="Agent指令" prop="instructions">
               <el-input v-model="queryFormData.instructions" placeholder="请输入Agent指令" clearable />
@@ -541,46 +553,58 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'memory_manager_id')?.show"
-          label="记忆管理器ID"
+          label="记忆管理器"
           prop="memory_manager_id"
           min-width="140"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">{{ getMemoryManagerName(scope.row.memory_manager_id) }}</template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'learning_config_id')?.show"
-          label="学习机配置ID"
+          label="学习机配置"
           prop="learning_config_id"
           min-width="140"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">{{ getLearningConfigName(scope.row.learning_config_id) }}</template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'reasoning_config_id')?.show"
-          label="推理配置ID"
+          label="推理配置"
           prop="reasoning_config_id"
           min-width="140"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">{{ getReasoningConfigName(scope.row.reasoning_config_id) }}</template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'compression_config_id')?.show"
-          label="压缩管理器配置ID"
+          label="压缩管理器配置"
           prop="compression_config_id"
           min-width="140"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">{{ getCompressionConfigName(scope.row.compression_config_id) }}</template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'session_summary_config_id')?.show"
-          label="会话摘要配置ID"
+          label="会话摘要配置"
           prop="session_summary_config_id"
           min-width="140"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">{{ getSessSummaryConfigName(scope.row.session_summary_config_id) }}</template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'culture_config_id')?.show"
-          label="文化管理器配置ID"
+          label="文化管理器配置"
           prop="culture_config_id"
           min-width="140"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">{{ getCultureConfigName(scope.row.culture_config_id) }}</template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'instructions')?.show"
           label="Agent指令"
@@ -1166,22 +1190,22 @@
             {{ detailFormData.parser_model_id }}
           </el-descriptions-item>
           <el-descriptions-item label="记忆管理器ID" :span="2">
-            {{ detailFormData.memory_manager_id }}
+            {{ getMemoryManagerName(detailFormData.memory_manager_id) }}
           </el-descriptions-item>
           <el-descriptions-item label="学习机配置ID" :span="2">
-            {{ detailFormData.learning_config_id }}
+            {{ getLearningConfigName(detailFormData.learning_config_id) }}
           </el-descriptions-item>
           <el-descriptions-item label="推理配置ID" :span="2">
-            {{ detailFormData.reasoning_config_id }}
+            {{ getReasoningConfigName(detailFormData.reasoning_config_id) }}
           </el-descriptions-item>
           <el-descriptions-item label="压缩管理器配置ID" :span="2">
-            {{ detailFormData.compression_config_id }}
+            {{ getCompressionConfigName(detailFormData.compression_config_id) }}
           </el-descriptions-item>
           <el-descriptions-item label="会话摘要配置ID" :span="2">
-            {{ detailFormData.session_summary_config_id }}
+            {{ getSessSummaryConfigName(detailFormData.session_summary_config_id) }}
           </el-descriptions-item>
           <el-descriptions-item label="文化管理器配置ID" :span="2">
-            {{ detailFormData.culture_config_id }}
+            {{ getCultureConfigName(detailFormData.culture_config_id) }}
           </el-descriptions-item>
           <el-descriptions-item label="Agent指令" :span="2">
             {{ detailFormData.instructions }}
@@ -1428,7 +1452,9 @@
                 </el-col>
                 <el-col :span="12">
                   <el-form-item label="推理配置ID" prop="reasoning_config_id">
-                    <el-input v-model="formData.reasoning_config_id" placeholder="请输入推理配置ID" />
+                    <el-select v-model="formData.reasoning_config_id" placeholder="请选择推理配置" clearable filterable style="width: 100%">
+                      <el-option v-for="item in reasoningConfigList" :key="item.id" :label="item.name" :value="String(item.id)" />
+                    </el-select>
                   </el-form-item>
                 </el-col>
                 <el-col :span="12">
@@ -1452,7 +1478,9 @@
                 </el-col>
                 <el-col :span="12">
                   <el-form-item label="学习机配置ID" prop="learning_config_id">
-                    <el-input v-model="formData.learning_config_id" placeholder="请输入学习机配置ID" />
+                    <el-select v-model="formData.learning_config_id" placeholder="请选择学习机配置" clearable filterable style="width: 100%">
+                      <el-option v-for="item in learningConfigList" :key="item.id" :label="item.name" :value="String(item.id)" />
+                    </el-select>
                   </el-form-item>
                 </el-col>
                 <!-- 知识库 -->
@@ -1505,7 +1533,9 @@
                 </el-col>
                 <el-col :span="12">
                   <el-form-item label="记忆管理器ID" prop="memory_manager_id">
-                    <el-input v-model="formData.memory_manager_id" placeholder="请输入记忆管理器ID" />
+                    <el-select v-model="formData.memory_manager_id" placeholder="请选择记忆管理器" clearable filterable style="width: 100%">
+                      <el-option v-for="item in memoryManagerList" :key="item.id" :label="item.name" :value="String(item.id)" />
+                    </el-select>
                   </el-form-item>
                 </el-col>
                 <el-col :span="12">
@@ -1583,7 +1613,9 @@
                 </el-col>
                 <el-col :span="12">
                   <el-form-item label="会话摘要配置ID" prop="session_summary_config_id">
-                    <el-input v-model="formData.session_summary_config_id" placeholder="请输入会话摘要配置ID" />
+                    <el-select v-model="formData.session_summary_config_id" placeholder="请选择会话摘要配置" clearable filterable style="width: 100%">
+                      <el-option v-for="item in sessSummaryConfigList" :key="item.id" :label="item.name" :value="String(item.id)" />
+                    </el-select>
                   </el-form-item>
                 </el-col>
               </el-row>
@@ -1654,12 +1686,16 @@
                 </el-col>
                 <el-col :span="12">
                   <el-form-item label="压缩管理器配置ID" prop="compression_config_id">
-                    <el-input v-model="formData.compression_config_id" placeholder="请输入压缩管理器配置ID" />
+                    <el-select v-model="formData.compression_config_id" placeholder="请选择压缩配置" clearable filterable style="width: 100%">
+                      <el-option v-for="item in compressionConfigList" :key="item.id" :label="item.name" :value="String(item.id)" />
+                    </el-select>
                   </el-form-item>
                 </el-col>
                 <el-col :span="12">
                   <el-form-item label="文化管理器配置ID" prop="culture_config_id">
-                    <el-input v-model="formData.culture_config_id" placeholder="请输入文化管理器配置ID" />
+                    <el-select v-model="formData.culture_config_id" placeholder="请选择文化管理器配置" clearable filterable style="width: 100%">
+                      <el-option v-for="item in cultureConfigList" :key="item.id" :label="item.name" :value="String(item.id)" />
+                    </el-select>
                   </el-form-item>
                 </el-col>
                 <el-col :span="24">
@@ -1866,10 +1902,23 @@ import AgAgentAPI, {
   AgAgentForm,
 } from "@/api/module_agno_manage/agents";
 import AgModelAPI, { AgModelTable } from "@/api/module_agno_manage/models";
+import AgMemoryManagerAPI, { AgMemoryManagerTable } from "@/api/module_agno_manage/memory_managers";
+import AgReasoningConfigAPI, { AgReasoningConfigTable } from "@/api/module_agno_manage/reasoning_configs";
+import AgLearningConfigAPI, { AgLearningConfigTable } from "@/api/module_agno_manage/learning_configs";
+import AgSessSummaryConfigAPI, { AgSessSummaryConfigTable } from "@/api/module_agno_manage/sess_summary_configs";
+import AgCultureConfigAPI, { AgCultureConfigTable } from "@/api/module_agno_manage/culture_configs";
+import AgCompressionConfigAPI, { AgCompressionConfigTable } from "@/api/module_agno_manage/compression_configs";
 import DictEditor from "@/views/module_agno_manage/components/DictEditor/index.vue";
 
 // 模型列表（用于下拉选择）
 const modelList = ref<AgModelTable[]>([]);
+// 各配置列表（用于下拉选择）
+const memoryManagerList = ref<AgMemoryManagerTable[]>([]);
+const reasoningConfigList = ref<AgReasoningConfigTable[]>([]);
+const learningConfigList = ref<AgLearningConfigTable[]>([]);
+const sessSummaryConfigList = ref<AgSessSummaryConfigTable[]>([]);
+const cultureConfigList = ref<AgCultureConfigTable[]>([]);
+const compressionConfigList = ref<AgCompressionConfigTable[]>([]);
 
 const visible = ref(false);
 const queryFormRef = ref();
@@ -2626,6 +2675,38 @@ const handleUpload = async (formData: FormData) => {
   }
 };
 
+// 配置名称查找辅助函数
+function getMemoryManagerName(id?: string | number): string {
+  if (!id) return "-";
+  const found = memoryManagerList.value.find((item) => String(item.id) === String(id));
+  return found ? (found.name || String(id)) : String(id);
+}
+function getReasoningConfigName(id?: string | number): string {
+  if (!id) return "-";
+  const found = reasoningConfigList.value.find((item) => String(item.id) === String(id));
+  return found ? (found.name || String(id)) : String(id);
+}
+function getLearningConfigName(id?: string | number): string {
+  if (!id) return "-";
+  const found = learningConfigList.value.find((item) => String(item.id) === String(id));
+  return found ? (found.name || String(id)) : String(id);
+}
+function getSessSummaryConfigName(id?: string | number): string {
+  if (!id) return "-";
+  const found = sessSummaryConfigList.value.find((item) => String(item.id) === String(id));
+  return found ? (found.name || String(id)) : String(id);
+}
+function getCultureConfigName(id?: string | number): string {
+  if (!id) return "-";
+  const found = cultureConfigList.value.find((item) => String(item.id) === String(id));
+  return found ? (found.name || String(id)) : String(id);
+}
+function getCompressionConfigName(id?: string | number): string {
+  if (!id) return "-";
+  const found = compressionConfigList.value.find((item) => String(item.id) === String(id));
+  return found ? (found.name || String(id)) : String(id);
+}
+
 onMounted(async () => {
   // 预加载字典数据
   if (dictTypes.length > 0) {
@@ -2643,6 +2724,27 @@ onMounted(async () => {
     page++;
   }
   modelList.value = allModels;
+  // 并行加载各配置列表
+  await Promise.all([
+    AgMemoryManagerAPI.listAgMemoryManager({ page_no: 1, page_size: 100 }).then((res) => {
+      memoryManagerList.value = res.data?.data?.items || [];
+    }),
+    AgReasoningConfigAPI.listAgReasoningConfig({ page_no: 1, page_size: 100 }).then((res) => {
+      reasoningConfigList.value = res.data?.data?.items || [];
+    }),
+    AgLearningConfigAPI.listAgLearningConfig({ page_no: 1, page_size: 100 }).then((res) => {
+      learningConfigList.value = res.data?.data?.items || [];
+    }),
+    AgSessSummaryConfigAPI.listAgSessSummaryConfig({ page_no: 1, page_size: 100 }).then((res) => {
+      sessSummaryConfigList.value = res.data?.data?.items || [];
+    }),
+    AgCultureConfigAPI.listAgCultureConfig({ page_no: 1, page_size: 100 }).then((res) => {
+      cultureConfigList.value = res.data?.data?.items || [];
+    }),
+    AgCompressionConfigAPI.listAgCompressionConfig({ page_no: 1, page_size: 100 }).then((res) => {
+      compressionConfigList.value = res.data?.data?.items || [];
+    }),
+  ]);
   loadingData();
 });
 </script>

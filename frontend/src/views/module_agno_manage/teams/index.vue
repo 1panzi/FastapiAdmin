@@ -25,95 +25,53 @@
             <el-form-item label="Team名称" prop="name">
               <el-input v-model="queryFormData.name" placeholder="请输入Team名称" clearable />
             </el-form-item>
-            <el-form-item label="主模型ID" prop="model_id">
-              <el-input v-model="queryFormData.model_id" placeholder="请输入主模型ID" clearable />
+            <el-form-item label="主模型" prop="model_id">
+              <LazySelect
+                v-model="queryFormData.model_id"
+                :fetcher="modelFetcher"
+                placeholder="请选择主模型"
+                style="width: 200px"
+              />
             </el-form-item>
-            <el-form-item label="记忆管理器ID" prop="memory_manager_id">
-              <el-input v-model="queryFormData.memory_manager_id" placeholder="请输入记忆管理器ID" clearable />
+            <el-form-item label="记忆管理器" prop="memory_manager_id">
+              <LazySelect
+                v-model="queryFormData.memory_manager_id"
+                :fetcher="memoryManagerFetcher"
+                placeholder="请选择记忆管理器"
+                style="width: 200px"
+              />
             </el-form-item>
-            <el-form-item label="协作模式(route/coordinate/collaborate/tasks)" prop="mode">
-              <el-input v-model="queryFormData.mode" placeholder="请输入协作模式(route/coordinate/collaborate/tasks)" clearable />
+            <el-form-item label="协作模式" prop="mode">
+              <el-select v-model="queryFormData.mode" placeholder="请选择协作模式" clearable style="width: 160px">
+                <el-option value="route" label="route" />
+                <el-option value="coordinate" label="coordinate" />
+                <el-option value="collaborate" label="collaborate" />
+                <el-option value="tasks" label="tasks" />
+              </el-select>
             </el-form-item>
             <el-form-item label="是否直接响应" prop="respond_directly">
-              <el-input v-model="queryFormData.respond_directly" placeholder="请输入是否直接响应" clearable />
+              <el-select v-model="queryFormData.respond_directly" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
+              </el-select>
             </el-form-item>
             <el-form-item label="是否分发给所有成员" prop="delegate_to_all_members">
-              <el-input v-model="queryFormData.delegate_to_all_members" placeholder="请输入是否分发给所有成员" clearable />
+              <el-select v-model="queryFormData.delegate_to_all_members" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
+              </el-select>
             </el-form-item>
-            <el-form-item label="是否为成员决定输入内容" prop="determine_input_for_members">
-              <el-input v-model="queryFormData.determine_input_for_members" placeholder="请输入是否为成员决定输入内容" clearable />
+            <el-form-item label="搜索知识库" prop="search_knowledge">
+              <el-select v-model="queryFormData.search_knowledge" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
+              </el-select>
             </el-form-item>
-            <el-form-item label="最大迭代次数" prop="max_iterations">
-              <el-input v-model="queryFormData.max_iterations" placeholder="请输入最大迭代次数" clearable />
-            </el-form-item>
-            <el-form-item label="Team指令" prop="instructions">
-              <el-input v-model="queryFormData.instructions" placeholder="请输入Team指令" clearable />
-            </el-form-item>
-            <el-form-item label="期望输出格式说明" prop="expected_output">
-              <el-input v-model="queryFormData.expected_output" placeholder="请输入期望输出格式说明" clearable />
-            </el-form-item>
-            <el-form-item label="是否输出Markdown格式" prop="markdown">
-              <el-input v-model="queryFormData.markdown" placeholder="请输入是否输出Markdown格式" clearable />
-            </el-form-item>
-            <el-form-item label="是否将Team历史传给成员" prop="add_team_history_to_members">
-              <el-input v-model="queryFormData.add_team_history_to_members" placeholder="请输入是否将Team历史传给成员" clearable />
-            </el-form-item>
-            <el-form-item label="传给成员的历史运行次数" prop="num_team_history_runs">
-              <el-input v-model="queryFormData.num_team_history_runs" placeholder="请输入传给成员的历史运行次数" clearable />
-            </el-form-item>
-            <el-form-item label="是否共享成员交互记录" prop="share_member_interactions">
-              <el-input v-model="queryFormData.share_member_interactions" placeholder="请输入是否共享成员交互记录" clearable />
-            </el-form-item>
-            <el-form-item label="是否将成员工具加入上下文" prop="add_member_tools_to_context">
-              <el-input v-model="queryFormData.add_member_tools_to_context" placeholder="请输入是否将成员工具加入上下文" clearable />
-            </el-form-item>
-            <el-form-item label="是否读取聊天历史" prop="read_chat_history">
-              <el-input v-model="queryFormData.read_chat_history" placeholder="请输入是否读取聊天历史" clearable />
-            </el-form-item>
-            <el-form-item label="是否搜索历史会话" prop="search_past_sessions">
-              <el-input v-model="queryFormData.search_past_sessions" placeholder="请输入是否搜索历史会话" clearable />
-            </el-form-item>
-            <el-form-item label="搜索历史会话数量" prop="num_past_sessions_to_search">
-              <el-input v-model="queryFormData.num_past_sessions_to_search" placeholder="请输入搜索历史会话数量" clearable />
-            </el-form-item>
-            <el-form-item label="是否搜索知识库" prop="search_knowledge">
-              <el-input v-model="queryFormData.search_knowledge" placeholder="请输入是否搜索知识库" clearable />
-            </el-form-item>
-            <el-form-item label="是否允许更新知识库" prop="update_knowledge">
-              <el-input v-model="queryFormData.update_knowledge" placeholder="请输入是否允许更新知识库" clearable />
-            </el-form-item>
-            <el-form-item label="是否开启智能知识过滤" prop="enable_agentic_knowledge_filters">
-              <el-input v-model="queryFormData.enable_agentic_knowledge_filters" placeholder="请输入是否开启智能知识过滤" clearable />
-            </el-form-item>
-            <el-form-item label="是否开启智能状态" prop="enable_agentic_state">
-              <el-input v-model="queryFormData.enable_agentic_state" placeholder="请输入是否开启智能状态" clearable />
-            </el-form-item>
-            <el-form-item label="是否开启智能记忆" prop="enable_agentic_memory">
-              <el-input v-model="queryFormData.enable_agentic_memory" placeholder="请输入是否开启智能记忆" clearable />
-            </el-form-item>
-            <el-form-item label="是否每次运行后更新记忆" prop="update_memory_on_run">
-              <el-input v-model="queryFormData.update_memory_on_run" placeholder="请输入是否每次运行后更新记忆" clearable />
-            </el-form-item>
-            <el-form-item label="是否开启会话摘要" prop="enable_session_summaries">
-              <el-input v-model="queryFormData.enable_session_summaries" placeholder="请输入是否开启会话摘要" clearable />
-            </el-form-item>
-            <el-form-item label="是否将会话摘要加入上下文" prop="add_session_summary_to_context">
-              <el-input v-model="queryFormData.add_session_summary_to_context" placeholder="请输入是否将会话摘要加入上下文" clearable />
-            </el-form-item>
-            <el-form-item label="工具调用次数上限" prop="tool_call_limit">
-              <el-input v-model="queryFormData.tool_call_limit" placeholder="请输入工具调用次数上限" clearable />
-            </el-form-item>
-            <el-form-item label="是否开启流式输出" prop="stream">
-              <el-input v-model="queryFormData.stream" placeholder="请输入是否开启流式输出" clearable />
-            </el-form-item>
-            <el-form-item label="是否流式推送事件" prop="stream_events">
-              <el-input v-model="queryFormData.stream_events" placeholder="请输入是否流式推送事件" clearable />
-            </el-form-item>
-            <el-form-item label="是否开启调试模式" prop="debug_mode">
-              <el-input v-model="queryFormData.debug_mode" placeholder="请输入是否开启调试模式" clearable />
-            </el-form-item>
-            <el-form-item label="元数据" prop="metadata">
-              <el-input v-model="queryFormData.metadata" placeholder="请输入元数据" clearable />
+            <el-form-item label="开启调试模式" prop="debug_mode">
+              <el-select v-model="queryFormData.debug_mode" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
+              </el-select>
             </el-form-item>
             <el-form-item prop="status" label="状态">
               <el-select
@@ -171,7 +129,7 @@
               </el-button>
               <!-- 展开/收起 -->
               <template v-if="isExpandable">
-                <el-link 
+                <el-link
                   class="ml-3"
                   type="primary"
                   underline="never"
@@ -299,7 +257,7 @@
         </div>
       </div>
 
-      <!-- 表格区域：系统配置列表 -->
+      <!-- 表格区域 -->
       <el-table
         ref="tableRef"
         v-loading="loading"
@@ -338,116 +296,165 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'model_id')?.show"
-          label="主模型ID"
+          label="主模型"
           prop="model_id"
           min-width="140"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">{{ getModelName(scope.row.model_id) }}</template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'memory_manager_id')?.show"
-          label="记忆管理器ID"
+          label="记忆管理器"
           prop="memory_manager_id"
           min-width="140"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">{{ getMemoryManagerName(scope.row.memory_manager_id) }}</template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'mode')?.show"
-          label="协作模式(route/coordinate/collaborate/tasks)"
+          label="协作模式"
           prop="mode"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'respond_directly')?.show"
           label="是否直接响应"
           prop="respond_directly"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="120"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.respond_directly === true ? 'success' : scope.row.respond_directly === false ? 'danger' : undefined">
+              {{ scope.row.respond_directly === true ? '是' : scope.row.respond_directly === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'delegate_to_all_members')?.show"
-          label="是否分发给所有成员"
+          label="分发给所有成员"
           prop="delegate_to_all_members"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="130"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.delegate_to_all_members === true ? 'success' : scope.row.delegate_to_all_members === false ? 'danger' : undefined">
+              {{ scope.row.delegate_to_all_members === true ? '是' : scope.row.delegate_to_all_members === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'determine_input_for_members')?.show"
-          label="是否为成员决定输入内容"
+          label="为成员决定输入"
           prop="determine_input_for_members"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="130"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.determine_input_for_members === true ? 'success' : scope.row.determine_input_for_members === false ? 'danger' : undefined">
+              {{ scope.row.determine_input_for_members === true ? '是' : scope.row.determine_input_for_members === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'max_iterations')?.show"
           label="最大迭代次数"
           prop="max_iterations"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'instructions')?.show"
           label="Team指令"
           prop="instructions"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'expected_output')?.show"
-          label="期望输出格式说明"
+          label="期望输出格式"
           prop="expected_output"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'markdown')?.show"
-          label="是否输出Markdown格式"
+          label="输出Markdown"
           prop="markdown"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="120"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.markdown === true ? 'success' : scope.row.markdown === false ? 'danger' : undefined">
+              {{ scope.row.markdown === true ? '是' : scope.row.markdown === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'add_team_history_to_members')?.show"
-          label="是否将Team历史传给成员"
+          label="传Team历史给成员"
           prop="add_team_history_to_members"
           min-width="140"
-          show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.add_team_history_to_members === true ? 'success' : scope.row.add_team_history_to_members === false ? 'danger' : undefined">
+              {{ scope.row.add_team_history_to_members === true ? '是' : scope.row.add_team_history_to_members === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'num_team_history_runs')?.show"
-          label="传给成员的历史运行次数"
+          label="传给成员历史次数"
           prop="num_team_history_runs"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'share_member_interactions')?.show"
-          label="是否共享成员交互记录"
+          label="共享成员交互"
           prop="share_member_interactions"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="120"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.share_member_interactions === true ? 'success' : scope.row.share_member_interactions === false ? 'danger' : undefined">
+              {{ scope.row.share_member_interactions === true ? '是' : scope.row.share_member_interactions === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'add_member_tools_to_context')?.show"
-          label="是否将成员工具加入上下文"
+          label="成员工具加入上下文"
           prop="add_member_tools_to_context"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="150"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.add_member_tools_to_context === true ? 'success' : scope.row.add_member_tools_to_context === false ? 'danger' : undefined">
+              {{ scope.row.add_member_tools_to_context === true ? '是' : scope.row.add_member_tools_to_context === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'read_chat_history')?.show"
-          label="是否读取聊天历史"
+          label="读取聊天历史"
           prop="read_chat_history"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="120"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.read_chat_history === true ? 'success' : scope.row.read_chat_history === false ? 'danger' : undefined">
+              {{ scope.row.read_chat_history === true ? '是' : scope.row.read_chat_history === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'search_past_sessions')?.show"
-          label="是否搜索历史会话"
+          label="搜索历史会话"
           prop="search_past_sessions"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="120"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.search_past_sessions === true ? 'success' : scope.row.search_past_sessions === false ? 'danger' : undefined">
+              {{ scope.row.search_past_sessions === true ? '是' : scope.row.search_past_sessions === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'num_past_sessions_to_search')?.show"
           label="搜索历史会话数量"
@@ -457,60 +464,100 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'search_knowledge')?.show"
-          label="是否搜索知识库"
+          label="搜索知识库"
           prop="search_knowledge"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="110"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.search_knowledge === true ? 'success' : scope.row.search_knowledge === false ? 'danger' : undefined">
+              {{ scope.row.search_knowledge === true ? '是' : scope.row.search_knowledge === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'update_knowledge')?.show"
-          label="是否允许更新知识库"
+          label="允许更新知识库"
           prop="update_knowledge"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="130"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.update_knowledge === true ? 'success' : scope.row.update_knowledge === false ? 'danger' : undefined">
+              {{ scope.row.update_knowledge === true ? '是' : scope.row.update_knowledge === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'enable_agentic_knowledge_filters')?.show"
-          label="是否开启智能知识过滤"
+          label="智能知识过滤"
           prop="enable_agentic_knowledge_filters"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="120"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.enable_agentic_knowledge_filters === true ? 'success' : scope.row.enable_agentic_knowledge_filters === false ? 'danger' : undefined">
+              {{ scope.row.enable_agentic_knowledge_filters === true ? '是' : scope.row.enable_agentic_knowledge_filters === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'enable_agentic_state')?.show"
-          label="是否开启智能状态"
+          label="智能状态"
           prop="enable_agentic_state"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="100"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.enable_agentic_state === true ? 'success' : scope.row.enable_agentic_state === false ? 'danger' : undefined">
+              {{ scope.row.enable_agentic_state === true ? '是' : scope.row.enable_agentic_state === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'enable_agentic_memory')?.show"
-          label="是否开启智能记忆"
+          label="智能记忆"
           prop="enable_agentic_memory"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="100"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.enable_agentic_memory === true ? 'success' : scope.row.enable_agentic_memory === false ? 'danger' : undefined">
+              {{ scope.row.enable_agentic_memory === true ? '是' : scope.row.enable_agentic_memory === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'update_memory_on_run')?.show"
-          label="是否每次运行后更新记忆"
+          label="运行后更新记忆"
           prop="update_memory_on_run"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="130"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.update_memory_on_run === true ? 'success' : scope.row.update_memory_on_run === false ? 'danger' : undefined">
+              {{ scope.row.update_memory_on_run === true ? '是' : scope.row.update_memory_on_run === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'enable_session_summaries')?.show"
-          label="是否开启会话摘要"
+          label="开启会话摘要"
           prop="enable_session_summaries"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="120"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.enable_session_summaries === true ? 'success' : scope.row.enable_session_summaries === false ? 'danger' : undefined">
+              {{ scope.row.enable_session_summaries === true ? '是' : scope.row.enable_session_summaries === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'add_session_summary_to_context')?.show"
-          label="是否将会话摘要加入上下文"
+          label="摘要加入上下文"
           prop="add_session_summary_to_context"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="130"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.add_session_summary_to_context === true ? 'success' : scope.row.add_session_summary_to_context === false ? 'danger' : undefined">
+              {{ scope.row.add_session_summary_to_context === true ? '是' : scope.row.add_session_summary_to_context === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'tool_call_limit')?.show"
           label="工具调用次数上限"
@@ -520,45 +567,52 @@
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'stream')?.show"
-          label="是否开启流式输出"
+          label="流式输出"
           prop="stream"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="100"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.stream === true ? 'success' : scope.row.stream === false ? 'danger' : undefined">
+              {{ scope.row.stream === true ? '是' : scope.row.stream === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'stream_events')?.show"
-          label="是否流式推送事件"
+          label="流式推送事件"
           prop="stream_events"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="120"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.stream_events === true ? 'success' : scope.row.stream_events === false ? 'danger' : undefined">
+              {{ scope.row.stream_events === true ? '是' : scope.row.stream_events === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'debug_mode')?.show"
-          label="是否开启调试模式"
+          label="调试模式"
           prop="debug_mode"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="100"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.debug_mode === true ? 'success' : scope.row.debug_mode === false ? 'danger' : undefined">
+              {{ scope.row.debug_mode === true ? '是' : scope.row.debug_mode === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'metadata')?.show"
-          label="元数据"
-          prop="metadata"
-          min-width="140"
+          v-if="tableColumns.find((col) => col.prop === 'status')?.show"
+          label="status"
+          prop="status"
+          min-width="80"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
-          prop="status"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="100"
         >
           <template #default="scope">
             <el-tag :type="scope.row.status == '0' ? 'success' : 'info'">
@@ -568,37 +622,37 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'description')?.show"
-          label=""
+          label="描述"
           prop="description"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
-          label=""
+          label="创建时间"
           prop="created_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
-          label=""
+          label="更新时间"
           prop="updated_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="created_id"
           prop="created_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人"
           prop="created_id"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -607,16 +661,16 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="updated_id"
           prop="updated_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人"
           prop="updated_id"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -680,122 +734,163 @@
     <el-dialog
       v-model="dialogVisible.visible"
       :title="dialogVisible.title"
+      width="860px"
       @close="handleCloseDialog"
     >
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="UUID" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
           <el-descriptions-item label="Team名称" :span="2">
             {{ detailFormData.name }}
           </el-descriptions-item>
-          <el-descriptions-item label="主模型ID" :span="2">
-            {{ detailFormData.model_id }}
+          <el-descriptions-item label="主模型" :span="2">
+            {{ getModelName(detailFormData.model_id) }}
           </el-descriptions-item>
-          <el-descriptions-item label="记忆管理器ID" :span="2">
-            {{ detailFormData.memory_manager_id }}
+          <el-descriptions-item label="记忆管理器" :span="2">
+            {{ getMemoryManagerName(detailFormData.memory_manager_id) }}
           </el-descriptions-item>
-          <el-descriptions-item label="协作模式(route/coordinate/collaborate/tasks)" :span="2">
+          <el-descriptions-item label="协作模式" :span="2">
             {{ detailFormData.mode }}
           </el-descriptions-item>
           <el-descriptions-item label="是否直接响应" :span="2">
-            {{ detailFormData.respond_directly }}
+            <el-tag :type="detailFormData.respond_directly === true ? 'success' : detailFormData.respond_directly === false ? 'danger' : undefined">
+              {{ detailFormData.respond_directly === true ? '是' : detailFormData.respond_directly === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否分发给所有成员" :span="2">
-            {{ detailFormData.delegate_to_all_members }}
+          <el-descriptions-item label="分发给所有成员" :span="2">
+            <el-tag :type="detailFormData.delegate_to_all_members === true ? 'success' : detailFormData.delegate_to_all_members === false ? 'danger' : undefined">
+              {{ detailFormData.delegate_to_all_members === true ? '是' : detailFormData.delegate_to_all_members === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否为成员决定输入内容" :span="2">
-            {{ detailFormData.determine_input_for_members }}
+          <el-descriptions-item label="为成员决定输入" :span="2">
+            <el-tag :type="detailFormData.determine_input_for_members === true ? 'success' : detailFormData.determine_input_for_members === false ? 'danger' : undefined">
+              {{ detailFormData.determine_input_for_members === true ? '是' : detailFormData.determine_input_for_members === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="最大迭代次数" :span="2">
             {{ detailFormData.max_iterations }}
           </el-descriptions-item>
-          <el-descriptions-item label="Team指令" :span="2">
-            {{ detailFormData.instructions }}
+          <el-descriptions-item label="Team指令" :span="4">
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ detailFormData.instructions }}</pre>
           </el-descriptions-item>
-          <el-descriptions-item label="期望输出格式说明" :span="2">
-            {{ detailFormData.expected_output }}
+          <el-descriptions-item label="期望输出格式" :span="4">
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ detailFormData.expected_output }}</pre>
           </el-descriptions-item>
-          <el-descriptions-item label="是否输出Markdown格式" :span="2">
-            {{ detailFormData.markdown }}
+          <el-descriptions-item label="输出Markdown" :span="2">
+            <el-tag :type="detailFormData.markdown === true ? 'success' : detailFormData.markdown === false ? 'danger' : undefined">
+              {{ detailFormData.markdown === true ? '是' : detailFormData.markdown === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否将Team历史传给成员" :span="2">
-            {{ detailFormData.add_team_history_to_members }}
+          <el-descriptions-item label="传Team历史给成员" :span="2">
+            <el-tag :type="detailFormData.add_team_history_to_members === true ? 'success' : detailFormData.add_team_history_to_members === false ? 'danger' : undefined">
+              {{ detailFormData.add_team_history_to_members === true ? '是' : detailFormData.add_team_history_to_members === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="传给成员的历史运行次数" :span="2">
+          <el-descriptions-item label="传给成员历史次数" :span="2">
             {{ detailFormData.num_team_history_runs }}
           </el-descriptions-item>
-          <el-descriptions-item label="是否共享成员交互记录" :span="2">
-            {{ detailFormData.share_member_interactions }}
+          <el-descriptions-item label="共享成员交互" :span="2">
+            <el-tag :type="detailFormData.share_member_interactions === true ? 'success' : detailFormData.share_member_interactions === false ? 'danger' : undefined">
+              {{ detailFormData.share_member_interactions === true ? '是' : detailFormData.share_member_interactions === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否将成员工具加入上下文" :span="2">
-            {{ detailFormData.add_member_tools_to_context }}
+          <el-descriptions-item label="成员工具加入上下文" :span="2">
+            <el-tag :type="detailFormData.add_member_tools_to_context === true ? 'success' : detailFormData.add_member_tools_to_context === false ? 'danger' : undefined">
+              {{ detailFormData.add_member_tools_to_context === true ? '是' : detailFormData.add_member_tools_to_context === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否读取聊天历史" :span="2">
-            {{ detailFormData.read_chat_history }}
+          <el-descriptions-item label="读取聊天历史" :span="2">
+            <el-tag :type="detailFormData.read_chat_history === true ? 'success' : detailFormData.read_chat_history === false ? 'danger' : undefined">
+              {{ detailFormData.read_chat_history === true ? '是' : detailFormData.read_chat_history === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否搜索历史会话" :span="2">
-            {{ detailFormData.search_past_sessions }}
+          <el-descriptions-item label="搜索历史会话" :span="2">
+            <el-tag :type="detailFormData.search_past_sessions === true ? 'success' : detailFormData.search_past_sessions === false ? 'danger' : undefined">
+              {{ detailFormData.search_past_sessions === true ? '是' : detailFormData.search_past_sessions === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="搜索历史会话数量" :span="2">
             {{ detailFormData.num_past_sessions_to_search }}
           </el-descriptions-item>
-          <el-descriptions-item label="是否搜索知识库" :span="2">
-            {{ detailFormData.search_knowledge }}
+          <el-descriptions-item label="搜索知识库" :span="2">
+            <el-tag :type="detailFormData.search_knowledge === true ? 'success' : detailFormData.search_knowledge === false ? 'danger' : undefined">
+              {{ detailFormData.search_knowledge === true ? '是' : detailFormData.search_knowledge === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否允许更新知识库" :span="2">
-            {{ detailFormData.update_knowledge }}
+          <el-descriptions-item label="允许更新知识库" :span="2">
+            <el-tag :type="detailFormData.update_knowledge === true ? 'success' : detailFormData.update_knowledge === false ? 'danger' : undefined">
+              {{ detailFormData.update_knowledge === true ? '是' : detailFormData.update_knowledge === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否开启智能知识过滤" :span="2">
-            {{ detailFormData.enable_agentic_knowledge_filters }}
+          <el-descriptions-item label="智能知识过滤" :span="2">
+            <el-tag :type="detailFormData.enable_agentic_knowledge_filters === true ? 'success' : detailFormData.enable_agentic_knowledge_filters === false ? 'danger' : undefined">
+              {{ detailFormData.enable_agentic_knowledge_filters === true ? '是' : detailFormData.enable_agentic_knowledge_filters === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否开启智能状态" :span="2">
-            {{ detailFormData.enable_agentic_state }}
+          <el-descriptions-item label="智能状态" :span="2">
+            <el-tag :type="detailFormData.enable_agentic_state === true ? 'success' : detailFormData.enable_agentic_state === false ? 'danger' : undefined">
+              {{ detailFormData.enable_agentic_state === true ? '是' : detailFormData.enable_agentic_state === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否开启智能记忆" :span="2">
-            {{ detailFormData.enable_agentic_memory }}
+          <el-descriptions-item label="智能记忆" :span="2">
+            <el-tag :type="detailFormData.enable_agentic_memory === true ? 'success' : detailFormData.enable_agentic_memory === false ? 'danger' : undefined">
+              {{ detailFormData.enable_agentic_memory === true ? '是' : detailFormData.enable_agentic_memory === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否每次运行后更新记忆" :span="2">
-            {{ detailFormData.update_memory_on_run }}
+          <el-descriptions-item label="运行后更新记忆" :span="2">
+            <el-tag :type="detailFormData.update_memory_on_run === true ? 'success' : detailFormData.update_memory_on_run === false ? 'danger' : undefined">
+              {{ detailFormData.update_memory_on_run === true ? '是' : detailFormData.update_memory_on_run === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否开启会话摘要" :span="2">
-            {{ detailFormData.enable_session_summaries }}
+          <el-descriptions-item label="开启会话摘要" :span="2">
+            <el-tag :type="detailFormData.enable_session_summaries === true ? 'success' : detailFormData.enable_session_summaries === false ? 'danger' : undefined">
+              {{ detailFormData.enable_session_summaries === true ? '是' : detailFormData.enable_session_summaries === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否将会话摘要加入上下文" :span="2">
-            {{ detailFormData.add_session_summary_to_context }}
+          <el-descriptions-item label="摘要加入上下文" :span="2">
+            <el-tag :type="detailFormData.add_session_summary_to_context === true ? 'success' : detailFormData.add_session_summary_to_context === false ? 'danger' : undefined">
+              {{ detailFormData.add_session_summary_to_context === true ? '是' : detailFormData.add_session_summary_to_context === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="工具调用次数上限" :span="2">
             {{ detailFormData.tool_call_limit }}
           </el-descriptions-item>
-          <el-descriptions-item label="是否开启流式输出" :span="2">
-            {{ detailFormData.stream }}
+          <el-descriptions-item label="流式输出" :span="2">
+            <el-tag :type="detailFormData.stream === true ? 'success' : detailFormData.stream === false ? 'danger' : undefined">
+              {{ detailFormData.stream === true ? '是' : detailFormData.stream === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否流式推送事件" :span="2">
-            {{ detailFormData.stream_events }}
+          <el-descriptions-item label="流式推送事件" :span="2">
+            <el-tag :type="detailFormData.stream_events === true ? 'success' : detailFormData.stream_events === false ? 'danger' : undefined">
+              {{ detailFormData.stream_events === true ? '是' : detailFormData.stream_events === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="是否开启调试模式" :span="2">
-            {{ detailFormData.debug_mode }}
+          <el-descriptions-item label="调试模式" :span="2">
+            <el-tag :type="detailFormData.debug_mode === true ? 'success' : detailFormData.debug_mode === false ? 'danger' : undefined">
+              {{ detailFormData.debug_mode === true ? '是' : detailFormData.debug_mode === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="元数据" :span="2">
-            {{ detailFormData.metadata }}
+          <el-descriptions-item label="元数据" :span="4">
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ JSON.stringify(detailFormData.metadata_config, null, 2) }}</pre>
           </el-descriptions-item>
           <el-descriptions-item label="状态" :span="2">
             <el-tag :type="detailFormData.status == '0' ? 'success' : 'danger'">
               {{ detailFormData.status == "0" ? "启用" : "停用" }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="描述" :span="2">
             {{ detailFormData.description }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="创建时间" :span="2">
             {{ detailFormData.created_time }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="更新时间" :span="2">
             {{ detailFormData.updated_time }}
           </el-descriptions-item>
           <el-descriptions-item label="创建人" :span="2">
@@ -814,118 +909,275 @@
           :model="formData"
           :rules="rules"
           label-suffix=":"
-          label-width="auto"
+          label-width="160px"
           label-position="right"
         >
-          <el-form-item label="Team名称" prop="name" :required="false">
-            <el-input v-model="formData.name" placeholder="请输入Team名称" />
-          </el-form-item>
-          <el-form-item label="主模型ID" prop="model_id" :required="false">
-            <el-input v-model="formData.model_id" placeholder="请输入主模型ID" />
-          </el-form-item>
-          <el-form-item label="记忆管理器ID" prop="memory_manager_id" :required="false">
-            <el-input v-model="formData.memory_manager_id" placeholder="请输入记忆管理器ID" />
-          </el-form-item>
-          <el-form-item label="协作模式(route/coordinate/collaborate/tasks)" prop="mode" :required="false">
-            <el-input v-model="formData.mode" placeholder="请输入协作模式(route/coordinate/collaborate/tasks)" />
-          </el-form-item>
-          <el-form-item label="是否直接响应" prop="respond_directly" :required="false">
-            <el-input v-model="formData.respond_directly" placeholder="请输入是否直接响应" />
-          </el-form-item>
-          <el-form-item label="是否分发给所有成员" prop="delegate_to_all_members" :required="false">
-            <el-input v-model="formData.delegate_to_all_members" placeholder="请输入是否分发给所有成员" />
-          </el-form-item>
-          <el-form-item label="是否为成员决定输入内容" prop="determine_input_for_members" :required="false">
-            <el-input v-model="formData.determine_input_for_members" placeholder="请输入是否为成员决定输入内容" />
-          </el-form-item>
-          <el-form-item label="最大迭代次数" prop="max_iterations" :required="false">
-            <el-input v-model="formData.max_iterations" placeholder="请输入最大迭代次数" />
-          </el-form-item>
-          <el-form-item label="Team指令" prop="instructions" :required="false">
-            <el-input v-model="formData.instructions" placeholder="请输入Team指令" />
-          </el-form-item>
-          <el-form-item label="期望输出格式说明" prop="expected_output" :required="false">
-            <el-input v-model="formData.expected_output" placeholder="请输入期望输出格式说明" />
-          </el-form-item>
-          <el-form-item label="是否输出Markdown格式" prop="markdown" :required="false">
-            <el-input v-model="formData.markdown" placeholder="请输入是否输出Markdown格式" />
-          </el-form-item>
-          <el-form-item label="是否将Team历史传给成员" prop="add_team_history_to_members" :required="false">
-            <el-input v-model="formData.add_team_history_to_members" placeholder="请输入是否将Team历史传给成员" />
-          </el-form-item>
-          <el-form-item label="传给成员的历史运行次数" prop="num_team_history_runs" :required="false">
-            <el-input v-model="formData.num_team_history_runs" placeholder="请输入传给成员的历史运行次数" />
-          </el-form-item>
-          <el-form-item label="是否共享成员交互记录" prop="share_member_interactions" :required="false">
-            <el-input v-model="formData.share_member_interactions" placeholder="请输入是否共享成员交互记录" />
-          </el-form-item>
-          <el-form-item label="是否将成员工具加入上下文" prop="add_member_tools_to_context" :required="false">
-            <el-input v-model="formData.add_member_tools_to_context" placeholder="请输入是否将成员工具加入上下文" />
-          </el-form-item>
-          <el-form-item label="是否读取聊天历史" prop="read_chat_history" :required="false">
-            <el-input v-model="formData.read_chat_history" placeholder="请输入是否读取聊天历史" />
-          </el-form-item>
-          <el-form-item label="是否搜索历史会话" prop="search_past_sessions" :required="false">
-            <el-input v-model="formData.search_past_sessions" placeholder="请输入是否搜索历史会话" />
-          </el-form-item>
-          <el-form-item label="搜索历史会话数量" prop="num_past_sessions_to_search" :required="false">
-            <el-input v-model="formData.num_past_sessions_to_search" placeholder="请输入搜索历史会话数量" />
-          </el-form-item>
-          <el-form-item label="是否搜索知识库" prop="search_knowledge" :required="false">
-            <el-input v-model="formData.search_knowledge" placeholder="请输入是否搜索知识库" />
-          </el-form-item>
-          <el-form-item label="是否允许更新知识库" prop="update_knowledge" :required="false">
-            <el-input v-model="formData.update_knowledge" placeholder="请输入是否允许更新知识库" />
-          </el-form-item>
-          <el-form-item label="是否开启智能知识过滤" prop="enable_agentic_knowledge_filters" :required="false">
-            <el-input v-model="formData.enable_agentic_knowledge_filters" placeholder="请输入是否开启智能知识过滤" />
-          </el-form-item>
-          <el-form-item label="是否开启智能状态" prop="enable_agentic_state" :required="false">
-            <el-input v-model="formData.enable_agentic_state" placeholder="请输入是否开启智能状态" />
-          </el-form-item>
-          <el-form-item label="是否开启智能记忆" prop="enable_agentic_memory" :required="false">
-            <el-input v-model="formData.enable_agentic_memory" placeholder="请输入是否开启智能记忆" />
-          </el-form-item>
-          <el-form-item label="是否每次运行后更新记忆" prop="update_memory_on_run" :required="false">
-            <el-input v-model="formData.update_memory_on_run" placeholder="请输入是否每次运行后更新记忆" />
-          </el-form-item>
-          <el-form-item label="是否开启会话摘要" prop="enable_session_summaries" :required="false">
-            <el-input v-model="formData.enable_session_summaries" placeholder="请输入是否开启会话摘要" />
-          </el-form-item>
-          <el-form-item label="是否将会话摘要加入上下文" prop="add_session_summary_to_context" :required="false">
-            <el-input v-model="formData.add_session_summary_to_context" placeholder="请输入是否将会话摘要加入上下文" />
-          </el-form-item>
-          <el-form-item label="工具调用次数上限" prop="tool_call_limit" :required="false">
-            <el-input v-model="formData.tool_call_limit" placeholder="请输入工具调用次数上限" />
-          </el-form-item>
-          <el-form-item label="是否开启流式输出" prop="stream" :required="false">
-            <el-input v-model="formData.stream" placeholder="请输入是否开启流式输出" />
-          </el-form-item>
-          <el-form-item label="是否流式推送事件" prop="stream_events" :required="false">
-            <el-input v-model="formData.stream_events" placeholder="请输入是否流式推送事件" />
-          </el-form-item>
-          <el-form-item label="是否开启调试模式" prop="debug_mode" :required="false">
-            <el-input v-model="formData.debug_mode" placeholder="请输入是否开启调试模式" />
-          </el-form-item>
-          <el-form-item label="元数据" prop="metadata" :required="false">
-            <el-input v-model="formData.metadata" placeholder="请输入元数据" />
-          </el-form-item>
-          <el-form-item label="状态" prop="status" :required="true">
-            <el-radio-group v-model="formData.status">
-              <el-radio value="0">启用</el-radio>
-              <el-radio value="1">停用</el-radio>
-            </el-radio-group>
-          </el-form-item>
-          <el-form-item label="描述" prop="description">
-            <el-input
-              v-model="formData.description"
-              :rows="4"
-              :maxlength="100"
-              show-word-limit
-              type="textarea"
-              placeholder="请输入描述"
-            />
-          </el-form-item>
+          <el-tabs type="border-card" class="team-form-tabs">
+            <!-- ══ Tab 1: 基本信息 ══ -->
+            <el-tab-pane label="基本信息">
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="Team名称" prop="name">
+                    <el-input v-model="formData.name" placeholder="请输入Team名称" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="主模型" prop="model_id">
+                    <LazySelect
+                      v-model="formData.model_id"
+                      :fetcher="modelFetcher"
+                      placeholder="请选择主模型"
+                    />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="记忆管理器" prop="memory_manager_id">
+                    <LazySelect
+                      v-model="formData.memory_manager_id"
+                      :fetcher="memoryManagerFetcher"
+                      placeholder="请选择记忆管理器"
+                    />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="协作模式" prop="mode">
+                    <el-select v-model="formData.mode" placeholder="请选择协作模式" clearable style="width: 100%">
+                      <el-option value="route" label="route（路由）" />
+                      <el-option value="coordinate" label="coordinate（协调）" />
+                      <el-option value="collaborate" label="collaborate（协作）" />
+                      <el-option value="tasks" label="tasks（任务）" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="状态" prop="status" :required="false">
+                    <el-radio-group v-model="formData.status">
+                      <el-radio value="0">启用</el-radio>
+                      <el-radio value="1">停用</el-radio>
+                    </el-radio-group>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="24">
+                  <el-form-item label="Team指令" prop="instructions">
+                    <el-input v-model="formData.instructions" placeholder="请输入Team指令（system prompt）" type="textarea" :rows="4" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="24">
+                  <el-form-item label="期望输出格式" prop="expected_output">
+                    <el-input v-model="formData.expected_output" placeholder="请输入期望输出格式说明" type="textarea" :rows="2" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="24">
+                  <el-form-item label="描述" prop="description">
+                    <el-input v-model="formData.description" :rows="3" :maxlength="100" show-word-limit type="textarea" placeholder="请输入描述" />
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </el-tab-pane>
+
+            <!-- ══ Tab 2: 成员协作 ══ -->
+            <el-tab-pane label="成员协作">
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="是否直接响应" prop="respond_directly">
+                    <el-select v-model="formData.respond_directly" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="分发给所有成员" prop="delegate_to_all_members">
+                    <el-select v-model="formData.delegate_to_all_members" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="为成员决定输入" prop="determine_input_for_members">
+                    <el-select v-model="formData.determine_input_for_members" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="最大迭代次数" prop="max_iterations">
+                    <el-input-number v-model="formData.max_iterations" :min="1" :max="1000" placeholder="默认" style="width:100%" :controls="false" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="传Team历史给成员" prop="add_team_history_to_members">
+                    <el-select v-model="formData.add_team_history_to_members" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="传给成员历史次数" prop="num_team_history_runs">
+                    <el-input-number v-model="formData.num_team_history_runs" :min="0" placeholder="默认" style="width:100%" :controls="false" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="共享成员交互" prop="share_member_interactions">
+                    <el-select v-model="formData.share_member_interactions" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="成员工具加入上下文" prop="add_member_tools_to_context">
+                    <el-select v-model="formData.add_member_tools_to_context" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </el-tab-pane>
+
+            <!-- ══ Tab 3: 记忆 & 历史 & 知识库 ══ -->
+            <el-tab-pane label="记忆 / 历史 / 知识库">
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="读取聊天历史" prop="read_chat_history">
+                    <el-select v-model="formData.read_chat_history" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="搜索历史会话" prop="search_past_sessions">
+                    <el-select v-model="formData.search_past_sessions" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="搜索历史会话数量" prop="num_past_sessions_to_search">
+                    <el-input-number v-model="formData.num_past_sessions_to_search" :min="0" placeholder="默认" style="width:100%" :controls="false" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="智能记忆" prop="enable_agentic_memory">
+                    <el-select v-model="formData.enable_agentic_memory" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="运行后更新记忆" prop="update_memory_on_run">
+                    <el-select v-model="formData.update_memory_on_run" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="搜索知识库" prop="search_knowledge">
+                    <el-select v-model="formData.search_knowledge" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="允许更新知识库" prop="update_knowledge">
+                    <el-select v-model="formData.update_knowledge" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="智能知识过滤" prop="enable_agentic_knowledge_filters">
+                    <el-select v-model="formData.enable_agentic_knowledge_filters" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="智能状态" prop="enable_agentic_state">
+                    <el-select v-model="formData.enable_agentic_state" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </el-tab-pane>
+
+            <!-- ══ Tab 4: 会话摘要 & 工具 & 流式 ══ -->
+            <el-tab-pane label="摘要 / 工具 / 流式">
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="开启会话摘要" prop="enable_session_summaries">
+                    <el-select v-model="formData.enable_session_summaries" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="摘要加入上下文" prop="add_session_summary_to_context">
+                    <el-select v-model="formData.add_session_summary_to_context" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="工具调用次数上限" prop="tool_call_limit">
+                    <el-input-number v-model="formData.tool_call_limit" :min="0" placeholder="不限制" style="width:100%" :controls="false" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="流式输出" prop="stream">
+                    <el-select v-model="formData.stream" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="流式推送事件" prop="stream_events">
+                    <el-select v-model="formData.stream_events" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="输出Markdown" prop="markdown">
+                    <el-select v-model="formData.markdown" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="调试模式" prop="debug_mode">
+                    <el-select v-model="formData.debug_mode" placeholder="默认" clearable style="width:100%">
+                      <el-option label="开启" :value="true" />
+                      <el-option label="关闭" :value="false" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="24">
+                  <el-form-item label="元数据" prop="metadata_config">
+                    <DictEditor v-model="formData.metadata_config" />
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </el-tab-pane>
+          </el-tabs>
         </el-form>
       </template>
 
@@ -960,6 +1212,7 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 defineOptions({
   name: "AgTeam",
@@ -976,11 +1229,72 @@ import DatePicker from "@/components/DatePicker/index.vue";
 import type { IContentConfig } from "@/components/CURD/types";
 import ImportModal from "@/components/CURD/ImportModal.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
+import DictEditor from "@/views/module_agno_manage/components/DictEditor/index.vue";
 import AgTeamAPI, {
   AgTeamPageQuery,
   AgTeamTable,
   AgTeamForm,
 } from "@/api/module_agno_manage/teams";
+import AgModelAPI from "@/api/module_agno_manage/models";
+import AgMemoryManagerAPI from "@/api/module_agno_manage/memory_managers";
+import LazySelect from "@/views/module_agno_manage/components/LazySelect/index.vue";
+
+// model 懒加载 fetcher
+const modelFetcher = async (params: { page_no: number; page_size: number; name?: string }) => {
+  const res = await AgModelAPI.listAgModel({ ...params });
+  const items = (res.data?.data?.items || []).map((item: any) => ({
+    value: String(item.id),
+    label: item.name || String(item.id),
+    raw: item,
+  }));
+  return { items, total: res.data?.data?.total || 0 };
+};
+
+// memory_manager 懒加载 fetcher
+const memoryManagerFetcher = async (params: { page_no: number; page_size: number; name?: string }) => {
+  const res = await AgMemoryManagerAPI.listAgMemoryManager({ ...params });
+  const items = (res.data?.data?.items || []).map((item: any) => ({
+    value: String(item.id),
+    label: item.name || String(item.id),
+    raw: item,
+  }));
+  return { items, total: res.data?.data?.total || 0 };
+};
+
+// model 名称查找（用于表格/详情，通过独立接口按需获取）
+const modelNameCache = ref<Record<string, string>>({});
+function getModelName(id?: string | number): string {
+  if (!id) return "-";
+  const key = String(id);
+  if (modelNameCache.value[key]) return modelNameCache.value[key];
+  // 异步填充 cache，触发响应式更新
+  AgModelAPI.detailAgModel(Number(id))
+    .then((res) => {
+      const name = res.data?.data?.name || key;
+      modelNameCache.value[key] = name;
+    })
+    .catch(() => {
+      modelNameCache.value[key] = key;
+    });
+  return key; // 首次渲染暂显 id，异步回来后自动刷新
+}
+
+// memory_manager 名称查找（按需获取）
+const memoryManagerNameCache = ref<Record<string, string>>({});
+function getMemoryManagerName(id?: string | number): string {
+  if (!id) return "-";
+  const key = String(id);
+  if (memoryManagerNameCache.value[key]) return memoryManagerNameCache.value[key];
+  AgMemoryManagerAPI.detailAgMemoryManager(Number(id))
+    .then((res) => {
+      const name = res.data?.data?.name || key;
+      memoryManagerNameCache.value[key] = name;
+    })
+    .catch(() => {
+      memoryManagerNameCache.value[key] = key;
+    });
+  return key;
+}
 
 const visible = ref(false);
 const queryFormRef = ref();
@@ -1000,42 +1314,41 @@ const tableColumns = ref([
   { prop: "selection", label: "选择框", show: true },
   { prop: "index", label: "序号", show: true },
   { prop: "name", label: "Team名称", show: true },
-  { prop: "model_id", label: "主模型ID", show: true },
-  { prop: "memory_manager_id", label: "记忆管理器ID", show: true },
-  { prop: "mode", label: "协作模式(route/coordinate/collaborate/tasks)", show: true },
-  { prop: "respond_directly", label: "是否直接响应（不经过协调）", show: true },
-  { prop: "delegate_to_all_members", label: "是否分发给所有成员", show: true },
-  { prop: "determine_input_for_members", label: "是否为成员决定输入内容", show: true },
+  { prop: "model_id", label: "主模型", show: true },
+  { prop: "memory_manager_id", label: "记忆管理器", show: true },
+  { prop: "mode", label: "协作模式", show: true },
+  { prop: "respond_directly", label: "是否直接响应", show: true },
+  { prop: "delegate_to_all_members", label: "分发给所有成员", show: true },
+  { prop: "determine_input_for_members", label: "为成员决定输入", show: true },
   { prop: "max_iterations", label: "最大迭代次数", show: true },
   { prop: "instructions", label: "Team指令", show: true },
-  { prop: "expected_output", label: "期望输出格式说明", show: true },
-  { prop: "markdown", label: "是否输出Markdown格式", show: true },
-  { prop: "add_team_history_to_members", label: "是否将Team历史传给成员", show: true },
-  { prop: "num_team_history_runs", label: "传给成员的历史运行次数", show: true },
-  { prop: "share_member_interactions", label: "是否共享成员交互记录", show: true },
-  { prop: "add_member_tools_to_context", label: "是否将成员工具加入上下文", show: true },
-  { prop: "read_chat_history", label: "是否读取聊天历史", show: true },
-  { prop: "search_past_sessions", label: "是否搜索历史会话", show: true },
+  { prop: "expected_output", label: "期望输出格式", show: true },
+  { prop: "markdown", label: "输出Markdown", show: true },
+  { prop: "add_team_history_to_members", label: "传Team历史给成员", show: true },
+  { prop: "num_team_history_runs", label: "传给成员历史次数", show: true },
+  { prop: "share_member_interactions", label: "共享成员交互", show: true },
+  { prop: "add_member_tools_to_context", label: "成员工具加入上下文", show: true },
+  { prop: "read_chat_history", label: "读取聊天历史", show: true },
+  { prop: "search_past_sessions", label: "搜索历史会话", show: true },
   { prop: "num_past_sessions_to_search", label: "搜索历史会话数量", show: true },
-  { prop: "search_knowledge", label: "是否搜索知识库", show: true },
-  { prop: "update_knowledge", label: "是否允许更新知识库", show: true },
-  { prop: "enable_agentic_knowledge_filters", label: "是否开启智能知识过滤", show: true },
-  { prop: "enable_agentic_state", label: "是否开启智能状态", show: true },
-  { prop: "enable_agentic_memory", label: "是否开启智能记忆", show: true },
-  { prop: "update_memory_on_run", label: "是否每次运行后更新记忆", show: true },
-  { prop: "enable_session_summaries", label: "是否开启会话摘要", show: true },
-  { prop: "add_session_summary_to_context", label: "是否将会话摘要加入上下文", show: true },
+  { prop: "search_knowledge", label: "搜索知识库", show: true },
+  { prop: "update_knowledge", label: "允许更新知识库", show: true },
+  { prop: "enable_agentic_knowledge_filters", label: "智能知识过滤", show: true },
+  { prop: "enable_agentic_state", label: "智能状态", show: true },
+  { prop: "enable_agentic_memory", label: "智能记忆", show: true },
+  { prop: "update_memory_on_run", label: "运行后更新记忆", show: true },
+  { prop: "enable_session_summaries", label: "开启会话摘要", show: true },
+  { prop: "add_session_summary_to_context", label: "摘要加入上下文", show: true },
   { prop: "tool_call_limit", label: "工具调用次数上限", show: true },
-  { prop: "stream", label: "是否开启流式输出", show: true },
-  { prop: "stream_events", label: "是否流式推送事件", show: true },
-  { prop: "debug_mode", label: "是否开启调试模式", show: true },
-  { prop: "metadata", label: "元数据", show: true },
-  { prop: "status", label: "status", show: true },
-  { prop: "description", label: "description", show: true },
-  { prop: "created_time", label: "created_time", show: true },
-  { prop: "updated_time", label: "updated_time", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "stream", label: "流式输出", show: true },
+  { prop: "stream_events", label: "流式推送事件", show: true },
+  { prop: "debug_mode", label: "调试模式", show: true },
+  { prop: "status", label: "状态", show: true },
+  { prop: "description", label: "描述", show: true },
+  { prop: "created_time", label: "创建时间", show: true },
+  { prop: "updated_time", label: "更新时间", show: true },
+  { prop: "created_id", label: "创建人", show: true },
+  { prop: "updated_id", label: "更新人", show: true },
   { prop: "operation", label: "操作", show: true },
 ]);
 
@@ -1044,40 +1357,39 @@ const exportColumns = [
   { prop: "name", label: "Team名称" },
   { prop: "model_id", label: "主模型ID" },
   { prop: "memory_manager_id", label: "记忆管理器ID" },
-  { prop: "mode", label: "协作模式(route/coordinate/collaborate/tasks)" },
-  { prop: "respond_directly", label: "是否直接响应（不经过协调）" },
-  { prop: "delegate_to_all_members", label: "是否分发给所有成员" },
-  { prop: "determine_input_for_members", label: "是否为成员决定输入内容" },
+  { prop: "mode", label: "协作模式" },
+  { prop: "respond_directly", label: "是否直接响应" },
+  { prop: "delegate_to_all_members", label: "分发给所有成员" },
+  { prop: "determine_input_for_members", label: "为成员决定输入" },
   { prop: "max_iterations", label: "最大迭代次数" },
   { prop: "instructions", label: "Team指令" },
-  { prop: "expected_output", label: "期望输出格式说明" },
-  { prop: "markdown", label: "是否输出Markdown格式" },
-  { prop: "add_team_history_to_members", label: "是否将Team历史传给成员" },
-  { prop: "num_team_history_runs", label: "传给成员的历史运行次数" },
-  { prop: "share_member_interactions", label: "是否共享成员交互记录" },
-  { prop: "add_member_tools_to_context", label: "是否将成员工具加入上下文" },
-  { prop: "read_chat_history", label: "是否读取聊天历史" },
-  { prop: "search_past_sessions", label: "是否搜索历史会话" },
+  { prop: "expected_output", label: "期望输出格式" },
+  { prop: "markdown", label: "输出Markdown" },
+  { prop: "add_team_history_to_members", label: "传Team历史给成员" },
+  { prop: "num_team_history_runs", label: "传给成员历史次数" },
+  { prop: "share_member_interactions", label: "共享成员交互" },
+  { prop: "add_member_tools_to_context", label: "成员工具加入上下文" },
+  { prop: "read_chat_history", label: "读取聊天历史" },
+  { prop: "search_past_sessions", label: "搜索历史会话" },
   { prop: "num_past_sessions_to_search", label: "搜索历史会话数量" },
-  { prop: "search_knowledge", label: "是否搜索知识库" },
-  { prop: "update_knowledge", label: "是否允许更新知识库" },
-  { prop: "enable_agentic_knowledge_filters", label: "是否开启智能知识过滤" },
-  { prop: "enable_agentic_state", label: "是否开启智能状态" },
-  { prop: "enable_agentic_memory", label: "是否开启智能记忆" },
-  { prop: "update_memory_on_run", label: "是否每次运行后更新记忆" },
-  { prop: "enable_session_summaries", label: "是否开启会话摘要" },
-  { prop: "add_session_summary_to_context", label: "是否将会话摘要加入上下文" },
+  { prop: "search_knowledge", label: "搜索知识库" },
+  { prop: "update_knowledge", label: "允许更新知识库" },
+  { prop: "enable_agentic_knowledge_filters", label: "智能知识过滤" },
+  { prop: "enable_agentic_state", label: "智能状态" },
+  { prop: "enable_agentic_memory", label: "智能记忆" },
+  { prop: "update_memory_on_run", label: "运行后更新记忆" },
+  { prop: "enable_session_summaries", label: "开启会话摘要" },
+  { prop: "add_session_summary_to_context", label: "摘要加入上下文" },
   { prop: "tool_call_limit", label: "工具调用次数上限" },
-  { prop: "stream", label: "是否开启流式输出" },
-  { prop: "stream_events", label: "是否流式推送事件" },
-  { prop: "debug_mode", label: "是否开启调试模式" },
-  { prop: "metadata", label: "元数据" },
-  { prop: "status", label: "status" },
-  { prop: "description", label: "description" },
-  { prop: "created_time", label: "created_time" },
-  { prop: "updated_time", label: "updated_time" },
-  { prop: "created_id", label: "created_id" },
-  { prop: "updated_id", label: "updated_id" },
+  { prop: "stream", label: "流式输出" },
+  { prop: "stream_events", label: "流式推送事件" },
+  { prop: "debug_mode", label: "调试模式" },
+  { prop: "status", label: "状态" },
+  { prop: "description", label: "描述" },
+  { prop: "created_time", label: "创建时间" },
+  { prop: "updated_time", label: "更新时间" },
+  { prop: "created_id", label: "创建人ID" },
+  { prop: "updated_id", label: "更新人ID" },
 ];
 
 // 导入/导出配置
@@ -1164,7 +1476,6 @@ const queryFormData = reactive<AgTeamPageQuery>({
   stream: undefined,
   stream_events: undefined,
   debug_mode: undefined,
-  metadata: undefined,
   status: undefined,
   created_time: undefined,
   updated_time: undefined,
@@ -1205,7 +1516,7 @@ const formData = reactive<AgTeamForm>({
   stream: undefined,
   stream_events: undefined,
   debug_mode: undefined,
-  metadata: undefined,
+  metadata_config: undefined,
   status: "0",
   description: undefined,
 });
@@ -1224,45 +1535,38 @@ const dialogVisible = reactive({
 
 // 表单验证规则
 const rules = reactive({
-  id: [{ required: false, message: "请输入id", trigger: "blur" }],
-  uuid: [{ required: false, message: "请输入uuid", trigger: "blur" }],
   name: [{ required: false, message: "请输入Team名称", trigger: "blur" }],
-  model_id: [{ required: true, message: "请输入主模型ID", trigger: "blur" }],
-  memory_manager_id: [{ required: true, message: "请输入记忆管理器ID", trigger: "blur" }],
-  mode: [{ required: false, message: "请输入协作模式(route/coordinate/collaborate/tasks)", trigger: "blur" }],
-  respond_directly: [{ required: false, message: "请输入是否直接响应（不经过协调）", trigger: "blur" }],
-  delegate_to_all_members: [{ required: false, message: "请输入是否分发给所有成员", trigger: "blur" }],
-  determine_input_for_members: [{ required: false, message: "请输入是否为成员决定输入内容", trigger: "blur" }],
+  model_id: [{ required: false, message: "请选择主模型", trigger: "change" }],
+  memory_manager_id: [{ required: false, message: "请选择记忆管理器", trigger: "change" }],
+  mode: [{ required: false, message: "请选择协作模式", trigger: "change" }],
+  respond_directly: [{ required: false, message: "请选择是否直接响应", trigger: "change" }],
+  delegate_to_all_members: [{ required: false, message: "请选择是否分发给所有成员", trigger: "change" }],
+  determine_input_for_members: [{ required: false, message: "请选择是否为成员决定输入", trigger: "change" }],
   max_iterations: [{ required: false, message: "请输入最大迭代次数", trigger: "blur" }],
-  instructions: [{ required: true, message: "请输入Team指令", trigger: "blur" }],
-  expected_output: [{ required: true, message: "请输入期望输出格式说明", trigger: "blur" }],
-  markdown: [{ required: false, message: "请输入是否输出Markdown格式", trigger: "blur" }],
-  add_team_history_to_members: [{ required: false, message: "请输入是否将Team历史传给成员", trigger: "blur" }],
-  num_team_history_runs: [{ required: false, message: "请输入传给成员的历史运行次数", trigger: "blur" }],
-  share_member_interactions: [{ required: false, message: "请输入是否共享成员交互记录", trigger: "blur" }],
-  add_member_tools_to_context: [{ required: false, message: "请输入是否将成员工具加入上下文", trigger: "blur" }],
-  read_chat_history: [{ required: false, message: "请输入是否读取聊天历史", trigger: "blur" }],
-  search_past_sessions: [{ required: false, message: "请输入是否搜索历史会话", trigger: "blur" }],
-  num_past_sessions_to_search: [{ required: true, message: "请输入搜索历史会话数量", trigger: "blur" }],
-  search_knowledge: [{ required: false, message: "请输入是否搜索知识库", trigger: "blur" }],
-  update_knowledge: [{ required: false, message: "请输入是否允许更新知识库", trigger: "blur" }],
-  enable_agentic_knowledge_filters: [{ required: false, message: "请输入是否开启智能知识过滤", trigger: "blur" }],
-  enable_agentic_state: [{ required: false, message: "请输入是否开启智能状态", trigger: "blur" }],
-  enable_agentic_memory: [{ required: false, message: "请输入是否开启智能记忆", trigger: "blur" }],
-  update_memory_on_run: [{ required: false, message: "请输入是否每次运行后更新记忆", trigger: "blur" }],
-  enable_session_summaries: [{ required: false, message: "请输入是否开启会话摘要", trigger: "blur" }],
-  add_session_summary_to_context: [{ required: false, message: "请输入是否将会话摘要加入上下文", trigger: "blur" }],
-  tool_call_limit: [{ required: true, message: "请输入工具调用次数上限", trigger: "blur" }],
-  stream: [{ required: false, message: "请输入是否开启流式输出", trigger: "blur" }],
-  stream_events: [{ required: false, message: "请输入是否流式推送事件", trigger: "blur" }],
-  debug_mode: [{ required: false, message: "请输入是否开启调试模式", trigger: "blur" }],
-  metadata: [{ required: false, message: "请输入元数据", trigger: "blur" }],
-  status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: false, message: "请输入description", trigger: "blur" }],
-  created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
-  updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
-  created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
-  updated_id: [{ required: true, message: "请输入updated_id", trigger: "blur" }],
+  instructions: [{ required: false, message: "请输入Team指令", trigger: "blur" }],
+  expected_output: [{ required: false, message: "请输入期望输出格式", trigger: "blur" }],
+  markdown: [{ required: false, message: "请选择是否输出Markdown", trigger: "change" }],
+  add_team_history_to_members: [{ required: false, message: "请选择", trigger: "change" }],
+  num_team_history_runs: [{ required: false, message: "请输入传给成员历史次数", trigger: "blur" }],
+  share_member_interactions: [{ required: false, message: "请选择", trigger: "change" }],
+  add_member_tools_to_context: [{ required: false, message: "请选择", trigger: "change" }],
+  read_chat_history: [{ required: false, message: "请选择", trigger: "change" }],
+  search_past_sessions: [{ required: false, message: "请选择", trigger: "change" }],
+  num_past_sessions_to_search: [{ required: false, message: "请输入搜索历史会话数量", trigger: "blur" }],
+  search_knowledge: [{ required: false, message: "请选择", trigger: "change" }],
+  update_knowledge: [{ required: false, message: "请选择", trigger: "change" }],
+  enable_agentic_knowledge_filters: [{ required: false, message: "请选择", trigger: "change" }],
+  enable_agentic_state: [{ required: false, message: "请选择", trigger: "change" }],
+  enable_agentic_memory: [{ required: false, message: "请选择", trigger: "change" }],
+  update_memory_on_run: [{ required: false, message: "请选择", trigger: "change" }],
+  enable_session_summaries: [{ required: false, message: "请选择", trigger: "change" }],
+  add_session_summary_to_context: [{ required: false, message: "请选择", trigger: "change" }],
+  tool_call_limit: [{ required: false, message: "请输入工具调用次数上限", trigger: "blur" }],
+  stream: [{ required: false, message: "请选择", trigger: "change" }],
+  stream_events: [{ required: false, message: "请选择", trigger: "change" }],
+  debug_mode: [{ required: false, message: "请选择", trigger: "change" }],
+  status: [{ required: false, message: "请选择状态", trigger: "change" }],
+  description: [{ required: false, message: "请输入描述", trigger: "blur" }],
 });
 
 // 导入弹窗显示状态
@@ -1357,7 +1661,7 @@ const initialFormData: AgTeamForm = {
   stream: undefined,
   stream_events: undefined,
   debug_mode: undefined,
-  metadata: undefined,
+  metadata_config: undefined,
   status: "0",
   description: undefined,
 };
@@ -1429,8 +1733,8 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     formData.stream = undefined;
     formData.stream_events = undefined;
     formData.debug_mode = undefined;
-    formData.metadata = undefined;
-    formData.status = undefined;
+    formData.metadata_config = undefined;
+    formData.status = "0";
     formData.description = undefined;
   }
   dialogVisible.visible = true;
@@ -1442,8 +1746,10 @@ async function handleSubmit() {
   dataFormRef.value.validate(async (valid: any) => {
     if (valid) {
       loading.value = true;
-      // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
-      const submitData = { ...formData };
+      // 过滤 null/undefined 字段，不传递给接口
+      const submitData = Object.fromEntries(
+        Object.entries({ ...formData }).filter(([, v]) => v !== null && v !== undefined)
+      ) as AgTeamForm;
       const id = formData.id;
       if (id) {
         try {

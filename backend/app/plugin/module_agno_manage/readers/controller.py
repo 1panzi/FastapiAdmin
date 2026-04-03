@@ -224,7 +224,7 @@ async def import_readers_list_controller(
 async def export_readers_template_controller() -> StreamingResponse:
     """
     获取reader管理导入模板接口
-    
+
     返回:
     - StreamingResponse - 包含reader管理导入模板的流式响应
     """
@@ -235,3 +235,63 @@ async def export_readers_template_controller() -> StreamingResponse:
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         headers={'Content-Disposition': 'attachment; filename=ag_readers_template.xlsx'}
     )
+
+
+@AgReaderRouter.get(
+    "/agno/reader_types",
+    summary="获取支持的Reader类型列表",
+    description="返回所有支持的 reader_type 元数据，含默认策略、专属参数 schema，供前端动态渲染表单"
+)
+async def get_reader_types_controller() -> JSONResponse:
+    result = AgReaderService.list_reader_types_service()
+    return SuccessResponse(data=result, msg="获取Reader类型列表成功")
+
+
+@AgReaderRouter.get(
+    "/agno/reader_types/{reader_type}",
+    summary="获取指定Reader类型的元数据",
+    description="返回指定 reader_type 的详细元数据，含专属参数 schema"
+)
+async def get_reader_type_info_controller(
+    reader_type: str = Path(..., description="Reader类型，如 pdf/csv/website")
+) -> JSONResponse:
+    result = AgReaderService.get_reader_info_service(reader_type)
+    if result is None:
+        return SuccessResponse(data=None, msg=f"未找到Reader类型: {reader_type}")
+    return SuccessResponse(data=result, msg="获取Reader类型信息成功")
+
+
+@AgReaderRouter.get(
+    "/agno/reader_types/{reader_type}/chunking_strategies",
+    summary="获取指定Reader类型支持的Chunking策略",
+    description="直接调用 Agno reader 类的 get_supported_chunking_strategies()，返回该 reader_type 支持的策略名列表"
+)
+async def get_reader_supported_strategies_controller(
+    reader_type: str = Path(..., description="Reader类型，如 pdf/csv/website")
+) -> JSONResponse:
+    result = AgReaderService.get_supported_strategies_service(reader_type)
+    return SuccessResponse(data=result, msg="获取支持策略列表成功")
+
+
+@AgReaderRouter.get(
+    "/agno/chunking_strategies",
+    summary="获取全部Chunking策略列表",
+    description="返回所有 chunking 策略元数据，含各策略的参数 schema"
+)
+async def get_chunking_strategies_controller() -> JSONResponse:
+    result = AgReaderService.list_chunking_strategies_service()
+    return SuccessResponse(data=result, msg="获取Chunking策略列表成功")
+
+
+@AgReaderRouter.get(
+    "/agno/chunking_strategies/{strategy}",
+    summary="获取指定Chunking策略的详细参数",
+    description="返回指定策略的完整 param_schema，如 FixedSizeChunker / SemanticChunker"
+)
+async def get_chunking_strategy_detail_controller(
+    strategy: str = Path(..., description="策略名，如 FixedSizeChunker / SemanticChunker")
+) -> JSONResponse:
+    result = AgReaderService.get_chunking_strategy_info_service(strategy)
+    if result is None:
+        return SuccessResponse(data=None, msg=f"未找到Chunking策略: {strategy}")
+    return SuccessResponse(data=result, msg="获取Chunking策略详情成功")
