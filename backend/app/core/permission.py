@@ -40,13 +40,13 @@ class Permission:
 
     async def filter_query(self, query: Any) -> Any:
         """
-        异步过滤查询对象
+        按数据权限为 SQLAlchemy 查询追加 WHERE 条件。
 
-        Args:
-            query: SQLAlchemy查询对象
+        参数:
+        - query (Any): SQLAlchemy 查询对象。
 
-        Returns:
-            过滤后的查询对象
+        返回:
+        - Any: 附加条件后的查询对象（无权限条件时原样返回）。
         """
         condition = await self.__permission_condition()
         return query.where(condition) if condition is not None else query

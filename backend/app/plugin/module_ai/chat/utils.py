@@ -23,7 +23,18 @@ class AgnoFactory:
         session_id: str,
         db: Any | None = None
     ) -> Team:
-        """创建 Team 实例"""
+        """
+        创建带 Agent 的 Team 实例。
+
+        参数:
+        - user_id (str): 用户标识。
+        - dept_id (str): 部门/团队标识。
+        - session_id (str): 会话 ID。
+        - db (Any | None): Agno 持久化数据库实例，可选。
+
+        返回:
+        - Team: 配置好的 Team。
+        """
 
         # 创建 Agent
         fastapiadmin_agent = Agent(

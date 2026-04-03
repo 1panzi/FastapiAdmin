@@ -1,8 +1,8 @@
 """
-测试文件
+后端接口测试入口。
 
-注意：使用普通的 def 定义测试函数，不要使用 async def
-执行命令: pytest tests/test.py
+注意：测试函数使用同步 `def`，由 TestClient 驱动；勿对用例本身使用 `async def`。
+执行示例: `pytest tests/test_main.py` 或 `pytest tests/`
 """
 
 import pytest
@@ -10,10 +10,23 @@ from fastapi.testclient import TestClient
 
 
 def test_check_health(test_client: TestClient) -> None:
-    """测试健康检查接口"""
-    response = test_client.get("/common/health")
+    """
+    校验 `/common/health/` 返回统一成功响应结构。
+
+    参数:
+    - test_client (TestClient): pytest 注入的客户端。
+
+    返回:
+    - None
+    """
+    response = test_client.get("/common/health/")
     assert response.status_code == 200
-    assert response.json() == {"msg": "Healthy"}
+    body = response.json()
+    assert body["success"] is True
+    assert body["code"] == 0
+    assert body["msg"] == "系统健康"
+    assert body["data"] is True
+    assert body["status_code"] == 200
 
 
 # 运行所有测试

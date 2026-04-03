@@ -3,6 +3,8 @@ from enum import Enum, unique
 
 @unique
 class EnvironmentEnum(str, Enum):
+    """应用运行环境（开发 / 生产）。"""
+
     DEV = "dev"
     PROD = "prod"
 
@@ -52,12 +54,22 @@ class RedisInitKeyConfig(Enum):
 
     @property
     def key(self) -> str:
-        """获取Redis键名"""
+        """
+        获取 Redis 键名。
+
+        返回:
+        - str: 键名字符串。
+        """
         return self.value.get("key", "")
 
     @property
     def remark(self) -> str:
-        """获取Redis键名说明"""
+        """
+        获取 Redis 键说明。
+
+        返回:
+        - str: 说明文案。
+        """
         return self.value.get("remark", "")
 
 

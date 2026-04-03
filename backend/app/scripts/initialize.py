@@ -131,6 +131,15 @@ class InitializeData:
         """
 
         def create_object(obj_data: dict) -> Any:
+            """
+            由单条 dict 递归构建模型实例（含 children）。
+
+            参数:
+            - obj_data (dict): 行数据，可含嵌套 children。
+
+            返回:
+            - Any: SQLAlchemy 模型实例。
+            """
             # 分离 children 数据
             children_data = obj_data.pop("children", [])
 
@@ -173,7 +182,10 @@ class InitializeData:
 
     async def init_db(self) -> None:
         """
-        执行完整初始化流程
+        执行完整初始化流程：建表并导入种子数据。
+
+        返回:
+        - None
         """
         # 先创建表结构
         await self.__init_create_table()

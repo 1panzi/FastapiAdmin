@@ -15,7 +15,10 @@ class NoticeCRUD(CRUDBase[NoticeModel, NoticeCreateSchema, NoticeUpdateSchema]):
         初始化公告数据层。
 
         参数:
-        - auth (AuthSchema): 认证信息模型。
+        - auth (AuthSchema): 认证信息模型（含 DB 会话等上下文）。
+
+        返回:
+        - None
         """
         self.auth = auth
         super().__init__(model=NoticeModel, auth=auth)

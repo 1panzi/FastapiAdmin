@@ -78,7 +78,12 @@ def get_random_character() -> str:
 
 
 def uuid4_str() -> str:
-    """数据库引擎 UUID 类型兼容性解决方案"""
+    """
+    数据库引擎 UUID 类型兼容：返回无连字符的 UUID 字符串。
+
+    返回:
+    - str: UUID 字符串。
+    """
     return str(uuid.uuid4())
 
 
@@ -251,7 +256,15 @@ def bytes2human(n: int, format_str: str = "%(value).1f%(symbol)s") -> str:
 
 
 def bytes2file_response(bytes_info: bytes) -> Generator[bytes, Any, None]:
-    """生成文件响应"""
+    """
+    将字节内容封装为单块流式生成器，供文件下载响应使用。
+
+    参数:
+    - bytes_info (bytes): 文件二进制内容。
+
+    返回:
+    - Generator[bytes, Any, None]: 仅 yield 一次的字节生成器。
+    """
     yield bytes_info
 
 
@@ -286,11 +299,14 @@ class SqlalchemyUtil:
         transform_case: Literal["no_case", "snake_to_camel", "camel_to_snake"] = "no_case",
     ):
         """
-        将sqlalchemy模型对象转换为字典
+        将 SQLAlchemy 模型或字典转为普通 dict，并可做键名大小写转换。
 
-        :param obj: sqlalchemy模型对象或普通字典
-        :param transform_case: 转换得到的结果形式，可选的有'no_case'(不转换)、'snake_to_camel'(下划线转小驼峰)、'camel_to_snake'(小驼峰转下划线)，默认为'no_case'
-        :return: 字典结果
+        参数:
+        - obj (DeclarativeBase | dict[str, Any]): 模型实例或字典。
+        - transform_case (Literal[...]): no_case / snake_to_camel / camel_to_snake。
+
+        返回:
+        - dict[str, Any]: 扁平字典结果。
         """
         if isinstance(obj, DeclarativeBase):
             base_dict = obj.__dict__.copy()
@@ -314,11 +330,14 @@ class SqlalchemyUtil:
         transform_case: Literal["no_case", "snake_to_camel", "camel_to_snake"] = "no_case",
     ):
         """
-        将sqlalchemy查询结果序列化
+        将 SQLAlchemy 查询结果（模型、列表、Row 等）递归序列化为可 JSON 化结构。
 
-        :param result: sqlalchemy查询结果
-        :param transform_case: 'no_case'(不转换)、'snake_to_camel'(下划线转小驼峰)、'camel_to_snake'(小驼峰转下划线)，默认为'no_case'
-        :return: 序列化结果
+        参数:
+        - result (Any): ORM 对象、列表、Row 等。
+        - transform_case (Literal[...]): 键名转换策略。
+
+        返回:
+        - Any: 序列化后的 Python 内置类型或嵌套结构。
         """
         if isinstance(result, (DeclarativeBase, dict)):
             return cls.base_to_dict(result, transform_case)
@@ -342,11 +361,14 @@ class SqlalchemyUtil:
         cls, dialect_name: str, need_explicit_null: bool = True
     ) -> Null | None:
         """
-        根据数据库方言动态返回值为null的server_default
+        按方言返回列默认值中的 NULL 表达（PostgreSQL 可显式 DEFAULT NULL）。
 
-        :param dialect_name: 数据库方言名称
-        :param need_explicit_null: 是否需要显式DEFAULT NULL
-        :return: 不同数据库方言对应的null_server_default
+        参数:
+        - dialect_name (str): 数据库方言名。
+        - need_explicit_null (bool): 是否生成显式 NULL 默认值。
+
+        返回:
+        - Null | None: SQLAlchemy null() 或 None。
         """
         if need_explicit_null and dialect_name == "postgres":
             return null()
@@ -361,10 +383,13 @@ class CamelCaseUtil:
     @classmethod
     def snake_to_camel(cls, snake_str: str):
         """
-        下划线形式字符串(snake_case)转换为小驼峰形式字符串(camelCase)
+        下划线形式 (snake_case) 转为小驼峰形式 (camelCase)。
 
-        :param snake_str: 下划线形式字符串
-        :return: 小驼峰形式字符串
+        参数:
+        - snake_str (str): 下划线分隔字符串。
+
+        返回:
+        - str: 合并首字母大写后的驼峰字符串。
         """
         # 分割字符串
         words = snake_str.split("_")
@@ -376,10 +401,13 @@ class CamelCaseUtil:
     @classmethod
     def transform_result(cls, result: Any):
         """
-        针对不同类型将下划线形式(snake_case)批量转换为小驼峰形式(camelCase)方法
+        将查询结果递归序列化并将键名转为小驼峰。
 
-        :param result: 输入数据
-        :return: 小驼峰形式结果
+        参数:
+        - result (Any): ORM 查询结果或嵌套结构。
+
+        返回:
+        - Any: 小驼峰键名的序列化结果。
         """
         return SqlalchemyUtil.serialize_result(result=result, transform_case="snake_to_camel")
 
@@ -392,10 +420,13 @@ class SnakeCaseUtil:
     @classmethod
     def camel_to_snake(cls, camel_str: str):
         """
-        小驼峰形式字符串(camelCase)转换为下划线形式字符串(snake_case)
+        小驼峰形式 (camelCase) 转为下划线形式 (snake_case)。
 
-        :param camel_str: 小驼峰形式字符串
-        :return: 下划线形式字符串
+        参数:
+        - camel_str (str): 驼峰字符串。
+
+        返回:
+        - str: 下划线分隔且全小写。
         """
         # 在大写字母前添加一个下划线，然后将整个字符串转为小写
         words = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", camel_str)
@@ -404,9 +435,12 @@ class SnakeCaseUtil:
     @classmethod
     def transform_result(cls, result: Any):
         """
-        针对不同类型将下划线形式(snake_case)批量转换为小驼峰形式(camelCase)方法
+        将查询结果递归序列化并将键名转为下划线形式。
 
-        :param result: 输入数据
-        :return: 小驼峰形式结果
+        参数:
+        - result (Any): ORM 查询结果或嵌套结构。
+
+        返回:
+        - Any: 下划线键名的序列化结果。
         """
         return SqlalchemyUtil.serialize_result(result=result, transform_case="camel_to_snake")

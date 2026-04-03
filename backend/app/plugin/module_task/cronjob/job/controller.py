@@ -65,7 +65,10 @@ async def get_scheduler_jobs_controller() -> JSONResponse:
 )
 async def start_scheduler_controller() -> JSONResponse:
     """
-    启动调度器
+    启动调度器。
+
+    返回:
+    - JSONResponse: 成功提示响应。
     """
     SchedulerUtil.start()
     log.info("调度器已启动")
@@ -81,7 +84,10 @@ async def start_scheduler_controller() -> JSONResponse:
 )
 async def pause_scheduler_controller() -> JSONResponse:
     """
-    暂停调度器
+    暂停调度器。
+
+    返回:
+    - JSONResponse: 成功提示响应。
     """
     SchedulerUtil.pause()
     log.info("调度器已暂停")
@@ -97,7 +103,10 @@ async def pause_scheduler_controller() -> JSONResponse:
 )
 async def resume_scheduler_controller() -> JSONResponse:
     """
-    恢复调度器
+    恢复调度器。
+
+    返回:
+    - JSONResponse: 成功提示响应。
     """
     SchedulerUtil.resume()
     log.info("调度器已恢复")
@@ -113,7 +122,10 @@ async def resume_scheduler_controller() -> JSONResponse:
 )
 async def shutdown_scheduler_controller() -> JSONResponse:
     """
-    关闭调度器
+    关闭调度器。
+
+    返回:
+    - JSONResponse: 成功提示响应。
     """
     await SchedulerUtil.shutdown()
     log.info("调度器已关闭")
@@ -129,7 +141,10 @@ async def shutdown_scheduler_controller() -> JSONResponse:
 )
 async def clear_jobs_controller() -> JSONResponse:
     """
-    清空调度器中的所有任务
+    清空调度器中的所有任务。
+
+    返回:
+    - JSONResponse: 成功提示响应。
     """
     SchedulerUtil.clear_jobs()
     log.info("已清空所有任务")
@@ -191,6 +206,9 @@ async def pause_job_controller(
 
     参数:
     - job_id (str): 调度器任务ID
+
+    返回:
+    - JSONResponse: 成功提示响应。
     """
     SchedulerUtil.pause_job(job_id=job_id)
     log.info(f"暂停任务成功: {job_id}")
@@ -212,6 +230,9 @@ async def resume_job_controller(
 
     参数:
     - job_id (str): 调度器任务ID
+
+    返回:
+    - JSONResponse: 成功提示响应。
     """
     SchedulerUtil.resume_job(job_id=job_id)
     log.info(f"恢复任务成功: {job_id}")
@@ -233,6 +254,9 @@ async def run_job_controller(
 
     参数:
     - job_id (str): 调度器任务ID
+
+    返回:
+    - JSONResponse: 成功提示响应。
     """
     SchedulerUtil.run_job_now(job_id=job_id)
     log.info(f"立即执行任务成功: {job_id}")
@@ -254,6 +278,9 @@ async def remove_job_controller(
 
     参数:
     - job_id (str): 调度器任务ID
+
+    返回:
+    - JSONResponse: 成功提示响应。
     """
     SchedulerUtil.remove_job(job_id=job_id)
     log.info(f"移除任务成功: {job_id}")
@@ -340,6 +367,9 @@ async def delete_job_log_controller(
     参数:
     - ids (list[int]): ID列表
     - auth (AuthSchema): 认证信息模型
+
+    返回:
+    - JSONResponse: 成功提示响应。
     """
     await JobService.delete_job_log_service(auth=auth, ids=ids)
     log.info(f"删除执行日志成功: {ids}")

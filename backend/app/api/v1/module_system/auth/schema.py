@@ -25,6 +25,15 @@ class JWTPayloadSchema(BaseModel):
 
     @model_validator(mode="after")
     def validate_fields(self):
+        """
+        校验 JWT 载荷字段的基本合法性。
+
+        返回:
+        - JWTPayloadSchema: 校验后的载荷实例。
+
+        异常:
+        - ValueError: 必填字段为空或格式不正确时抛出。
+        """
         if not self.sub or len(self.sub.strip()) == 0:
             raise ValueError("会话编号不能为空")
         return self

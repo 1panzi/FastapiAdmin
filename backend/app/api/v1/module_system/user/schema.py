@@ -29,11 +29,35 @@ class CurrentUserUpdateSchema(BaseModel):
     @field_validator("mobile")
     @classmethod
     def validate_mobile(cls, value: str | None):
+        """
+        校验手机号格式（委托到 `mobile_validator`）。
+
+        参数:
+        - value (str | None): 手机号。
+
+        返回:
+        - str | None: 校验后的手机号。
+
+        异常:
+        - CustomException: 手机号格式非法时抛出。
+        """
         return mobile_validator(value)
 
     @field_validator("email")
     @classmethod
     def validate_email(cls, value: str | None):
+        """
+        校验邮箱格式（为空则跳过；否则委托到 `email_validator`）。
+
+        参数:
+        - value (str | None): 邮箱。
+
+        返回:
+        - str | None: 校验后的邮箱。
+
+        异常:
+        - CustomException: 邮箱格式非法时抛出。
+        """
         if not value:
             return value
         return email_validator(value)
@@ -41,6 +65,18 @@ class CurrentUserUpdateSchema(BaseModel):
     @field_validator("avatar")
     @classmethod
     def validate_avatar(cls, value: str | None):
+        """
+        校验头像地址为合法的 HTTP/HTTPS URL。
+
+        参数:
+        - value (str | None): 头像 URL。
+
+        返回:
+        - str | None: 校验后的头像 URL。
+
+        异常:
+        - ValueError: 头像 URL 非法时抛出。
+        """
         if not value:
             return value
         parsed = urlparse(value)
@@ -50,6 +86,15 @@ class CurrentUserUpdateSchema(BaseModel):
 
     @model_validator(mode="after")
     def check_model(self):
+        """
+        校验基础用户信息的长度约束。
+
+        返回:
+        - CurrentUserUpdateSchema: 校验后的同一实例。
+
+        异常:
+        - ValueError: 字段长度超限时抛出。
+        """
         if self.name and len(self.name) > 32:
             raise ValueError("名称长度不能超过32个字符")
         return self
@@ -69,11 +114,35 @@ class UserRegisterSchema(BaseModel):
     @field_validator("mobile")
     @classmethod
     def validate_mobile(cls, value: str | None):
+        """
+        校验手机号格式（委托到 `mobile_validator`）。
+
+        参数:
+        - value (str | None): 手机号。
+
+        返回:
+        - str | None: 校验后的手机号。
+
+        异常:
+        - CustomException: 手机号格式非法时抛出。
+        """
         return mobile_validator(value)
 
     @field_validator("username")
     @classmethod
     def validate_username(cls, value: str):
+        """
+        校验并规范化账号：字母开头，长度 3-32，仅含字母/数字/_ . -。
+
+        参数:
+        - value (str): 账号。
+
+        返回:
+        - str: 规范化后的账号。
+
+        异常:
+        - ValueError: 账号为空或不满足格式约束时抛出。
+        """
         v = value.strip()
         if not v:
             raise ValueError("账号不能为空")
@@ -86,6 +155,15 @@ class UserRegisterSchema(BaseModel):
 
     @model_validator(mode="after")
     def check_model(self):
+        """
+        校验注册信息的长度约束。
+
+        返回:
+        - UserRegisterSchema: 校验后的同一实例。
+
+        异常:
+        - ValueError: 任一字段长度超限时抛出。
+        """
         if self.name and len(self.name) > 32:
             raise ValueError("名称长度不能超过32个字符")
         if self.username and len(self.username) > 32:
@@ -107,6 +185,18 @@ class UserForgetPasswordSchema(BaseModel):
     @field_validator("mobile")
     @classmethod
     def validate_mobile(cls, value: str | None):
+        """
+        校验手机号格式（委托到 `mobile_validator`）。
+
+        参数:
+        - value (str | None): 手机号。
+
+        返回:
+        - str | None: 校验后的手机号。
+
+        异常:
+        - CustomException: 手机号格式非法时抛出。
+        """
         return mobile_validator(value)
 
 

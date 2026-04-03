@@ -348,5 +348,15 @@ async def sync_db_preview_controller(
     table_name: Annotated[str, Path(description="表名")],
     auth: Annotated[AuthSchema, Depends(AuthPermission(["module_generator:db:sync"]))],
 ) -> JSONResponse:
+    """
+    同步数据库前差异预览（主表 + 可选子表），不落库。
+
+    参数:
+    - table_name (str): 物理表名。
+    - auth (AuthSchema): 认证信息。
+
+    返回:
+    - JSONResponse: 成功响应，data 为预览结构。
+    """
     result = await GenTableService.sync_db_preview_service(auth, table_name)
     return SuccessResponse(msg="获取同步差异预览成功", data=result)

@@ -20,7 +20,21 @@ def console_run(
     scheduler_ready: bool | None = None,
     limiter_ready: bool | None = None,
 ) -> None:
-    """显示启动信息面板"""
+    """
+    在终端输出 Rich 面板：服务信息、组件就绪状态与文档链接。
+
+    参数:
+    - host (str): 监听主机。
+    - port (int): 监听端口。
+    - reload (bool): 是否开启热重载。
+    - database_ready (bool | None): 数据库是否就绪。
+    - redis_ready (bool | None): Redis 是否就绪。
+    - scheduler_ready (bool | None): 调度器是否就绪。
+    - limiter_ready (bool | None): 限流器是否就绪。
+
+    返回:
+    - None
+    """
 
     url = f"http://{host}:{port}"
     base_url = f"{url}{settings.ROOT_PATH}"
@@ -85,7 +99,12 @@ def console_run(
 
 
 def console_close() -> None:
-    """显示关闭信息"""
+    """
+    在终端输出服务关闭提示面板。
+
+    返回:
+    - None
+    """
     shutdown_content = Text()
     shutdown_content.append("🛑 ", style="bold red")
     shutdown_content.append("FastapiAdmin 服务关闭")

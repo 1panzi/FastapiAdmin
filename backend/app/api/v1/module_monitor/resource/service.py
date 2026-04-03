@@ -77,6 +77,15 @@ class ResourceService:
         root_static_prefix = f"{root_prefix}{static_prefix}" if root_prefix else static_prefix
 
         def strip_prefix(p: str) -> str:
+            """
+            去掉静态资源 URL 前缀，得到相对 upload 的路径片段。
+
+            参数:
+            - p (str): 原始路径或 URL 路径段。
+
+            返回:
+            - str: 去掉已知前缀后的路径。
+            """
             if p.startswith(root_static_prefix):
                 return p[len(root_static_prefix) :].lstrip("/")
             if p.startswith(static_prefix):
@@ -560,6 +569,15 @@ class ResourceService:
             if isinstance(sort_conditions, list):
                 # 构建排序键函数
                 def sort_key(item):
+                    """
+                    按多条排序条件从资源项中抽取比较键（支持时间字段转 datetime）。
+
+                    参数:
+                    - item (dict): 单条资源详情字典。
+
+                    返回:
+                    - list: 用于 `sorted` 的多字段键列表。
+                    """
                     keys = []
                     for cond in sort_conditions:
                         field = cond.get("field", "name")
@@ -797,10 +815,10 @@ class ResourceService:
         批量删除文件或目录
 
         参数:
-        - paths (List[str]): 文件或目录路径列表。
+        - paths (list[str]): 文件或目录路径列表。
 
         返回:
-        - Dict[str, List[str]]: 包含成功删除路径和失败删除路径的字典。
+        - dict[str, list[str]]: 键 `success` / `failed` 对应成功与失败路径列表。
         """
         if not paths:
             raise CustomException(msg="删除失败，删除路径不能为空")

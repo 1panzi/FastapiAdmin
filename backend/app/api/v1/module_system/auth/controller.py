@@ -42,6 +42,7 @@ async def login_for_access_token_controller(
 
     参数:
     - request (Request): FastAPI请求对象
+    - redis (Redis): Redis 客户端对象
     - login_form (CustomOAuth2PasswordRequestForm): 登录表单数据
     - db (AsyncSession): 数据库会话对象
 
@@ -82,6 +83,8 @@ async def get_new_token_controller(
     参数:
     - request (Request): FastAPI请求对象
     - payload (RefreshTokenPayloadSchema): 刷新令牌负载模型
+    - db (AsyncSession): 数据库会话对象
+    - redis (Redis): Redis 客户端对象
 
     返回:
     - JWTOutSchema: 包含新的访问令牌和刷新令牌的响应模型

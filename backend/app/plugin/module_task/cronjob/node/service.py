@@ -96,7 +96,19 @@ class NodeService:
         search: NodeQueryParam | None = None,
         order_by: list[dict[str, str]] | None = None,
     ) -> dict:
-        """分页查询定时任务节点（数据库 OFFSET/LIMIT）。"""
+        """
+        分页查询定时任务节点（数据库 OFFSET/LIMIT）。
+
+        参数:
+        - auth (AuthSchema): 认证信息。
+        - page_no (int): 页码。
+        - page_size (int): 每页条数。
+        - search (NodeQueryParam | None): 查询条件。
+        - order_by (list[dict[str, str]] | None): 排序。
+
+        返回:
+        - dict: 分页结果。
+        """
         offset = (page_no - 1) * page_size
         return await NodeCRUD(auth).page(
             offset=offset,
@@ -157,6 +169,9 @@ class NodeService:
         参数:
         - auth (AuthSchema): 认证信息模型
         - ids (list[int]): 节点ID列表
+
+        返回:
+        - None
         """
         if len(ids) < 1:
             raise CustomException(msg="删除失败，删除对象不能为空")
@@ -178,6 +193,9 @@ class NodeService:
 
         参数:
         - auth (AuthSchema): 认证信息模型
+
+        返回:
+        - None
         """
         SchedulerUtil.clear_jobs()
         await NodeCRUD(auth).clear_obj_crud()

@@ -64,7 +64,19 @@ class PositionService:
         search: PositionQueryParam | None = None,
         order_by: list[dict[str, str]] | None = None,
     ) -> dict:
-        """分页查询岗位（数据库 OFFSET/LIMIT）。"""
+        """
+        分页查询岗位（数据库 OFFSET/LIMIT）。
+
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - page_no (int): 页码（从 1 开始）
+        - page_size (int): 每页条数
+        - search (PositionQueryParam | None): 查询条件
+        - order_by (list[dict[str, str]] | None): 排序字段列表
+
+        返回:
+        - dict: 分页结果（结构由 `CRUD.page` 返回约定）
+        """
         offset = (page_no - 1) * page_size
         return await PositionCRUD(auth).page(
             offset=offset,
@@ -84,7 +96,7 @@ class PositionService:
         - data (PositionCreateSchema): 岗位创建模型
 
         返回:
-        - Dict: 创建的岗位对象
+        - dict: 创建的岗位详情字典
         """
         position = await PositionCRUD(auth).get(name=data.name)
         if position:

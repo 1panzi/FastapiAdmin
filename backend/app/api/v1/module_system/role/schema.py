@@ -34,6 +34,18 @@ class RoleCreateSchema(BaseModel):
     @field_validator("code")
     @classmethod
     def validate_code(cls, value: str | None):
+        """
+        校验角色编码（委托到 `code_validator`）。
+
+        参数:
+        - value (str | None): 角色编码。
+
+        返回:
+        - str | None: 校验后的角色编码。
+
+        异常:
+        - CustomException: 不满足编码规则时抛出。
+        """
         return code_validator(value)
 
 
@@ -50,7 +62,18 @@ class RolePermissionSettingSchema(BaseModel):
 
     @model_validator(mode="after")
     def validate_fields(self):
-        """验证权限配置字段"""
+        """
+        校验角色权限配置字段（数据范围与关联 ID 等）。
+
+        参数:
+        - self: 当前模型实例（校验后状态）。
+
+        返回:
+        - RolePermissionSettingSchema: 通过 `role_permission_request_validator` 校验后的同一实例。
+
+        异常:
+        - CustomException: 不满足权限配置约束时抛出。
+        """
         return role_permission_request_validator(self)
 
 

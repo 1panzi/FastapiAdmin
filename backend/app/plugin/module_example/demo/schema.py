@@ -33,7 +33,18 @@ class DemoCreateSchema(BaseModel):
     @field_validator("name")
     @classmethod
     def validate_name(cls, v: str) -> str:
-        """验证名称字段的格式和内容"""
+        """
+        验证名称字段的格式和内容。
+
+        参数:
+        - v (str): 原始名称。
+
+        返回:
+        - str: 去空白后的名称。
+
+        异常:
+        - ValueError: 名称为空时抛出。
+        """
         # 去除首尾空格
         v = v.strip()
         if not v:

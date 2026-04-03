@@ -26,6 +26,31 @@ class MenuService:
     """
 
     @classmethod
+    async def _validate_parent_child_type(
+        cls, auth: AuthSchema, parent_id: int | None, child_type: int
+    ) -> None:
+        """
+        父子类型约束：目录下仅允许目录/菜单/外链；菜单下仅允许按钮；按钮与外链下不可挂子级。
+        无父级时仅允许目录、菜单、外链（与前端一致）。
+        """
+        if parent_id is None:
+            if child_type not in (1, 2, 4):
+                raise CustomException(msg="顶级菜单仅允许目录、菜单或外链类型")
+            return
+        parent = await MenuCRUD(auth).get_by_id_crud(id=parent_id)
+        if not parent:
+            raise CustomException(msg="父级菜单不存在")
+        pt = parent.type
+        if pt == 1:
+            if child_type not in (1, 2, 4):
+                raise CustomException(msg="目录下仅允许新增目录、菜单或外链")
+        elif pt == 2:
+            if child_type != 3:
+                raise CustomException(msg="菜单下仅允许新增按钮")
+        else:
+            raise CustomException(msg="菜单或链接类型下不允许新增子菜单")
+
+    @classmethod
     async def get_menu_detail_service(cls, auth: AuthSchema, id: int) -> dict:
         """
         获取菜单详情。
@@ -93,6 +118,8 @@ class MenuService:
         if menu:
             raise CustomException(msg="创建失败，该菜单已存在")
 
+        await cls._validate_parent_child_type(auth, data.parent_id, data.type)
+
         new_menu = await MenuCRUD(auth).create(data=data)
         new_menu_dict = MenuOutSchema.model_validate(new_menu).model_dump()
         return new_menu_dict
@@ -113,6 +140,7 @@ class MenuService:
         menu = await MenuCRUD(auth).get_by_id_crud(id=id)
         if not menu:
             raise CustomException(msg="更新失败，该菜单不存在")
+        await cls._validate_parent_child_type(auth, data.parent_id, data.type)
         search: dict[str, Any] = {"title": data.title}
         if data.parent_id is not None:
             search["parent_id"] = data.parent_id

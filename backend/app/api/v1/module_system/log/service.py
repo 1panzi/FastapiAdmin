@@ -65,7 +65,19 @@ class OperationLogService:
         search: OperationLogQueryParam | None = None,
         order_by: list | None = None,
     ) -> dict:
-        """分页查询操作日志（数据库 OFFSET/LIMIT）。"""
+        """
+        分页查询操作日志（数据库 OFFSET/LIMIT）。
+
+        参数:
+        - auth (AuthSchema): 认证信息模型
+        - page_no (int): 页码（从 1 开始）
+        - page_size (int): 每页条数
+        - search (OperationLogQueryParam | None): 查询条件
+        - order_by (list | None): 排序字段列表
+
+        返回:
+        - dict: 分页结果（结构由 `CRUD.page` 返回约定）
+        """
         offset = (page_no - 1) * page_size
         return await OperationLogCRUD(auth).page(
             offset=offset,

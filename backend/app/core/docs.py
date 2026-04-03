@@ -55,15 +55,17 @@ def get_custom_ui_html(
     ] = "https://fastapi.tiangolo.com/img/favicon.png",
 ) -> HTMLResponse:
     """
-    Generate and return the HTML  that loads Swagger UI for the interactive
-    API docs (normally served at `/docs`).
+    生成加载 Swagger UI 的 HTML 页面（与 FastAPI 默认 `/docs` 行为一致，可自定义静态资源 URL）。
 
-    You would only call this function yourself if you needed to override some parts,
-    for example the URLs to use to load Swagger UI's JavaScript and CSS.
+    参数:
+    - openapi_url (str): OpenAPI JSON 地址。
+    - title (str): 页面标题。
+    - swagger_js_url (str): Swagger UI JS 地址。
+    - swagger_css_url (str): Swagger UI CSS 地址。
+    - swagger_favicon_url (str): 站点图标地址。
 
-    Read more about it in the
-    [FastAPI docs for Configure Swagger UI](https://fastapi.tiangolo.com/how-to/configure-swagger-ui/)
-    and the [FastAPI docs for Custom Docs UI Static Assets (Self-Hosting)](https://fastapi.tiangolo.com/how-to/custom-docs-ui-assets/).
+    返回:
+    - HTMLResponse: 可直接返回给浏览器的 HTML 响应。
     """
     html = f"""
     <!DOCTYPE html>

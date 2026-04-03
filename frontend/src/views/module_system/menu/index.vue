@@ -732,17 +732,18 @@ const fullMenuTree = ref<MenuTable[]>([]);
 /** 从表格「在菜单下新增」进入时锁定父级（仅允许按钮） */
 const createParentLocked = ref(false);
 
+/** 目录下：目录、菜单、外链；菜单下：仅按钮 */
 function typesAllowedUnderParent(parentType: MenuTypeEnum): MenuTypeEnum[] {
   switch (parentType) {
     case MenuTypeEnum.CATALOG:
-      return [MenuTypeEnum.CATALOG, MenuTypeEnum.MENU, MenuTypeEnum.BUTTON, MenuTypeEnum.EXTLINK];
+      return [MenuTypeEnum.CATALOG, MenuTypeEnum.MENU, MenuTypeEnum.EXTLINK];
     case MenuTypeEnum.MENU:
       return [MenuTypeEnum.BUTTON];
     case MenuTypeEnum.BUTTON:
     case MenuTypeEnum.EXTLINK:
       return [];
     default:
-      return [MenuTypeEnum.CATALOG, MenuTypeEnum.MENU, MenuTypeEnum.BUTTON, MenuTypeEnum.EXTLINK];
+      return [MenuTypeEnum.CATALOG, MenuTypeEnum.MENU, MenuTypeEnum.EXTLINK];
   }
 }
 
@@ -768,11 +769,11 @@ const allowedMenuTypeValues = computed((): MenuTypeEnum[] => {
   }
   const pid = formData.parent_id;
   if (pid == null || pid === undefined) {
-    return [MenuTypeEnum.CATALOG, MenuTypeEnum.MENU, MenuTypeEnum.BUTTON, MenuTypeEnum.EXTLINK];
+    return [MenuTypeEnum.CATALOG, MenuTypeEnum.MENU, MenuTypeEnum.EXTLINK];
   }
   const parentNode = findMenuNodeById(pid);
   if (!parentNode?.type) {
-    return [MenuTypeEnum.CATALOG, MenuTypeEnum.MENU, MenuTypeEnum.BUTTON, MenuTypeEnum.EXTLINK];
+    return [MenuTypeEnum.CATALOG, MenuTypeEnum.MENU, MenuTypeEnum.EXTLINK];
   }
   return typesAllowedUnderParent(parentNode.type as MenuTypeEnum);
 });

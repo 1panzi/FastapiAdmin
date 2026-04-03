@@ -126,7 +126,7 @@ class DeptService:
 
         参数:
         - auth (AuthSchema): 认证对象。
-        - ids (List[int]): 部门 ID 列表。
+        - ids (list[int]): 部门 ID 列表。
 
         返回:
         - None

@@ -9,12 +9,15 @@ from app.core.exceptions import CustomException
 
 def http_limit_callback(request: Request, response: Response, expire: int) -> NoReturn:
     """
-    请求限制时的默认回调函数
+    HTTP 触发限流时的默认回调：抛出 429。
 
-    :param request: FastAPI 请求对象
-    :param response: FastAPI 响应对象
-    :param expire: 剩余毫秒数
-    :return:
+    参数:
+    - request (Request): 当前请求。
+    - response (Response): 当前响应（未直接使用，保留与限流器签名一致）。
+    - expire (int): 剩余冷却毫秒数。
+
+    返回:
+    - 无（始终抛出 CustomException）。
     """
     expires = ceil(expire / 30)
     raise CustomException(
@@ -26,11 +29,14 @@ def http_limit_callback(request: Request, response: Response, expire: int) -> No
 
 async def ws_limit_callback(ws: WebSocket, expire: int) -> None:
     """
-    WebSocket请求限制时的默认回调函数
+    WebSocket 触发限流时的默认回调：关闭连接。
 
-    :param ws: WebSocket连接对象
-    :param expire: 剩余毫秒数
-    :return:
+    参数:
+    - ws (WebSocket): 当前 WebSocket。
+    - expire (int): 剩余冷却毫秒数。
+
+    返回:
+    - None
     """
     expires = ceil(expire / 30)
     await ws.close(code=1008, reason=f"请求过于频繁，请稍后重试！{expires} 秒后重试")

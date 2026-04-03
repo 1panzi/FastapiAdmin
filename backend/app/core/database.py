@@ -56,6 +56,9 @@ def create_async_engine_and_session(
     """
     获取异步数据库会话连接。
 
+    参数:
+    - db_url (str): 异步数据库 URL，默认取配置项 ASYNC_DB_URI。
+
     返回:
     - tuple[AsyncEngine, async_sessionmaker[AsyncSession]]: 异步数据库引擎和会话工厂。
     """
@@ -108,13 +111,23 @@ async_engine, async_db_session = create_async_engine_and_session(settings.ASYNC_
 
 
 async def create_tables() -> None:
-    """创建数据库表"""
+    """
+    创建数据库表（根据 ORM metadata）。
+
+    返回:
+    - None
+    """
     async with async_engine.begin() as coon:
         await coon.run_sync(MappedBase.metadata.create_all)
 
 
 async def drop_tables() -> None:
-    """删除数据库表"""
+    """
+    删除数据库表（根据 ORM metadata）。
+
+    返回:
+    - None
+    """
     async with async_engine.begin() as conn:
         await conn.run_sync(MappedBase.metadata.drop_all)
 

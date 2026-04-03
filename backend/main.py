@@ -14,7 +14,12 @@ alembic_cfg = Config("alembic.ini")
 
 
 def create_app() -> FastAPI:
-    """创建 FastAPI 应用实例"""
+    """
+    创建 FastAPI 应用实例并完成日志、中间件、路由与静态资源注册。
+
+    返回:
+    - FastAPI: 已配置生命周期的应用对象。
+    """
     from app.config.setting import settings
     from app.plugin.init_app import (
         lifespan,
@@ -56,7 +61,15 @@ def run(
         EnvironmentEnum, typer.Option("--env", help="运行环境 (dev, prod)")
     ] = EnvironmentEnum.DEV,
 ) -> None:
-    """启动FastAPI服务"""
+    """
+    按指定环境加载配置并启动 Uvicorn（开发环境开启 reload）。
+
+    参数:
+    - env (EnvironmentEnum): 运行环境，对应 `--env`。
+
+    返回:
+    - None
+    """
 
     try:
         # 设置环境变量
@@ -104,7 +117,15 @@ def revision(
         EnvironmentEnum, typer.Option("--env", help="运行环境 (dev, prod)")
     ] = EnvironmentEnum.DEV,
 ) -> None:
-    """生成新的 Alembic 迁移脚本"""
+    """
+    使用 Alembic 自动生成迁移脚本（autogenerate）。
+
+    参数:
+    - env (EnvironmentEnum): 运行环境，用于加载对应数据库模型元数据。
+
+    返回:
+    - None
+    """
     os.environ["ENVIRONMENT"] = env.value
     command.revision(alembic_cfg, autogenerate=True, message="迁移脚本")
     typer.echo("迁移脚本已生成")
@@ -119,7 +140,15 @@ def upgrade(
         EnvironmentEnum, typer.Option("--env", help="运行环境 (dev, prod)")
     ] = EnvironmentEnum.DEV,
 ) -> None:
-    """应用最新的 Alembic 迁移"""
+    """
+    将数据库升级到 Alembic 最新版本（head）。
+
+    参数:
+    - env (EnvironmentEnum): 运行环境。
+
+    返回:
+    - None
+    """
     os.environ["ENVIRONMENT"] = env.value
     command.upgrade(alembic_cfg, "head")
     typer.echo("所有迁移已应用。")

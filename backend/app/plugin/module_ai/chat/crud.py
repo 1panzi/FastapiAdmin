@@ -47,7 +47,15 @@ class ChatSessionCRUD:
         self.db.close()
 
     async def get_by_id_crud(self, session_id: str) -> TeamSession | None:
-        """获取会话详情"""
+        """
+        获取会话详情。
+
+        参数:
+        - session_id (str): 会话 ID。
+
+        返回:
+        - TeamSession | None: 会话对象；失败或不存在时为 None。
+        """
         try:
             return self.db.get_session(
                 session_id=session_id,
@@ -63,7 +71,16 @@ class ChatSessionCRUD:
         search: dict[str, Any] | None = None,
         order_by: list[dict[str, str]] | None = None,
     ) -> list[TeamSession]:
-        """列表查询 - 获取所有会话"""
+        """
+        列表查询，获取当前用户的所有会话。
+
+        参数:
+        - search (dict[str, Any] | None): 预留查询条件（当前实现未使用）。
+        - order_by (list[dict[str, str]] | None): 预留排序（当前实现未使用）。
+
+        返回:
+        - list[TeamSession]: 会话列表；失败时为空列表。
+        """
         try:
             result = self.db.get_sessions(
                 session_type=self.SESSION_TYPE,
@@ -77,7 +94,15 @@ class ChatSessionCRUD:
             return []
 
     async def create_crud(self, data: ChatSessionCreateSchema) -> TeamSession | None:
-        """创建会话 - Team 会在运行时自动创建和管理 session"""
+        """
+        创建会话（Team 在运行时自动创建并管理 session）。
+
+        参数:
+        - data (ChatSessionCreateSchema): 创建参数（如标题）。
+
+        返回:
+        - TeamSession | None: 新建会话；失败时为 None。
+        """
         import time
         import uuid
 
@@ -108,7 +133,16 @@ class ChatSessionCRUD:
             return None
 
     async def update_crud(self, session_id: str, data: ChatSessionUpdateSchema) -> bool:
-        """更新会话"""
+        """
+        更新会话（如重命名）。
+
+        参数:
+        - session_id (str): 会话 ID。
+        - data (ChatSessionUpdateSchema): 更新数据。
+
+        返回:
+        - bool: 是否成功。
+        """
         try:
             self.db.rename_session(
                 session_id=session_id,
@@ -122,7 +156,15 @@ class ChatSessionCRUD:
             return False
 
     async def delete_crud(self, session_ids: list[str]) -> bool:
-        """批量删除会话"""
+        """
+        批量删除会话。
+
+        参数:
+        - session_ids (list[str]): 会话 ID 列表。
+
+        返回:
+        - bool: 是否全部处理成功（任一出错则记日志并返回 False）。
+        """
         try:
             for session_id in session_ids:
                 self.db.delete_session(

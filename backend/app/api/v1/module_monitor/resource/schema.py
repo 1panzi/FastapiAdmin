@@ -93,6 +93,18 @@ class ResourceMoveSchema(BaseModel):
     @field_validator("source_path", "target_path")
     @classmethod
     def validate_paths(cls, value: str):
+        """
+        校验移动/复制涉及的源路径与目标路径非空并去首尾空格。
+
+        参数:
+        - value (str): 路径字段当前值。
+
+        返回:
+        - str: 去空格后的路径。
+
+        异常:
+        - ValueError: 路径为空时抛出。
+        """
         if not value or len(value.strip()) == 0:
             raise ValueError("路径不能为空")
         return value.strip()
@@ -113,6 +125,18 @@ class ResourceRenameSchema(BaseModel):
     @field_validator("old_path", "new_name")
     @classmethod
     def validate_inputs(cls, value: str):
+        """
+        校验重命名所需的原路径与新名称非空并去首尾空格。
+
+        参数:
+        - value (str): 字段当前值。
+
+        返回:
+        - str: 去空格后的值。
+
+        异常:
+        - ValueError: 值为空时抛出。
+        """
         if not value or len(value.strip()) == 0:
             raise ValueError("参数不能为空")
         return value.strip()
@@ -137,6 +161,19 @@ class ResourceCreateDirSchema(BaseModel):
     @field_validator("parent_path", "dir_name")
     @classmethod
     def validate_inputs(cls, value: str, info):
+        """
+        校验创建目录的父路径与目录名，防止路径遍历等不安全输入。
+
+        参数:
+        - value (str): 当前字段值。
+        - info: Pydantic 校验上下文（含 `field_name`）。
+
+        返回:
+        - str: 规范化后的字段值。
+
+        异常:
+        - ValueError: 含不安全字符或目录名为空时抛出。
+        """
         # 对于parent_path允许为空字符串（表示根目录）或 '/'，其他情况必须非空
         if info.field_name == "parent_path":
             # 对于parent_path仍然严格检查路径遍历

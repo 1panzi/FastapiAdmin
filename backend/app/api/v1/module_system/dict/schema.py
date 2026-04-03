@@ -26,12 +26,36 @@ class DictTypeCreateSchema(BaseModel):
 
     @field_validator("dict_name")
     def validate_dict_name(cls, value: str):
+        """
+        校验字典名称为非空字符串。
+
+        参数:
+        - value (str): 字典名称。
+
+        返回:
+        - str: 去首尾空格后的字典名称。
+
+        异常:
+        - ValueError: 字典名称为空时抛出。
+        """
         if not value or value.strip() == "":
             raise ValueError("字典名称不能为空")
         return value.strip()
 
     @field_validator("dict_type")
     def validate_dict_type(cls, value: str):
+        """
+        校验字典类型：小写字母开头，仅包含小写字母/数字/下划线。
+
+        参数:
+        - value (str): 字典类型。
+
+        返回:
+        - str: 去首尾空格后的字典类型。
+
+        异常:
+        - ValueError: 字典类型为空或不满足格式要求时抛出。
+        """
         if not value or value.strip() == "":
             raise ValueError("字典类型不能为空")
         regexp = r"^[a-z][a-z0-9_]*$"
@@ -105,6 +129,15 @@ class DictDataCreateSchema(BaseModel):
 
     @model_validator(mode="after")
     def validate_after(self):
+        """
+        校验并规范化字典数据字段（标签/键值/类型/类型ID）。
+
+        返回:
+        - DictDataCreateSchema: 校验与去空格后的同一实例。
+
+        异常:
+        - ValueError: 必填字段为空或类型ID非法时抛出。
+        """
         if not self.dict_label or not self.dict_label.strip():
             raise ValueError("字典标签不能为空")
         if not self.dict_value or not self.dict_value.strip():

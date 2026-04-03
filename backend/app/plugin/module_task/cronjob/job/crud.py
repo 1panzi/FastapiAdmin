@@ -86,11 +86,17 @@ class JobCRUD(CRUDBase[JobModel, JobCreateSchema, JobUpdateSchema]):
 
         参数:
         - ids (list[int]): 日志ID列表
+
+        返回:
+        - None
         """
         return await self.delete(ids=ids)
 
     async def clear_obj_crud(self) -> None:
         """
-        清空所有执行日志
+        清空所有执行日志。
+
+        返回:
+        - None
         """
         return await self.clear()

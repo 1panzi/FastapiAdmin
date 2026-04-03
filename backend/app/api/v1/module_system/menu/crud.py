@@ -11,7 +11,15 @@ class MenuCRUD(CRUDBase[MenuModel, MenuCreateSchema, MenuUpdateSchema]):
     """菜单模块数据层"""
 
     def __init__(self, auth: AuthSchema) -> None:
-        """初始化菜单CRUD"""
+        """
+        初始化菜单数据层。
+
+        参数:
+        - auth (AuthSchema): 认证信息模型（含 DB 会话等上下文）。
+
+        返回:
+        - None
+        """
         self.auth = auth
         super().__init__(model=MenuModel, auth=auth)
 

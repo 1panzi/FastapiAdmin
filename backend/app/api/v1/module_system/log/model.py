@@ -6,12 +6,22 @@ from app.core.base_model import ModelMixin, UserMixin
 
 
 def get_log_text_column_type():
+    """
+    根据数据库类型选择适合存储大文本的列类型。
+
+    MySQL 使用 LONGTEXT，PostgreSQL 使用 TEXT，其它数据库回退到 SQLAlchemy 的 Text。
+
+    返回:
+    - type: SQLAlchemy 列类型（可用于 mapped_column）。
+    """
     db_type = settings.DATABASE_TYPE
     if db_type == "mysql":
         from sqlalchemy.dialects.mysql import LONGTEXT
+
         return LONGTEXT
     elif db_type == "postgres":
         from sqlalchemy.dialects.postgresql import TEXT
+
         return TEXT
     else:
         return Text

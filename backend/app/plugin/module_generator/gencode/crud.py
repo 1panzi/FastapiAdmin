@@ -131,6 +131,9 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
 
         参数:
         - ids (list[int]): 业务表ID列表。
+
+        返回:
+        - None
         """
         await self.delete(ids=ids)
 
@@ -198,6 +201,14 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
         - 旧实现使用 SQLAlchemy Inspector 全量遍历再内存分页，表多时非常慢。
         - 这里按方言走系统表（MySQL information_schema / Postgres pg_catalog）进行分页与过滤。
         - 若方言不支持，则回退到旧的全量遍历。
+
+        参数:
+        - search (GenTableQueryParam | None): 表名/注释过滤条件。
+        - offset (int): 偏移量。
+        - limit (int): 每页条数。
+
+        返回:
+        - tuple[list[dict], int]: 当前页表信息列表与总条数。
         """
         database_name = settings.DATABASE_NAME
         db_type = (settings.DATABASE_TYPE or "").lower()
@@ -342,6 +353,12 @@ class GenTableCRUD(CRUDBase[GenTableModel, GenTableSchema, GenTableSchema]):
     async def get_db_table_comment(self, table_name: str) -> str:
         """
         获取数据库中指定表的注释（用于主子表场景下从库中加载子表元信息）。
+
+        参数:
+        - table_name (str): 物理表名。
+
+        返回:
+        - str: 表注释；表不存在或失败时为空字符串。
         """
         from app.core.database import engine
 
