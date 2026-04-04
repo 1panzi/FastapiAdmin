@@ -283,7 +283,11 @@
           prop="member_id"
           min-width="140"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <span>{{ getMemberName(scope.row) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'role')?.show"
           label="成员角色描述"
@@ -450,7 +454,7 @@
             {{ detailFormData.member_type }}
           </el-descriptions-item>
           <el-descriptions-item label="成员ID" :span="2">
-            {{ detailFormData.member_id }}
+            {{ getMemberName(detailFormData) }}
           </el-descriptions-item>
           <el-descriptions-item label="成员角色描述" :span="2">
             {{ detailFormData.role }}
@@ -499,13 +503,25 @@
             />
           </el-form-item>
           <el-form-item label="成员类型" prop="member_type" :required="false">
-            <el-select v-model="formData.member_type" placeholder="请选择成员类型" clearable style="width: 100%">
+            <el-select v-model="formData.member_type" placeholder="请选择成员类型" clearable style="width: 100%" @change="formData.member_id = undefined">
               <el-option value="agent" label="agent（AI代理）" />
               <el-option value="team" label="team（嵌套Team）" />
             </el-select>
           </el-form-item>
           <el-form-item label="成员ID" prop="member_id" :required="false">
-            <el-input v-model="formData.member_id" placeholder="请输入成员ID" />
+            <LazySelect
+              v-if="formData.member_type === 'agent'"
+              v-model="formData.member_id"
+              :fetcher="agentFetcher"
+              placeholder="请选择 Agent 成员"
+            />
+            <LazySelect
+              v-else-if="formData.member_type === 'team'"
+              v-model="formData.member_id"
+              :fetcher="memberTeamFetcher"
+              placeholder="请选择 Team 成员"
+            />
+            <el-input v-else v-model="formData.member_id" placeholder="请先选择成员类型" disabled />
           </el-form-item>
           <el-form-item label="成员角色描述" prop="role" :required="false">
             <el-input v-model="formData.role" placeholder="请输入成员角色描述" />
@@ -586,6 +602,7 @@ import AgTeamMemberAPI, {
   AgTeamMemberForm,
 } from "@/api/module_agno_manage/team_members";
 import AgTeamAPI from "@/api/module_agno_manage/teams";
+import AgAgentAPI from "@/api/module_agno_manage/agents";
 
 const visible = ref(false);
 const queryFormRef = ref();
@@ -706,7 +723,7 @@ const formData = reactive<AgTeamMemberForm>({
   member_type: undefined,
   member_id: undefined,
   role: undefined,
-  member_order: undefined,
+  member_order: 1,
   status: "0",
   description: undefined,
 });
@@ -742,6 +759,58 @@ function getTeamName(id?: number | string | null): string {
       teamNameCache.value[key] = key;
     });
   return key;
+}
+
+// Agent 懒加载 fetcher（member_type === 'agent' 时使用）
+const agentFetcher = async (params: { page_no: number; page_size: number; name?: string }) => {
+  const res = await AgAgentAPI.listAgAgent({ ...params });
+  const items = (res.data?.data?.items || []).map((item: any) => ({
+    value: String(item.id),
+    label: item.name || String(item.id),
+    raw: item,
+  }));
+  return { items, total: res.data?.data?.total || 0 };
+};
+
+// Team 成员懒加载 fetcher（排除当前所属 team_id，防止循环引用）
+const memberTeamFetcher = async (params: { page_no: number; page_size: number; name?: string }) => {
+  const res = await AgTeamAPI.listAgTeam({ ...params });
+  const excludeId = formData.team_id ? String(formData.team_id) : null;
+  const allItems = (res.data?.data?.items || []).filter(
+    (item: any) => String(item.id) !== excludeId
+  );
+  const items = allItems.map((item: any) => ({
+    value: String(item.id),
+    label: item.name || String(item.id),
+    raw: item,
+  }));
+  return { items, total: res.data?.data?.total || 0 };
+};
+
+// Agent 名称缓存
+const agentNameCache = ref<Record<string, string>>({});
+
+function getAgentName(id?: string | null): string {
+  if (!id) return "-";
+  const key = String(id);
+  if (agentNameCache.value[key]) return agentNameCache.value[key];
+  AgAgentAPI.detailAgAgent(Number(id))
+    .then((res) => {
+      agentNameCache.value[key] = res.data?.data?.name || key;
+    })
+    .catch(() => {
+      agentNameCache.value[key] = key;
+    });
+  return key;
+}
+
+// 根据 member_type 获取成员名称
+function getMemberName(row: AgTeamMemberTable): string {
+  if (!row.member_id) return "-";
+  const id = String(row.member_id);
+  if (row.member_type === "agent") return getAgentName(id);
+  if (row.member_type === "team") return getTeamName(id);
+  return id;
 }
 
 // 弹窗状态
@@ -834,7 +903,7 @@ const initialFormData: AgTeamMemberForm = {
   member_type: undefined,
   member_id: undefined,
   role: undefined,
-  member_order: undefined,
+  member_order: 1,
   status: "0",
   description: undefined,
 };
@@ -871,7 +940,9 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
       Object.assign(detailFormData.value, response.data.data);
     } else if (type === "update") {
       dialogVisible.title = "修改";
-      Object.assign(formData, response.data.data);
+      const data = response.data.data;
+      Object.assign(formData, data);
+      formData.member_id = data.member_id != null ? String(data.member_id) : undefined;
     }
   } else {
     dialogVisible.title = "新增AgTeamMember";
@@ -880,7 +951,7 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     formData.member_type = undefined;
     formData.member_id = undefined;
     formData.role = undefined;
-    formData.member_order = undefined;
+    formData.member_order = 1;
     formData.status = "0";
     formData.description = undefined;
   }

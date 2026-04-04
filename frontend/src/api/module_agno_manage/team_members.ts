@@ -123,7 +123,7 @@ export interface AgTeamMemberTable extends BaseType {
 export interface AgTeamMemberForm extends BaseFormType {
   team_id?: string;
   member_type?: string;
-  member_id?: number | null;
+  member_id?: string;
   role?: string;
   member_order?: number | null;
 }

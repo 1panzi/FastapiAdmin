@@ -19,24 +19,19 @@
     >
       <slot name="option" :item="item">{{ item.label }}</slot>
     </el-option>
-    <!-- 滚动哨兵：滚动到底部时触发加载 -->
-    <div
-      v-infinite-scroll="loadMore"
-      :infinite-scroll-disabled="scrollDisabled"
-      :infinite-scroll-distance="20"
-      style="height: 1px"
-    />
+    <!-- 触底哨兵：被 IntersectionObserver 观察，进入视口时加载下一页 -->
+    <div ref="sentinelRef" style="height: 1px" />
     <div v-if="loading" style="text-align: center; padding: 8px 0; color: #909399; font-size: 12px">
       加载中...
     </div>
-    <div v-else-if="noMore" style="text-align: center; padding: 8px 0; color: #c0c4cc; font-size: 12px">
+    <div v-else-if="noMore && total > 0" style="text-align: center; padding: 8px 0; color: #c0c4cc; font-size: 12px">
       已全部加载
     </div>
   </el-select>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from "vue";
 
 interface OptionItem {
   value: string;
@@ -74,16 +69,16 @@ const proxyValue = computed({
   set: (val) => emit("update:modelValue", val),
 });
 
+const sentinelRef = ref<HTMLElement | null>(null);
 const options = ref<OptionItem[]>([]);
 const loading = ref(false);
 const currentPage = ref(1);
 const total = ref(0);
 const keyword = ref("");
-// 用于去抖的定时器
 let filterTimer: ReturnType<typeof setTimeout> | null = null;
+let observer: IntersectionObserver | null = null;
 
 const noMore = computed(() => options.value.length >= total.value && total.value > 0);
-const scrollDisabled = computed(() => loading.value || noMore.value);
 
 async function fetchPage(reset = false) {
   if (loading.value) return;
@@ -109,11 +104,36 @@ async function fetchPage(reset = false) {
 }
 
 async function loadMore() {
-  if (scrollDisabled.value) return;
+  if (loading.value || noMore.value) return;
   await fetchPage(false);
 }
 
+function setupObserver() {
+  if (observer) {
+    observer.disconnect();
+    observer = null;
+  }
+  if (!sentinelRef.value) return;
+  // IntersectionObserver 挂载后会立即触发一次初始检测，用 initialized 标志跳过它
+  let initialized = false;
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (!initialized) {
+        initialized = true;
+        return;
+      }
+      if (entries[0].isIntersecting && !loading.value && !noMore.value) {
+        loadMore();
+      }
+    },
+    { threshold: 0.1 }
+  );
+  observer.observe(sentinelRef.value);
+}
+
 function handleFilter(val: string) {
+  // el-select 每次打开时会以当前输入值调用 filter-method，keyword 未变时无需重新请求
+  if (val === keyword.value) return;
   keyword.value = val;
   if (filterTimer) clearTimeout(filterTimer);
   filterTimer = setTimeout(() => {
@@ -122,8 +142,14 @@ function handleFilter(val: string) {
 }
 
 function handleVisibleChange(visible: boolean) {
-  if (visible && options.value.length === 0) {
-    fetchPage(true);
+  if (visible) {
+    if (options.value.length === 0) {
+      fetchPage(true);
+    }
+    nextTick(() => setupObserver());
+  } else {
+    observer?.disconnect();
+    observer = null;
   }
 }
 
@@ -134,8 +160,7 @@ function handleClear() {
   emit("change", undefined);
 }
 
-// 如果有初始值但 options 为空（编辑场景），先加载第一页；若 options 中没有匹配项，
-// 用 initialLabel 构造一个临时选项保证回显
+// 编辑场景：有初始值但 options 为空时，先加载第一页保证回显
 watch(
   () => props.modelValue,
   (val) => {
@@ -148,9 +173,12 @@ watch(
 );
 
 onMounted(() => {
-  // 有初始值时立即加载，保证回显
   if (props.modelValue && options.value.length === 0) {
     fetchPage(true);
   }
+});
+
+onUnmounted(() => {
+  observer?.disconnect();
 });
 </script>

@@ -289,6 +289,31 @@ function getEmbedderName(embedderId?: string): string {
 
 使用封装好的 `LazySelect` 组件（`@/views/module_agno_manage/components/LazySelect/index.vue`），支持滚动触底自动加载下一页、服务端关键字搜索、300ms 防抖。
 
+**⚠️ LazySelect 已知陷阱与修复记录：**
+
+1. **`v-infinite-scroll` 废弃警告**：Element Plus 3.0.0 起废弃该指令。已改用 `IntersectionObserver` 观察底部哨兵 `div`，不要再加回 `v-infinite-scroll`，也不要用 `el-scrollbar` 包裹选项（会破坏 el-select 原生下拉布局导致闪烁）。
+
+2. **每次打开下拉都发请求 + 闪烁**：根本原因是 `el-select` 在 `filterable` 模式下，每次下拉打开时都会调用 `filter-method`（传入当前输入值，通常为 `''`），从而触发重新 fetch。
+   **修复**：在 `handleFilter` 中加入 `keyword` 未变化时直接跳过的守卫：
+   ```typescript
+   function handleFilter(val: string) {
+     if (val === keyword.value) return; // ← 关键：相同时跳过，防止打开时误触发
+     keyword.value = val;
+     if (filterTimer) clearTimeout(filterTimer);
+     filterTimer = setTimeout(() => fetchPage(true), 300);
+   }
+   ```
+
+3. **`IntersectionObserver` 立即触发**：Observer 挂载后会立即执行一次初始可见性检测，若哨兵 div 已在视口内（选项未溢出时），会立即触发 `loadMore`。
+   **修复**：在 Observer 回调中用局部 `initialized` 标志跳过首次触发：
+   ```typescript
+   let initialized = false;
+   observer = new IntersectionObserver((entries) => {
+     if (!initialized) { initialized = true; return; } // ← 跳过初始检测
+     if (entries[0].isIntersecting && !loading.value && !noMore.value) loadMore();
+   }, { threshold: 0.1 });
+   ```
+
 **前提条件：** 对应列表接口的 `PageQuery` 须支持 `name?: string` 过滤参数。
 
 **脚本：定义 fetcher 函数**
