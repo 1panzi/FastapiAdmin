@@ -30,7 +30,6 @@
           type="primary"
           :icon="Plus"
           :disabled="!selectedComponentId"
-          :loading="creatingSession"
           @click="createSession"
         >
           新建会话
@@ -276,7 +275,6 @@ const currentSession = computed(() =>
 // 加载状态
 const loadingSessions = ref(false);
 const loadingMessages = ref(false);
-const creatingSession = ref(false);
 const sending = ref(false);
 
 // 输入
@@ -399,7 +397,7 @@ async function reloadMessages() {
   await loadSessionMessages(currentSession.value.id);
 }
 
-async function createSession() {
+function createSession() {
   if (!selectedComponentId.value) return;
   const component = componentList.value.find((c) => c.id === selectedComponentId.value);
   const newId = uuidv4();
@@ -415,15 +413,6 @@ async function createSession() {
   };
   sessions.value.unshift(newSession);
   currentSessionId.value = newId;
-  creatingSession.value = true;
-  try {
-    await AgnoSessionAPI.createSession(
-      { session_id: newId, session_name: name, user_id: String(userId.value) },
-      { type: sessionType.value }
-    );
-  } catch { /* 非关键 */ } finally {
-    creatingSession.value = false;
-  }
 }
 
 function switchSession(id: string) {
