@@ -6,8 +6,8 @@
       <template #header>
         <div class="card-header">
           <span>
-            workflow管理列表
-            <el-tooltip content="workflow管理列表">
+            工作流管理列表
+            <el-tooltip content="工作流管理列表">
               <QuestionFilled class="w-4 h-4 mx-1" />
             </el-tooltip>
           </span>
@@ -22,47 +22,26 @@
             :inline="true"
             @submit.prevent="handleQuery"
           >
-            <el-form-item label="工作流名称'" prop="name">
-              <el-input v-model="queryFormData.name" placeholder="请输入工作流名称'" clearable />
+            <el-form-item label="工作流名称" prop="name">
+              <el-input v-model="queryFormData.name" placeholder="请输入工作流名称" clearable />
             </el-form-item>
-            <el-form-item label="是否开启流式输出" prop="stream">
-              <el-input v-model="queryFormData.stream" placeholder="请输入是否开启流式输出" clearable />
+            <el-form-item label="流式输出" prop="stream">
+              <el-select v-model="queryFormData.stream" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
+              </el-select>
             </el-form-item>
-            <el-form-item label="是否流式推送事件" prop="stream_events">
-              <el-input v-model="queryFormData.stream_events" placeholder="请输入是否流式推送事件" clearable />
-            </el-form-item>
-            <el-form-item label="是否流式推送执行器事件" prop="stream_executor_events">
-              <el-input v-model="queryFormData.stream_executor_events" placeholder="请输入是否流式推送执行器事件" clearable />
-            </el-form-item>
-            <el-form-item label="是否存储事件" prop="store_events">
-              <el-input v-model="queryFormData.store_events" placeholder="请输入是否存储事件" clearable />
-            </el-form-item>
-            <el-form-item label="是否存储执行器输出" prop="store_executor_outputs">
-              <el-input v-model="queryFormData.store_executor_outputs" placeholder="请输入是否存储执行器输出" clearable />
-            </el-form-item>
-            <el-form-item label="是否将工作流历史传给步骤" prop="add_workflow_history_to_steps">
-              <el-input v-model="queryFormData.add_workflow_history_to_steps" placeholder="请输入是否将工作流历史传给步骤" clearable />
-            </el-form-item>
-            <el-form-item label="传给步骤的历史运行次数" prop="num_history_runs">
-              <el-input v-model="queryFormData.num_history_runs" placeholder="请输入传给步骤的历史运行次数" clearable />
-            </el-form-item>
-            <el-form-item label="是否将会话状态加入上下文" prop="add_session_state_to_context">
-              <el-input v-model="queryFormData.add_session_state_to_context" placeholder="请输入是否将会话状态加入上下文" clearable />
-            </el-form-item>
-            <el-form-item label="是否开启调试模式" prop="debug_mode">
-              <el-input v-model="queryFormData.debug_mode" placeholder="请输入是否开启调试模式" clearable />
-            </el-form-item>
-            <el-form-item label="输入结构体JSON Schema" prop="input_schema">
-              <el-input v-model="queryFormData.input_schema" placeholder="请输入输入结构体JSON Schema" clearable />
-            </el-form-item>
-            <el-form-item label="元数据" prop="metadata">
-              <el-input v-model="queryFormData.metadata" placeholder="请输入元数据" clearable />
+            <el-form-item label="调试模式" prop="debug_mode">
+              <el-select v-model="queryFormData.debug_mode" placeholder="请选择" style="width: 120px" clearable>
+                <el-option :value="'true'" label="是" />
+                <el-option :value="'false'" label="否" />
+              </el-select>
             </el-form-item>
             <el-form-item prop="status" label="状态">
               <el-select
                 v-model="queryFormData.status"
                 placeholder="请选择状态"
-                style="width: 170px"
+                style="width: 120px"
                 clearable
               >
                 <el-option value="0" label="启用" />
@@ -112,9 +91,8 @@
               >
                 重置
               </el-button>
-              <!-- 展开/收起 -->
               <template v-if="isExpandable">
-                <el-link 
+                <el-link
                   class="ml-3"
                   type="primary"
                   underline="never"
@@ -122,12 +100,8 @@
                 >
                   {{ isExpand ? "收起" : "展开" }}
                   <el-icon>
-                    <template v-if="isExpand">
-                      <ArrowUp />
-                    </template>
-                    <template v-else>
-                      <ArrowDown />
-                    </template>
+                    <template v-if="isExpand"><ArrowUp /></template>
+                    <template v-else><ArrowDown /></template>
                   </el-icon>
                 </el-link>
               </template>
@@ -168,12 +142,8 @@
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item :icon="Check" @click="handleMoreClick('0')">
-                      批量启用
-                    </el-dropdown-item>
-                    <el-dropdown-item :icon="CircleClose" @click="handleMoreClick('1')">
-                      批量停用
-                    </el-dropdown-item>
+                    <el-dropdown-item :icon="Check" @click="handleMoreClick('0')">批量启用</el-dropdown-item>
+                    <el-dropdown-item :icon="CircleClose" @click="handleMoreClick('1')">批量停用</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
@@ -206,13 +176,7 @@
             </el-col>
             <el-col :span="1.5">
               <el-tooltip content="搜索显示/隐藏">
-                <el-button
-                  v-hasPerm="['*:*:*']"
-                  type="info"
-                  icon="search"
-                  circle
-                  @click="visible = !visible"
-                />
+                <el-button type="info" icon="search" circle @click="visible = !visible" />
               </el-tooltip>
             </el-col>
             <el-col :span="1.5">
@@ -242,7 +206,7 @@
         </div>
       </div>
 
-      <!-- 表格区域：系统配置列表 -->
+      <!-- 表格区域 -->
       <el-table
         ref="tableRef"
         v-loading="loading"
@@ -274,101 +238,126 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'name')?.show"
-          label="工作流名称'"
+          label="工作流名称"
           prop="name"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'stream')?.show"
-          label="是否开启流式输出"
+          label="流式输出"
           prop="stream"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="100"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.stream === true ? 'success' : scope.row.stream === false ? 'danger' : undefined">
+              {{ scope.row.stream === true ? '是' : scope.row.stream === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'stream_events')?.show"
-          label="是否流式推送事件"
+          label="流式推送事件"
           prop="stream_events"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="120"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.stream_events === true ? 'success' : scope.row.stream_events === false ? 'danger' : undefined">
+              {{ scope.row.stream_events === true ? '是' : scope.row.stream_events === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'stream_executor_events')?.show"
-          label="是否流式推送执行器事件"
+          label="流式推送执行器事件"
           prop="stream_executor_events"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="150"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.stream_executor_events === true ? 'success' : scope.row.stream_executor_events === false ? 'danger' : undefined">
+              {{ scope.row.stream_executor_events === true ? '是' : scope.row.stream_executor_events === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'store_events')?.show"
-          label="是否存储事件"
+          label="存储事件"
           prop="store_events"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="100"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.store_events === true ? 'success' : scope.row.store_events === false ? 'danger' : undefined">
+              {{ scope.row.store_events === true ? '是' : scope.row.store_events === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'store_executor_outputs')?.show"
-          label="是否存储执行器输出"
+          label="存储执行器输出"
           prop="store_executor_outputs"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="130"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.store_executor_outputs === true ? 'success' : scope.row.store_executor_outputs === false ? 'danger' : undefined">
+              {{ scope.row.store_executor_outputs === true ? '是' : scope.row.store_executor_outputs === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'add_workflow_history_to_steps')?.show"
-          label="是否将工作流历史传给步骤"
+          label="传历史给步骤"
           prop="add_workflow_history_to_steps"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="120"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.add_workflow_history_to_steps === true ? 'success' : scope.row.add_workflow_history_to_steps === false ? 'danger' : undefined">
+              {{ scope.row.add_workflow_history_to_steps === true ? '是' : scope.row.add_workflow_history_to_steps === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'num_history_runs')?.show"
-          label="传给步骤的历史运行次数"
+          label="历史运行次数"
           prop="num_history_runs"
-          min-width="140"
+          min-width="120"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'add_session_state_to_context')?.show"
-          label="是否将会话状态加入上下文"
+          label="会话状态加入上下文"
           prop="add_session_state_to_context"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="150"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.add_session_state_to_context === true ? 'success' : scope.row.add_session_state_to_context === false ? 'danger' : undefined">
+              {{ scope.row.add_session_state_to_context === true ? '是' : scope.row.add_session_state_to_context === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'debug_mode')?.show"
-          label="是否开启调试模式"
+          label="调试模式"
           prop="debug_mode"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="100"
+        >
+          <template #default="scope">
+            <el-tag :type="scope.row.debug_mode === true ? 'success' : scope.row.debug_mode === false ? 'danger' : undefined">
+              {{ scope.row.debug_mode === true ? '是' : scope.row.debug_mode === false ? '否' : '默认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'input_schema')?.show"
-          label="输入结构体JSON Schema"
-          prop="input_schema"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'metadata')?.show"
-          label="元数据"
-          prop="metadata"
-          min-width="140"
+          v-if="tableColumns.find((col) => col.prop === 'status')?.show"
+          label="状态原始值"
+          prop="status"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
-          prop="status"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="80"
         >
           <template #default="scope">
             <el-tag :type="scope.row.status == '0' ? 'success' : 'info'">
@@ -378,38 +367,37 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'description')?.show"
-          label=""
+          label="描述"
           prop="description"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
-          label=""
+          label="创建时间"
           prop="created_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
-          label=""
+          label="更新时间"
           prop="updated_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人ID"
           prop="created_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人"
           prop="created_id"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="120"
         >
           <template #default="scope">
             <el-tag>{{ scope.row.created_by?.name }}</el-tag>
@@ -417,17 +405,16 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人ID"
           prop="updated_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人"
           prop="updated_id"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="120"
         >
           <template #default="scope">
             <el-tag>{{ scope.row.updated_by?.name }}</el-tag>
@@ -490,73 +477,72 @@
     <el-dialog
       v-model="dialogVisible.visible"
       :title="dialogVisible.title"
+      width="800px"
       @close="handleCloseDialog"
     >
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="" :span="2">
-            {{ detailFormData.id }}
-          </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
-            {{ detailFormData.uuid }}
-          </el-descriptions-item>
-          <el-descriptions-item label="工作流名称'" :span="2">
-            {{ detailFormData.name }}
-          </el-descriptions-item>
-          <el-descriptions-item label="是否开启流式输出" :span="2">
-            {{ detailFormData.stream }}
-          </el-descriptions-item>
-          <el-descriptions-item label="是否流式推送事件" :span="2">
-            {{ detailFormData.stream_events }}
-          </el-descriptions-item>
-          <el-descriptions-item label="是否流式推送执行器事件" :span="2">
-            {{ detailFormData.stream_executor_events }}
-          </el-descriptions-item>
-          <el-descriptions-item label="是否存储事件" :span="2">
-            {{ detailFormData.store_events }}
-          </el-descriptions-item>
-          <el-descriptions-item label="是否存储执行器输出" :span="2">
-            {{ detailFormData.store_executor_outputs }}
-          </el-descriptions-item>
-          <el-descriptions-item label="是否将工作流历史传给步骤" :span="2">
-            {{ detailFormData.add_workflow_history_to_steps }}
-          </el-descriptions-item>
-          <el-descriptions-item label="传给步骤的历史运行次数" :span="2">
-            {{ detailFormData.num_history_runs }}
-          </el-descriptions-item>
-          <el-descriptions-item label="是否将会话状态加入上下文" :span="2">
-            {{ detailFormData.add_session_state_to_context }}
-          </el-descriptions-item>
-          <el-descriptions-item label="是否开启调试模式" :span="2">
-            {{ detailFormData.debug_mode }}
-          </el-descriptions-item>
-          <el-descriptions-item label="输入结构体JSON Schema" :span="2">
-            {{ detailFormData.input_schema }}
-          </el-descriptions-item>
-          <el-descriptions-item label="元数据" :span="2">
-            {{ detailFormData.metadata }}
-          </el-descriptions-item>
+          <el-descriptions-item label="ID" :span="2">{{ detailFormData.id }}</el-descriptions-item>
+          <el-descriptions-item label="UUID" :span="2">{{ detailFormData.uuid }}</el-descriptions-item>
+          <el-descriptions-item label="工作流名称" :span="2">{{ detailFormData.name }}</el-descriptions-item>
           <el-descriptions-item label="状态" :span="2">
-            <el-tag :type="detailFormData.status == '0' ? 'success' : 'danger'">
+            <el-tag :type="detailFormData.status == '0' ? 'success' : 'info'">
               {{ detailFormData.status == "0" ? "启用" : "停用" }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
-            {{ detailFormData.description }}
+          <el-descriptions-item label="流式输出" :span="2">
+            <el-tag :type="detailFormData.stream === true ? 'success' : detailFormData.stream === false ? 'danger' : undefined">
+              {{ detailFormData.stream === true ? '是' : detailFormData.stream === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
-            {{ detailFormData.created_time }}
+          <el-descriptions-item label="流式推送事件" :span="2">
+            <el-tag :type="detailFormData.stream_events === true ? 'success' : detailFormData.stream_events === false ? 'danger' : undefined">
+              {{ detailFormData.stream_events === true ? '是' : detailFormData.stream_events === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
-            {{ detailFormData.updated_time }}
+          <el-descriptions-item label="流式推送执行器事件" :span="2">
+            <el-tag :type="detailFormData.stream_executor_events === true ? 'success' : detailFormData.stream_executor_events === false ? 'danger' : undefined">
+              {{ detailFormData.stream_executor_events === true ? '是' : detailFormData.stream_executor_events === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="创建人" :span="2">
-            {{ detailFormData.created_by?.name }}
+          <el-descriptions-item label="存储事件" :span="2">
+            <el-tag :type="detailFormData.store_events === true ? 'success' : detailFormData.store_events === false ? 'danger' : undefined">
+              {{ detailFormData.store_events === true ? '是' : detailFormData.store_events === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="更新人" :span="2">
-            {{ detailFormData.updated_by?.name }}
+          <el-descriptions-item label="存储执行器输出" :span="2">
+            <el-tag :type="detailFormData.store_executor_outputs === true ? 'success' : detailFormData.store_executor_outputs === false ? 'danger' : undefined">
+              {{ detailFormData.store_executor_outputs === true ? '是' : detailFormData.store_executor_outputs === false ? '否' : '默认' }}
+            </el-tag>
           </el-descriptions-item>
+          <el-descriptions-item label="传历史给步骤" :span="2">
+            <el-tag :type="detailFormData.add_workflow_history_to_steps === true ? 'success' : detailFormData.add_workflow_history_to_steps === false ? 'danger' : undefined">
+              {{ detailFormData.add_workflow_history_to_steps === true ? '是' : detailFormData.add_workflow_history_to_steps === false ? '否' : '默认' }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="历史运行次数" :span="2">{{ detailFormData.num_history_runs }}</el-descriptions-item>
+          <el-descriptions-item label="会话状态加入上下文" :span="2">
+            <el-tag :type="detailFormData.add_session_state_to_context === true ? 'success' : detailFormData.add_session_state_to_context === false ? 'danger' : undefined">
+              {{ detailFormData.add_session_state_to_context === true ? '是' : detailFormData.add_session_state_to_context === false ? '否' : '默认' }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="调试模式" :span="2">
+            <el-tag :type="detailFormData.debug_mode === true ? 'success' : detailFormData.debug_mode === false ? 'danger' : undefined">
+              {{ detailFormData.debug_mode === true ? '是' : detailFormData.debug_mode === false ? '否' : '默认' }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="输入结构体Schema" :span="4">
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ JSON.stringify(detailFormData.input_schema, null, 2) }}</pre>
+          </el-descriptions-item>
+          <el-descriptions-item label="元数据配置" :span="4">
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ JSON.stringify(detailFormData.metadata_config, null, 2) }}</pre>
+          </el-descriptions-item>
+          <el-descriptions-item label="描述" :span="4">{{ detailFormData.description }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间" :span="2">{{ detailFormData.created_time }}</el-descriptions-item>
+          <el-descriptions-item label="更新时间" :span="2">{{ detailFormData.updated_time }}</el-descriptions-item>
+          <el-descriptions-item label="创建人" :span="2">{{ detailFormData.created_by?.name }}</el-descriptions-item>
+          <el-descriptions-item label="更新人" :span="2">{{ detailFormData.updated_by?.name }}</el-descriptions-item>
         </el-descriptions>
       </template>
 
@@ -567,67 +553,107 @@
           :model="formData"
           :rules="rules"
           label-suffix=":"
-          label-width="auto"
+          label-width="160px"
           label-position="right"
         >
-          <el-form-item label="工作流名称'" prop="name" :required="false">
-            <el-input v-model="formData.name" placeholder="请输入工作流名称'" />
-          </el-form-item>
-          <el-form-item label="是否开启流式输出" prop="stream" :required="false">
-            <el-input v-model="formData.stream" placeholder="请输入是否开启流式输出" />
-          </el-form-item>
-          <el-form-item label="是否流式推送事件" prop="stream_events" :required="false">
-            <el-input v-model="formData.stream_events" placeholder="请输入是否流式推送事件" />
-          </el-form-item>
-          <el-form-item label="是否流式推送执行器事件" prop="stream_executor_events" :required="false">
-            <el-input v-model="formData.stream_executor_events" placeholder="请输入是否流式推送执行器事件" />
-          </el-form-item>
-          <el-form-item label="是否存储事件" prop="store_events" :required="false">
-            <el-input v-model="formData.store_events" placeholder="请输入是否存储事件" />
-          </el-form-item>
-          <el-form-item label="是否存储执行器输出" prop="store_executor_outputs" :required="false">
-            <el-input v-model="formData.store_executor_outputs" placeholder="请输入是否存储执行器输出" />
-          </el-form-item>
-          <el-form-item label="是否将工作流历史传给步骤" prop="add_workflow_history_to_steps" :required="false">
-            <el-input v-model="formData.add_workflow_history_to_steps" placeholder="请输入是否将工作流历史传给步骤" />
-          </el-form-item>
-          <el-form-item label="传给步骤的历史运行次数" prop="num_history_runs" :required="false">
-            <el-input v-model="formData.num_history_runs" placeholder="请输入传给步骤的历史运行次数" />
-          </el-form-item>
-          <el-form-item label="是否将会话状态加入上下文" prop="add_session_state_to_context" :required="false">
-            <el-input v-model="formData.add_session_state_to_context" placeholder="请输入是否将会话状态加入上下文" />
-          </el-form-item>
-          <el-form-item label="是否开启调试模式" prop="debug_mode" :required="false">
-            <el-input v-model="formData.debug_mode" placeholder="请输入是否开启调试模式" />
-          </el-form-item>
-          <el-form-item label="输入结构体JSON Schema" prop="input_schema" :required="false">
-            <el-input v-model="formData.input_schema" placeholder="请输入输入结构体JSON Schema" />
-          </el-form-item>
-          <el-form-item label="元数据" prop="metadata" :required="false">
-            <el-input v-model="formData.metadata" placeholder="请输入元数据" />
-          </el-form-item>
-          <el-form-item label="状态" prop="status" :required="true">
-            <el-radio-group v-model="formData.status">
-              <el-radio value="0">启用</el-radio>
-              <el-radio value="1">停用</el-radio>
-            </el-radio-group>
-          </el-form-item>
-          <el-form-item label="描述" prop="description">
-            <el-input
-              v-model="formData.description"
-              :rows="4"
-              :maxlength="100"
-              show-word-limit
-              type="textarea"
-              placeholder="请输入描述"
-            />
-          </el-form-item>
+          <el-tabs type="border-card">
+            <!-- Tab1: 基本信息 -->
+            <el-tab-pane label="基本信息">
+              <el-form-item label="工作流名称" prop="name" :required="false">
+                <el-input v-model="formData.name" placeholder="请输入工作流名称" />
+              </el-form-item>
+              <el-form-item label="状态" prop="status" :required="false">
+                <el-radio-group v-model="formData.status">
+                  <el-radio value="0">启用</el-radio>
+                  <el-radio value="1">停用</el-radio>
+                </el-radio-group>
+              </el-form-item>
+              <el-form-item label="描述" prop="description" :required="false">
+                <el-input
+                  v-model="formData.description"
+                  :rows="4"
+                  :maxlength="200"
+                  show-word-limit
+                  type="textarea"
+                  placeholder="请输入描述"
+                />
+              </el-form-item>
+            </el-tab-pane>
+
+            <!-- Tab2: 流式与存储 -->
+            <el-tab-pane label="流式与存储">
+              <el-form-item label="流式输出" prop="stream" :required="false">
+                <el-select v-model="formData.stream" placeholder="默认" clearable style="width: 100%">
+                  <el-option label="开启" :value="true" />
+                  <el-option label="关闭" :value="false" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="流式推送事件" prop="stream_events" :required="false">
+                <el-select v-model="formData.stream_events" placeholder="默认" clearable style="width: 100%">
+                  <el-option label="开启" :value="true" />
+                  <el-option label="关闭" :value="false" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="流式推送执行器事件" prop="stream_executor_events" :required="false">
+                <el-select v-model="formData.stream_executor_events" placeholder="默认" clearable style="width: 100%">
+                  <el-option label="开启" :value="true" />
+                  <el-option label="关闭" :value="false" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="存储事件" prop="store_events" :required="false">
+                <el-select v-model="formData.store_events" placeholder="默认" clearable style="width: 100%">
+                  <el-option label="开启" :value="true" />
+                  <el-option label="关闭" :value="false" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="存储执行器输出" prop="store_executor_outputs" :required="false">
+                <el-select v-model="formData.store_executor_outputs" placeholder="默认" clearable style="width: 100%">
+                  <el-option label="开启" :value="true" />
+                  <el-option label="关闭" :value="false" />
+                </el-select>
+              </el-form-item>
+            </el-tab-pane>
+
+            <!-- Tab3: 历史与上下文 -->
+            <el-tab-pane label="历史与上下文">
+              <el-form-item label="传历史给步骤" prop="add_workflow_history_to_steps" :required="false">
+                <el-select v-model="formData.add_workflow_history_to_steps" placeholder="默认" clearable style="width: 100%">
+                  <el-option label="开启" :value="true" />
+                  <el-option label="关闭" :value="false" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="历史运行次数" prop="num_history_runs" :required="false">
+                <el-input-number v-model="formData.num_history_runs" :min="0" placeholder="请输入历史运行次数" style="width: 100%" />
+              </el-form-item>
+              <el-form-item label="会话状态加入上下文" prop="add_session_state_to_context" :required="false">
+                <el-select v-model="formData.add_session_state_to_context" placeholder="默认" clearable style="width: 100%">
+                  <el-option label="开启" :value="true" />
+                  <el-option label="关闭" :value="false" />
+                </el-select>
+              </el-form-item>
+            </el-tab-pane>
+
+            <!-- Tab4: 调试与Schema -->
+            <el-tab-pane label="调试与Schema">
+              <el-form-item label="调试模式" prop="debug_mode" :required="false">
+                <el-select v-model="formData.debug_mode" placeholder="默认" clearable style="width: 100%">
+                  <el-option label="开启" :value="true" />
+                  <el-option label="关闭" :value="false" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="输入结构体Schema" prop="input_schema" :required="false">
+                <DictEditor v-model="formData.input_schema" />
+              </el-form-item>
+              <el-form-item label="元数据配置" prop="metadata_config" :required="false">
+                <DictEditor v-model="formData.metadata_config" />
+              </el-form-item>
+            </el-tab-pane>
+          </el-tabs>
         </el-form>
       </template>
 
       <template #footer>
         <div class="dialog-footer">
-          <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
           <el-button @click="handleCloseDialog">取消</el-button>
           <el-button v-if="dialogVisible.type !== 'detail'" type="primary" @click="handleSubmit">
             确定
@@ -672,6 +698,7 @@ import DatePicker from "@/components/DatePicker/index.vue";
 import type { IContentConfig } from "@/components/CURD/types";
 import ImportModal from "@/components/CURD/ImportModal.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
+import DictEditor from "@/views/module_agno_manage/components/DictEditor/index.vue";
 import AgWorkflowAPI, {
   AgWorkflowPageQuery,
   AgWorkflowTable,
@@ -688,64 +715,55 @@ const loading = ref(false);
 const isExpand = ref(false);
 const isExpandable = ref(true);
 
-// 分页表单
 const pageTableData = ref<AgWorkflowTable[]>([]);
 
-// 表格列配置
 const tableColumns = ref([
   { prop: "selection", label: "选择框", show: true },
   { prop: "index", label: "序号", show: true },
-  { prop: "name", label: "工作流名称'", show: true },
-  { prop: "stream", label: "是否开启流式输出", show: true },
-  { prop: "stream_events", label: "是否流式推送事件", show: true },
-  { prop: "stream_executor_events", label: "是否流式推送执行器事件", show: true },
-  { prop: "store_events", label: "是否存储事件", show: true },
-  { prop: "store_executor_outputs", label: "是否存储执行器输出", show: true },
-  { prop: "add_workflow_history_to_steps", label: "是否将工作流历史传给步骤", show: true },
-  { prop: "num_history_runs", label: "传给步骤的历史运行次数", show: true },
-  { prop: "add_session_state_to_context", label: "是否将会话状态加入上下文", show: true },
-  { prop: "debug_mode", label: "是否开启调试模式", show: true },
-  { prop: "input_schema", label: "输入结构体JSON Schema", show: true },
-  { prop: "metadata", label: "元数据", show: true },
-  { prop: "status", label: "status", show: true },
-  { prop: "description", label: "description", show: true },
-  { prop: "created_time", label: "created_time", show: true },
-  { prop: "updated_time", label: "updated_time", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "name", label: "工作流名称", show: true },
+  { prop: "stream", label: "流式输出", show: true },
+  { prop: "stream_events", label: "流式推送事件", show: false },
+  { prop: "stream_executor_events", label: "流式推送执行器事件", show: false },
+  { prop: "store_events", label: "存储事件", show: false },
+  { prop: "store_executor_outputs", label: "存储执行器输出", show: false },
+  { prop: "add_workflow_history_to_steps", label: "传历史给步骤", show: false },
+  { prop: "num_history_runs", label: "历史运行次数", show: false },
+  { prop: "add_session_state_to_context", label: "会话状态加入上下文", show: false },
+  { prop: "debug_mode", label: "调试模式", show: true },
+  { prop: "status", label: "状态", show: true },
+  { prop: "description", label: "描述", show: true },
+  { prop: "created_time", label: "创建时间", show: true },
+  { prop: "updated_time", label: "更新时间", show: false },
+  { prop: "created_id", label: "创建人", show: true },
+  { prop: "updated_id", label: "更新人", show: false },
   { prop: "operation", label: "操作", show: true },
 ]);
 
-// 导出列（不含选择/序号/操作）
 const exportColumns = [
-  { prop: "name", label: "工作流名称'" },
-  { prop: "stream", label: "是否开启流式输出" },
-  { prop: "stream_events", label: "是否流式推送事件" },
-  { prop: "stream_executor_events", label: "是否流式推送执行器事件" },
-  { prop: "store_events", label: "是否存储事件" },
-  { prop: "store_executor_outputs", label: "是否存储执行器输出" },
-  { prop: "add_workflow_history_to_steps", label: "是否将工作流历史传给步骤" },
-  { prop: "num_history_runs", label: "传给步骤的历史运行次数" },
-  { prop: "add_session_state_to_context", label: "是否将会话状态加入上下文" },
-  { prop: "debug_mode", label: "是否开启调试模式" },
-  { prop: "input_schema", label: "输入结构体JSON Schema" },
-  { prop: "metadata", label: "元数据" },
-  { prop: "status", label: "status" },
-  { prop: "description", label: "description" },
-  { prop: "created_time", label: "created_time" },
-  { prop: "updated_time", label: "updated_time" },
-  { prop: "created_id", label: "created_id" },
-  { prop: "updated_id", label: "updated_id" },
+  { prop: "name", label: "工作流名称" },
+  { prop: "stream", label: "流式输出" },
+  { prop: "stream_events", label: "流式推送事件" },
+  { prop: "stream_executor_events", label: "流式推送执行器事件" },
+  { prop: "store_events", label: "存储事件" },
+  { prop: "store_executor_outputs", label: "存储执行器输出" },
+  { prop: "add_workflow_history_to_steps", label: "传历史给步骤" },
+  { prop: "num_history_runs", label: "历史运行次数" },
+  { prop: "add_session_state_to_context", label: "会话状态加入上下文" },
+  { prop: "debug_mode", label: "调试模式" },
+  { prop: "status", label: "状态" },
+  { prop: "description", label: "描述" },
+  { prop: "created_time", label: "创建时间" },
+  { prop: "updated_time", label: "更新时间" },
+  { prop: "created_id", label: "创建人ID" },
+  { prop: "updated_id", label: "更新人ID" },
 ];
 
-// 导入/导出配置
 const curdContentConfig = {
   permPrefix: "module_agno_manage:workflows",
   cols: exportColumns as any,
   importTemplate: () => AgWorkflowAPI.downloadTemplateAgWorkflow(),
   exportsAction: async (params: any) => {
     const query: any = { ...params };
-    query.status = "0";
     query.page_no = 1;
     query.page_size = 9999;
     const all: any[] = [];
@@ -761,14 +779,10 @@ const curdContentConfig = {
   },
 } as unknown as IContentConfig;
 
-// 详情表单
 const detailFormData = ref<AgWorkflowTable>({});
-// 日期范围临时变量
 const createdDateRange = ref<[Date, Date] | []>([]);
-// 更新时间范围临时变量
 const updatedDateRange = ref<[Date, Date] | []>([]);
 
-// 处理创建时间范围变化
 function handleCreatedDateRangeChange(range: [Date, Date]) {
   createdDateRange.value = range;
   if (range && range.length === 2) {
@@ -778,7 +792,6 @@ function handleCreatedDateRangeChange(range: [Date, Date]) {
   }
 }
 
-// 处理更新时间范围变化
 function handleUpdatedDateRangeChange(range: [Date, Date]) {
   updatedDateRange.value = range;
   if (range && range.length === 2) {
@@ -788,22 +801,12 @@ function handleUpdatedDateRangeChange(range: [Date, Date]) {
   }
 }
 
-// 分页查询参数
 const queryFormData = reactive<AgWorkflowPageQuery>({
   page_no: 1,
   page_size: 10,
   name: undefined,
   stream: undefined,
-  stream_events: undefined,
-  stream_executor_events: undefined,
-  store_events: undefined,
-  store_executor_outputs: undefined,
-  add_workflow_history_to_steps: undefined,
-  num_history_runs: undefined,
-  add_session_state_to_context: undefined,
   debug_mode: undefined,
-  input_schema: undefined,
-  metadata: undefined,
   status: undefined,
   created_time: undefined,
   updated_time: undefined,
@@ -811,121 +814,6 @@ const queryFormData = reactive<AgWorkflowPageQuery>({
   updated_id: undefined,
 });
 
-// 编辑表单
-const formData = reactive<AgWorkflowForm>({
-  id: undefined,
-  name: undefined,
-  stream: undefined,
-  stream_events: undefined,
-  stream_executor_events: undefined,
-  store_events: undefined,
-  store_executor_outputs: undefined,
-  add_workflow_history_to_steps: undefined,
-  num_history_runs: undefined,
-  add_session_state_to_context: undefined,
-  debug_mode: undefined,
-  input_schema: undefined,
-  metadata: undefined,
-  status: "0",
-  description: undefined,
-});
-
-// 字典仓库与需要加载的字典类型
-const dictStore = useDictStore();
-const dictTypes: any = [
-];
-
-// 弹窗状态
-const dialogVisible = reactive({
-  title: "",
-  visible: false,
-  type: "create" as "create" | "update" | "detail",
-});
-
-// 表单验证规则
-const rules = reactive({
-  id: [{ required: false, message: "请输入id", trigger: "blur" }],
-  uuid: [{ required: false, message: "请输入uuid", trigger: "blur" }],
-  name: [{ required: false, message: "请输入工作流名称'", trigger: "blur" }],
-  stream: [{ required: false, message: "请输入是否开启流式输出", trigger: "blur" }],
-  stream_events: [{ required: false, message: "请输入是否流式推送事件", trigger: "blur" }],
-  stream_executor_events: [{ required: false, message: "请输入是否流式推送执行器事件", trigger: "blur" }],
-  store_events: [{ required: false, message: "请输入是否存储事件", trigger: "blur" }],
-  store_executor_outputs: [{ required: false, message: "请输入是否存储执行器输出", trigger: "blur" }],
-  add_workflow_history_to_steps: [{ required: false, message: "请输入是否将工作流历史传给步骤", trigger: "blur" }],
-  num_history_runs: [{ required: false, message: "请输入传给步骤的历史运行次数", trigger: "blur" }],
-  add_session_state_to_context: [{ required: false, message: "请输入是否将会话状态加入上下文", trigger: "blur" }],
-  debug_mode: [{ required: false, message: "请输入是否开启调试模式", trigger: "blur" }],
-  input_schema: [{ required: true, message: "请输入输入结构体JSON Schema", trigger: "blur" }],
-  metadata: [{ required: false, message: "请输入元数据", trigger: "blur" }],
-  status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: false, message: "请输入description", trigger: "blur" }],
-  created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
-  updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
-  created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
-  updated_id: [{ required: true, message: "请输入updated_id", trigger: "blur" }],
-});
-
-// 导入弹窗显示状态
-const importDialogVisible = ref(false);
-const uploadLoading = ref(false);
-
-// 导出弹窗显示状态
-const exportsDialogVisible = ref(false);
-
-// 打开导入弹窗
-function handleOpenImportDialog() {
-  importDialogVisible.value = true;
-}
-
-// 打开导出弹窗
-function handleOpenExportsModal() {
-  exportsDialogVisible.value = true;
-}
-
-// 列表刷新
-async function handleRefresh() {
-  await loadingData();
-}
-
-// 加载表格数据
-async function loadingData() {
-  loading.value = true;
-  try {
-    const response = await AgWorkflowAPI.listAgWorkflow(queryFormData);
-    pageTableData.value = response.data.data.items;
-    total.value = response.data.data.total;
-  } catch (error: any) {
-    console.error(error);
-  } finally {
-    loading.value = false;
-  }
-}
-
-// 查询（重置页码后获取数据）
-async function handleQuery() {
-  queryFormData.page_no = 1;
-  loadingData();
-}
-
-// 选择创建人后触发查询
-function handleConfirm() {
-  handleQuery();
-}
-
-// 重置查询
-async function handleResetQuery() {
-  queryFormRef.value.resetFields();
-  queryFormData.page_no = 1;
-  // 重置日期范围选择器
-  createdDateRange.value = [];
-  updatedDateRange.value = [];
-  queryFormData.created_time = undefined;
-  queryFormData.updated_time = undefined;
-  loadingData();
-}
-
-// 定义初始表单数据常量
 const initialFormData: AgWorkflowForm = {
   id: undefined,
   name: undefined,
@@ -939,34 +827,93 @@ const initialFormData: AgWorkflowForm = {
   add_session_state_to_context: undefined,
   debug_mode: undefined,
   input_schema: undefined,
-  metadata: undefined,
+  metadata_config: undefined,
   status: "0",
   description: undefined,
 };
 
-// 重置表单
+const formData = reactive<AgWorkflowForm>({ ...initialFormData });
+
+const dictStore = useDictStore();
+const dictTypes: any = [];
+
+const dialogVisible = reactive({
+  title: "",
+  visible: false,
+  type: "create" as "create" | "update" | "detail",
+});
+
+const rules = reactive({
+  name: [{ required: false, message: "请输入工作流名称", trigger: "blur" }],
+  status: [{ required: false, message: "请选择状态", trigger: "change" }],
+});
+
+const importDialogVisible = ref(false);
+const uploadLoading = ref(false);
+const exportsDialogVisible = ref(false);
+
+function handleOpenImportDialog() {
+  importDialogVisible.value = true;
+}
+
+function handleOpenExportsModal() {
+  exportsDialogVisible.value = true;
+}
+
+async function handleRefresh() {
+  await loadingData();
+}
+
+async function loadingData() {
+  loading.value = true;
+  try {
+    const response = await AgWorkflowAPI.listAgWorkflow(queryFormData);
+    pageTableData.value = response.data.data.items;
+    total.value = response.data.data.total;
+  } catch (error: any) {
+    console.error(error);
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function handleQuery() {
+  queryFormData.page_no = 1;
+  loadingData();
+}
+
+function handleConfirm() {
+  handleQuery();
+}
+
+async function handleResetQuery() {
+  queryFormRef.value.resetFields();
+  queryFormData.page_no = 1;
+  createdDateRange.value = [];
+  updatedDateRange.value = [];
+  queryFormData.created_time = undefined;
+  queryFormData.updated_time = undefined;
+  loadingData();
+}
+
 async function resetForm() {
   if (dataFormRef.value) {
     dataFormRef.value.resetFields();
     dataFormRef.value.clearValidate();
   }
-  // 完全重置 formData 为初始状态
   Object.assign(formData, initialFormData);
 }
 
-// 行复选框选中项变化
 async function handleSelectionChange(selection: any) {
   selectIds.value = selection.map((item: any) => item.id);
   selectionRows.value = selection;
 }
 
-// 关闭弹窗
 async function handleCloseDialog() {
   dialogVisible.visible = false;
   resetForm();
 }
 
-// 打开弹窗
 async function handleOpenDialog(type: "create" | "update" | "detail", id?: number) {
   dialogVisible.type = type;
   if (id) {
@@ -976,43 +923,25 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
       Object.assign(detailFormData.value, response.data.data);
     } else if (type === "update") {
       dialogVisible.title = "修改";
-      Object.assign(formData, response.data.data);
+      Object.assign(formData, initialFormData, response.data.data);
     }
   } else {
-    dialogVisible.title = "新增AgWorkflow";
-    formData.id = undefined;
-    formData.name = undefined;
-    formData.stream = undefined;
-    formData.stream_events = undefined;
-    formData.stream_executor_events = undefined;
-    formData.store_events = undefined;
-    formData.store_executor_outputs = undefined;
-    formData.add_workflow_history_to_steps = undefined;
-    formData.num_history_runs = undefined;
-    formData.add_session_state_to_context = undefined;
-    formData.debug_mode = undefined;
-    formData.input_schema = undefined;
-    formData.metadata = undefined;
+    dialogVisible.title = "新增工作流";
+    Object.assign(formData, initialFormData);
     formData.status = "0";
-    formData.description = undefined;
   }
   dialogVisible.visible = true;
 }
 
-// 提交表单（防抖）
 async function handleSubmit() {
-  // 表单校验
   dataFormRef.value.validate(async (valid: any) => {
     if (valid) {
       loading.value = true;
-      // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
       const submitData = { ...formData };
       const id = formData.id;
       if (id) {
         try {
           await AgWorkflowAPI.updateAgWorkflow(id, { id, ...submitData });
-          dialogVisible.visible = false;
-          resetForm();
           handleCloseDialog();
           handleResetQuery();
         } catch (error: any) {
@@ -1023,8 +952,6 @@ async function handleSubmit() {
       } else {
         try {
           await AgWorkflowAPI.createAgWorkflow(submitData);
-          dialogVisible.visible = false;
-          resetForm();
           handleCloseDialog();
           handleResetQuery();
         } catch (error: any) {
@@ -1037,7 +964,6 @@ async function handleSubmit() {
   });
 }
 
-// 删除、批量删除
 async function handleDelete(ids: number[]) {
   ElMessageBox.confirm("确认删除该项数据?", "警告", {
     confirmButtonText: "确定",
@@ -1060,7 +986,6 @@ async function handleDelete(ids: number[]) {
     });
 }
 
-// 批量启用/停用
 async function handleMoreClick(status: string) {
   if (selectIds.value.length) {
     ElMessageBox.confirm(`确认${status === "0" ? "启用" : "停用"}该项数据?`, "警告", {
@@ -1085,7 +1010,6 @@ async function handleMoreClick(status: string) {
   }
 }
 
-// 处理上传
 const handleUpload = async (formData: FormData) => {
   try {
     uploadLoading.value = true;
@@ -1103,7 +1027,6 @@ const handleUpload = async (formData: FormData) => {
 };
 
 onMounted(async () => {
-  // 预加载字典数据
   if (dictTypes.length > 0) {
     await dictStore.getDict(dictTypes);
   }

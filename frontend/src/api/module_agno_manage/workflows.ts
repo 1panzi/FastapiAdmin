@@ -104,8 +104,6 @@ export interface AgWorkflowPageQuery extends PageQuery {
   num_history_runs?: string;
   add_session_state_to_context?: string;
   debug_mode?: string;
-  input_schema?: string;
-  metadata?: string;
   status?: string;
   created_id?: number;
   updated_id?: number;
@@ -116,17 +114,17 @@ export interface AgWorkflowPageQuery extends PageQuery {
 // 列表展示项
 export interface AgWorkflowTable extends BaseType {
   name?: string;
-  stream?: string;
-  stream_events?: string;
-  stream_executor_events?: string;
-  store_events?: string;
-  store_executor_outputs?: string;
-  add_workflow_history_to_steps?: string;
-  num_history_runs?: string;
-  add_session_state_to_context?: string;
-  debug_mode?: string;
-  input_schema?: string;
-  metadata?: string;
+  stream?: boolean | null;
+  stream_events?: boolean | null;
+  stream_executor_events?: boolean | null;
+  store_events?: boolean | null;
+  store_executor_outputs?: boolean | null;
+  add_workflow_history_to_steps?: boolean | null;
+  num_history_runs?: number | null;
+  add_session_state_to_context?: boolean | null;
+  debug_mode?: boolean | null;
+  input_schema?: Record<string, any> | null;
+  metadata_config?: Record<string, any> | null;
   created_id?: string;
   updated_id?: string;
   created_by?: CommonType;
@@ -136,15 +134,15 @@ export interface AgWorkflowTable extends BaseType {
 // 新增/修改/详情表单参数
 export interface AgWorkflowForm extends BaseFormType {
   name?: string;
-  stream?: string;
-  stream_events?: string;
-  stream_executor_events?: string;
-  store_events?: string;
-  store_executor_outputs?: string;
-  add_workflow_history_to_steps?: string;
-  num_history_runs?: string;
-  add_session_state_to_context?: string;
-  debug_mode?: string;
-  input_schema?: string;
-  metadata?: string;
+  stream?: boolean | null;
+  stream_events?: boolean | null;
+  stream_executor_events?: boolean | null;
+  store_events?: boolean | null;
+  store_executor_outputs?: boolean | null;
+  add_workflow_history_to_steps?: boolean | null;
+  num_history_runs?: number | null;
+  add_session_state_to_context?: boolean | null;
+  debug_mode?: boolean | null;
+  input_schema?: Record<string, any>;
+  metadata_config?: Record<string, any>;
 }
