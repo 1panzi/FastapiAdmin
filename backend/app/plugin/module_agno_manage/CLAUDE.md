@@ -160,3 +160,4 @@ models → embedders
 - reader 行数据更新时，会级联失效所有绑定该 reader 的知识库 LRU 缓存（`_invalidate_kb_cache_by_reader`）
 - knowledge_bases 表已移除 reader_type/reader_config/default_filters 字段，reader 配置改由独立 ag_readers 表管理，通过 ag_bindings 绑定到知识库
 - bindings 的 config_override 字段支持在绑定层覆盖 reader/其他资源的参数配置
+- 同一知识库下每种 `reader_type` 只允许绑定一个 reader（在 `bindings/service.py` 的 `_check_knowledge_reader_type_unique` 中校验，创建和更新时触发，仅限 `owner_type="knowledge"` + `resource_type="reader"` 的绑定）

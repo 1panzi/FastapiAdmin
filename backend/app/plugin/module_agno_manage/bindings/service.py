@@ -11,6 +11,8 @@ from app.core.logger import log
 from app.plugin.module_agno_manage.core.registry import get_registry
 from app.utils.excel_util import ExcelUtil
 
+from app.plugin.module_agno_manage.readers.crud import AgReaderCRUD
+
 from .crud import AgBindingCRUD
 from .schema import (
     AgBindingCreateSchema,
@@ -24,6 +26,41 @@ class AgBindingService:
     """
     资源绑定关系服务层
     """
+
+    @classmethod
+    async def _check_knowledge_reader_type_unique(
+        cls,
+        auth: AuthSchema,
+        owner_id: int,
+        reader_id: int,
+        exclude_binding_id: int | None = None,
+    ) -> None:
+        """
+        校验：同一知识库下每种 reader_type 只允许绑定一个。
+
+        参数:
+        - auth: 认证信息
+        - owner_id: 知识库 ID
+        - reader_id: 新绑定的 reader ID
+        - exclude_binding_id: 更新时排除自身 binding ID
+        """
+        new_reader = await AgReaderCRUD(auth).get_by_id_readers_crud(id=reader_id)
+        if not new_reader:
+            raise CustomException(msg=f"Reader ID={reader_id} 不存在")
+
+        existing_bindings = await AgBindingCRUD(auth).list_bindings_crud(search={
+            "owner_type": ("eq", "knowledge"),
+            "owner_id": ("eq", owner_id),
+            "resource_type": ("eq", "reader"),
+        })
+        for b in existing_bindings:
+            if exclude_binding_id and b.id == exclude_binding_id:
+                continue
+            existing_reader = await AgReaderCRUD(auth).get_by_id_readers_crud(id=b.resource_id)
+            if existing_reader and existing_reader.reader_type == new_reader.reader_type:
+                raise CustomException(
+                    msg=f"该知识库已绑定同类型 Reader（{new_reader.reader_type}），每种类型只允许绑定一个"
+                )
 
     @classmethod
     async def detail_bindings_service(cls, auth: AuthSchema, id: int) -> dict:
@@ -97,6 +134,8 @@ class AgBindingService:
         返回:
         - dict - 创建结果
         """
+        if data.owner_type == "knowledge" and data.resource_type == "reader":
+            await cls._check_knowledge_reader_type_unique(auth, data.owner_id, data.resource_id)
         obj = await AgBindingCRUD(auth).create_bindings_crud(data=data)
         if obj and obj.status == "0":
             get_registry().update_binding_row(str(obj.id), obj)
@@ -121,6 +160,8 @@ class AgBindingService:
             raise CustomException(msg='更新失败，该数据不存在')
 
         # 检查唯一性约束
+        if data.owner_type == "knowledge" and data.resource_type == "reader":
+            await cls._check_knowledge_reader_type_unique(auth, data.owner_id, data.resource_id, exclude_binding_id=id)
 
         obj = await AgBindingCRUD(auth).update_bindings_crud(id=id, data=data)
         if obj:
