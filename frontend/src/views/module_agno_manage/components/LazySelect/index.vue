@@ -24,6 +24,7 @@
     <div v-if="loading" style="text-align: center; padding: 8px 0; color: #909399; font-size: 12px">
       加载中...
     </div>
+    <div v-else-if="appending" style="height: 28px" />
     <div v-else-if="noMore && total > 0" style="text-align: center; padding: 8px 0; color: #c0c4cc; font-size: 12px">
       已全部加载
     </div>
@@ -51,12 +52,15 @@ interface Props {
   }>;
   /** 初始值对应的标签（用于回显，避免首次打开才能显示） */
   initialLabel?: string;
+  /** 挂载时立即预拉取第一页，使首次打开下拉无加载闪烁 */
+  preload?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   placeholder: "请选择",
   clearable: true,
   pageSize: 20,
+  preload: false,
 });
 
 const emit = defineEmits<{
@@ -71,7 +75,8 @@ const proxyValue = computed({
 
 const sentinelRef = ref<HTMLElement | null>(null);
 const options = ref<OptionItem[]>([]);
-const loading = ref(false);
+const loading = ref(false);    // 首次/搜索加载（会显示 input 转圈）
+const appending = ref(false);  // 翻页追加（静默，不影响 input）
 const currentPage = ref(1);
 const total = ref(0);
 const keyword = ref("");
@@ -81,8 +86,12 @@ let observer: IntersectionObserver | null = null;
 const noMore = computed(() => options.value.length >= total.value && total.value > 0);
 
 async function fetchPage(reset = false) {
-  if (loading.value) return;
-  loading.value = true;
+  if (loading.value || appending.value) return;
+  if (reset) {
+    loading.value = true;
+  } else {
+    appending.value = true;
+  }
   try {
     const page = reset ? 1 : currentPage.value;
     const result = await props.fetcher({
@@ -100,11 +109,12 @@ async function fetchPage(reset = false) {
     total.value = result.total;
   } finally {
     loading.value = false;
+    appending.value = false;
   }
 }
 
 async function loadMore() {
-  if (loading.value || noMore.value) return;
+  if (loading.value || appending.value || noMore.value) return;
   await fetchPage(false);
 }
 
@@ -173,8 +183,10 @@ watch(
 );
 
 onMounted(() => {
-  if (props.modelValue && options.value.length === 0) {
-    fetchPage(true);
+  if (props.preload || props.modelValue) {
+    if (options.value.length === 0) {
+      fetchPage(true);
+    }
   }
 });
 

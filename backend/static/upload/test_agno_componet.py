@@ -43,6 +43,24 @@ embeder = OpenAILikeEmbedder(id="qwen3-e4b",
 # print(embeder.get_embedding_and_usage("你好"))
 # print(embeder.get_embedding("你好"))
 
+from agno.team import Team
+
+# ---------------------------------------------------------------------------
+broadcast_team = Team(
+    name="Broadcast Review Team",
+    members=[product_manager, engineer, designer],
+    model=Ollama(id="qwen3.5:27b-q8_0",host="http://192.168.81.51:7869",api_key=""),
+    mode=TeamMode.broadcast,
+    instructions=[
+        "Each member must independently evaluate the same request.",
+        "Provide concise recommendations from your specialist perspective.",
+        "Highlight tradeoffs and open risks clearly.",
+    ],
+    markdown=True,
+    show_members_responses=True,
+)
+
+
 ## 向量数据库
 from agno.vectordb.chroma import ChromaDb
 from agno.vectordb.search import SearchType

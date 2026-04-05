@@ -3,6 +3,14 @@ import request from "@/utils/request";
 const API_PATH = "/agno_manage/bindings";
 
 const AgBindingAPI = {
+  // 获取绑定元数据（拥有者类型 → 可绑资源类型映射）
+  getBindingMeta() {
+    return request<ApiResponse<BindingMeta>>({
+      url: `${API_PATH}/meta`,
+      method: "get",
+    });
+  },
+
   // 列表查询
   listAgBinding(query: AgBindingPageQuery) {
     return request<ApiResponse<PageResult<AgBindingTable[]>>>({
@@ -129,3 +137,17 @@ export interface AgBindingForm extends BaseFormType {
   priority?: number;
   config_override?: Record<string, any>;
 }
+
+// 绑定元数据类型
+export interface BindingResourceInfo {
+  label: string;
+  api_path: string;
+}
+
+export interface BindingOwnerInfo {
+  label: string;
+  api_path: string;
+  allowed_resources: Record<string, BindingResourceInfo>;
+}
+
+export type BindingMeta = Record<string, BindingOwnerInfo>;

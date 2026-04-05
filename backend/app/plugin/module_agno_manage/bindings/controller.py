@@ -15,6 +15,53 @@ from .service import AgBindingService
 
 AgBindingRouter = APIRouter(prefix='/bindings', tags=["资源绑定关系模块"])
 
+# 拥有者类型 → 可绑资源类型的静态元数据
+# api_path 供前端动态发起列表查询
+BINDING_META: dict = {
+    "agent": {
+        "label": "Agent",
+        "api_path": "/agno_manage/agents",
+        "allowed_resources": {
+            "toolkit":   {"label": "Toolkit",    "api_path": "/agno_manage/toolkits"},
+            "skill":     {"label": "Skill",      "api_path": "/agno_manage/skills"},
+            "mcp":       {"label": "MCP Server", "api_path": "/agno_manage/mcp_servers"},
+            "knowledge": {"label": "知识库",      "api_path": "/agno_manage/knowledge_bases"},
+            "hook":      {"label": "Hook",       "api_path": "/agno_manage/hooks"},
+            "guardrail": {"label": "Guardrail",  "api_path": "/agno_manage/guardrails"},
+        },
+    },
+    "team": {
+        "label": "Team",
+        "api_path": "/agno_manage/teams",
+        "allowed_resources": {
+            "toolkit":   {"label": "Toolkit",    "api_path": "/agno_manage/toolkits"},
+            "skill":     {"label": "Skill",      "api_path": "/agno_manage/skills"},
+            "mcp":       {"label": "MCP Server", "api_path": "/agno_manage/mcp_servers"},
+            "knowledge": {"label": "知识库",      "api_path": "/agno_manage/knowledge_bases"},
+            "hook":      {"label": "Hook",       "api_path": "/agno_manage/hooks"},
+            "guardrail": {"label": "Guardrail",  "api_path": "/agno_manage/guardrails"},
+        },
+    },
+    "knowledge": {
+        "label": "知识库",
+        "api_path": "/agno_manage/knowledge_bases",
+        "allowed_resources": {
+            "reader": {"label": "Reader", "api_path": "/agno_manage/readers"},
+        },
+    },
+}
+
+
+@AgBindingRouter.get(
+    "/meta",
+    summary="获取绑定关系元数据",
+    description="返回拥有者类型及其可绑定资源类型的映射关系（含前端所需 api_path）"
+)
+async def get_bindings_meta_controller(
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:bindings:query"]))
+) -> JSONResponse:
+    return SuccessResponse(data=BINDING_META, msg="获取绑定元数据成功")
+
 
 @AgBindingRouter.get(
     "/detail/{id}",

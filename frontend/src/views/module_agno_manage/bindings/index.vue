@@ -24,9 +24,12 @@
           >
             <el-form-item label="拥有者类型" prop="owner_type">
               <el-select v-model="queryFormData.owner_type" placeholder="请选择拥有者类型" clearable style="width: 170px">
-                <el-option value="agent" label="Agent" />
-                <el-option value="team" label="Team" />
-                <el-option value="user" label="User" />
+                <el-option
+                  v-for="opt in ownerTypeOptions"
+                  :key="opt.value"
+                  :value="opt.value"
+                  :label="opt.label"
+                />
               </el-select>
             </el-form-item>
             <el-form-item label="拥有者ID" prop="owner_id">
@@ -34,12 +37,12 @@
             </el-form-item>
             <el-form-item label="资源类型" prop="resource_type">
               <el-select v-model="queryFormData.resource_type" placeholder="请选择资源类型" clearable style="width: 170px">
-                <el-option value="toolkit" label="Toolkit" />
-                <el-option value="skill" label="Skill" />
-                <el-option value="mcp" label="MCP" />
-                <el-option value="knowledge" label="Knowledge" />
-                <el-option value="hook" label="Hook" />
-                <el-option value="guardrail" label="Guardrail" />
+                <el-option
+                  v-for="opt in allResourceTypeOptions"
+                  :key="opt.value"
+                  :value="opt.value"
+                  :label="opt.label"
+                />
               </el-select>
             </el-form-item>
             <el-form-item label="资源ID" prop="resource_id">
@@ -508,60 +511,49 @@
         >
           <el-form-item label="拥有者类型" prop="owner_type" :required="false">
             <el-select v-model="formData.owner_type" placeholder="请选择拥有者类型" clearable style="width: 100%" @change="handleOwnerTypeChange">
-              <el-option value="agent" label="Agent" />
-              <el-option value="team" label="Team" />
-              <el-option value="user" label="User" />
+              <el-option
+                v-for="opt in ownerTypeOptions"
+                :key="opt.value"
+                :value="opt.value"
+                :label="opt.label"
+              />
             </el-select>
           </el-form-item>
           <el-form-item label="拥有者ID" prop="owner_id" :required="false">
-            <el-select v-model="formData.owner_id" placeholder="请选择拥有者" clearable filterable style="width: 100%">
-              <el-option
-                v-for="item in ownerList"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-              >
-                <el-tooltip
-                  :content="`ID: ${item.id}${item.description ? ' | ' + item.description : ''}`"
-                  placement="right"
-                  :show-after="300"
-                  :teleported="true"
-                  :enterable="false"
-                >
-                  <span style="display: block; width: 100%;">{{ item.name }}</span>
-                </el-tooltip>
-              </el-option>
-            </el-select>
+            <LazySelect
+              v-if="formData.owner_type"
+              :key="`owner-${formData.owner_type}`"
+              :model-value="formData.owner_id !== undefined ? String(formData.owner_id) : undefined"
+              @update:model-value="(v) => (formData.owner_id = v ? Number(v) : undefined)"
+              :fetcher="ownerFetcher"
+              :preload="true"
+              placeholder="请选择拥有者"
+              style="width: 100%"
+            />
+            <el-text v-else size="small" type="info">请先选择拥有者类型</el-text>
           </el-form-item>
           <el-form-item label="资源类型" prop="resource_type" :required="false">
             <el-select v-model="formData.resource_type" placeholder="请选择资源类型" clearable style="width: 100%" @change="handleResourceTypeChange">
-              <el-option value="toolkit" label="Toolkit" />
-              <el-option value="skill" label="Skill" />
-              <el-option value="mcp" label="MCP" />
-              <el-option value="knowledge" label="Knowledge" />
-              <el-option value="hook" label="Hook" />
-              <el-option value="guardrail" label="Guardrail" />
+              <el-option
+                v-for="opt in resourceTypeOptions"
+                :key="opt.value"
+                :value="opt.value"
+                :label="opt.label"
+              />
             </el-select>
           </el-form-item>
           <el-form-item label="资源ID" prop="resource_id" :required="false">
-            <el-select v-model="formData.resource_id" placeholder="请选择资源" clearable filterable style="width: 100%">
-              <el-option
-                v-for="item in resourceList"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-              >
-                <el-tooltip
-                  :content="`ID: ${item.id}${item.description ? ' | ' + item.description : ''}`"
-                  placement="right"
-                  :show-after="300"
-                  :teleported="true"
-                  :enterable="false"
-                >
-                  <span style="display: block; width: 100%;">{{ item.name }}</span>
-                </el-tooltip>
-              </el-option>
-            </el-select>
+            <LazySelect
+              v-if="formData.resource_type"
+              :key="`resource-${formData.owner_type}-${formData.resource_type}`"
+              :model-value="formData.resource_id !== undefined ? String(formData.resource_id) : undefined"
+              @update:model-value="(v) => (formData.resource_id = v ? Number(v) : undefined)"
+              :fetcher="resourceFetcher"
+              :preload="true"
+              placeholder="请选择资源"
+              style="width: 100%"
+            />
+            <el-text v-else size="small" type="info">请先选择资源类型</el-text>
           </el-form-item>
           <el-form-item label="优先级" prop="priority" :required="false">
             <el-input-number v-model="formData.priority" placeholder="请输入优先级（数字越小优先级越高）" :min="0" style="width: 100%" />
@@ -658,17 +650,15 @@ import DatePicker from "@/components/DatePicker/index.vue";
 import type { IContentConfig } from "@/components/CURD/types";
 import ImportModal from "@/components/CURD/ImportModal.vue";
 import ExportModal from "@/components/CURD/ExportModal.vue";
+import request from "@/utils/request";
 import AgBindingAPI, {
   AgBindingPageQuery,
   AgBindingTable,
   AgBindingForm,
+  BindingMeta,
 } from "@/api/module_agno_manage/bindings";
-import AgAgentAPI from "@/api/module_agno_manage/agents";
-import AgTeamAPI from "@/api/module_agno_manage/teams";
-import AgToolkitAPI from "@/api/module_agno_manage/toolkits";
-import AgSkillAPI from "@/api/module_agno_manage/skills";
-import AgKnowledgeBaseAPI from "@/api/module_agno_manage/knowledge_bases";
 import DictEditor from "@/views/module_agno_manage/components/DictEditor/index.vue";
+import LazySelect from "@/views/module_agno_manage/components/LazySelect/index.vue";
 
 const visible = ref(false);
 const queryFormRef = ref();
@@ -684,14 +674,32 @@ const isExpandable = ref(true);
 const pageTableData = ref<AgBindingTable[]>([]);
 
 // 动态选择器数据
-const ownerList = ref<any[]>([]);
-const resourceList = ref<any[]>([]);
+const bindingMeta = ref<BindingMeta>({});
 
-// 当前资源的 param_schema（仅 toolkit 有）
-const currentParamSchema = computed<Array<{ name: string; type: string; default: any; required: boolean }>>(() => {
-  if (!formData.resource_id) return [];
-  const found = resourceList.value.find((r) => r.id === formData.resource_id);
-  return found?.param_schema || [];
+// 从 meta 派生：所有 owner 类型选项
+const ownerTypeOptions = computed(() =>
+  Object.entries(bindingMeta.value).map(([value, info]) => ({ value, label: info.label }))
+);
+
+// 从 meta 派生：当前 owner 下可绑资源类型选项
+const resourceTypeOptions = computed(() => {
+  const ownerType = formData.owner_type;
+  if (!ownerType || !bindingMeta.value[ownerType]) return [];
+  return Object.entries(bindingMeta.value[ownerType].allowed_resources).map(([value, info]) => ({
+    value,
+    label: info.label,
+  }));
+});
+
+// 搜索栏用：所有可能的资源类型（去重）
+const allResourceTypeOptions = computed(() => {
+  const map = new Map<string, string>();
+  for (const owner of Object.values(bindingMeta.value)) {
+    for (const [key, info] of Object.entries(owner.allowed_resources)) {
+      if (!map.has(key)) map.set(key, info.label);
+    }
+  }
+  return Array.from(map.entries()).map(([value, label]) => ({ value, label }));
 });
 
 // 将 schema 中某个字段的默认值填入 config_override
@@ -821,6 +829,63 @@ const dictStore = useDictStore();
 const dictTypes: any = [
 ];
 
+// 当前资源的 param_schema（仅 toolkit 有）
+const currentParamSchema = ref<Array<{ name: string; type: string; default: any; required: boolean }>>([]);
+
+// resource_id 变化时，按需请求 param_schema
+watch(
+  () => formData.resource_id,
+  async (newId) => {
+    currentParamSchema.value = [];
+    if (!newId || !formData.resource_type || !formData.owner_type) return;
+    const resourceInfo = bindingMeta.value[formData.owner_type]?.allowed_resources[formData.resource_type];
+    if (!resourceInfo) return;
+    try {
+      const res = await request({ url: `${resourceInfo.api_path}/detail/${newId}`, method: "get" });
+      currentParamSchema.value = (res as any).data?.data?.param_schema || [];
+    } catch {
+      // 无 param_schema，忽略
+    }
+  }
+);
+
+// 拥有者懒加载 fetcher
+const ownerFetcher = computed(() => {
+  const ownerType = formData.owner_type;
+  if (!ownerType || !bindingMeta.value[ownerType]) {
+    return async () => ({ items: [], total: 0 });
+  }
+  const apiPath = bindingMeta.value[ownerType].api_path;
+  return async (params: { page_no: number; page_size: number; name?: string }) => {
+    const res = await request({ url: `${apiPath}/list`, method: "get", params });
+    const items = ((res as any).data?.data?.items || []).map((item: any) => ({
+      value: String(item.id),
+      label: item.name || `${ownerType}#${item.id}`,
+      raw: item,
+    }));
+    return { items, total: (res as any).data?.data?.total || 0 };
+  };
+});
+
+// 资源懒加载 fetcher
+const resourceFetcher = computed(() => {
+  const ownerType = formData.owner_type;
+  const resourceType = formData.resource_type;
+  if (!ownerType || !resourceType || !bindingMeta.value[ownerType]?.allowed_resources[resourceType]) {
+    return async () => ({ items: [], total: 0 });
+  }
+  const apiPath = bindingMeta.value[ownerType].allowed_resources[resourceType].api_path;
+  return async (params: { page_no: number; page_size: number; name?: string }) => {
+    const res = await request({ url: `${apiPath}/list`, method: "get", params });
+    const items = ((res as any).data?.data?.items || []).map((item: any) => ({
+      value: String(item.id),
+      label: item.name || `${resourceType}#${item.id}`,
+      raw: item,
+    }));
+    return { items, total: (res as any).data?.data?.total || 0 };
+  };
+});
+
 // 弹窗状态
 const dialogVisible = reactive({
   title: "",
@@ -887,66 +952,14 @@ function handleConfirm() {
   handleQuery();
 }
 
-// 根据拥有者类型加载拥有者列表
-async function loadOwnerList(type: string) {
-  ownerList.value = [];
-  if (type === "agent") {
-    const res = await AgAgentAPI.listAgAgent({ page_no: 1, page_size: 100 });
-    ownerList.value = (res.data?.data?.items || []).map((item: any) => ({
-      id: item.id,
-      name: item.name || `Agent#${item.id}`,
-      description: item.description || ''
-    }));
-  } else if (type === "team") {
-    const res = await AgTeamAPI.listAgTeam({ page_no: 1, page_size: 100 });
-    ownerList.value = (res.data?.data?.items || []).map((item: any) => ({
-      id: item.id,
-      name: item.name || `Team#${item.id}`,
-      description: item.description || ''
-    }));
-  }
-}
-
-// 根据资源类型加载资源列表
-async function loadResourceList(type: string) {
-  resourceList.value = [];
-  if (type === "toolkit") {
-    const res = await AgToolkitAPI.listAgToolkit({ page_no: 1, page_size: 100 });
-    resourceList.value = (res.data?.data?.items || []).map((item: any) => ({
-      id: item.id,
-      name: item.name || `Toolkit#${item.id}`,
-      description: item.description || '',
-      param_schema: item.param_schema || []
-    }));
-  } else if (type === "skill") {
-    const res = await AgSkillAPI.listAgSkill({ page_no: 1, page_size: 100 });
-    resourceList.value = (res.data?.data?.items || []).map((item: any) => ({
-      id: item.id,
-      name: item.name || `Skill#${item.id}`,
-      description: item.description || ''
-    }));
-  } else if (type === "knowledge") {
-    const res = await AgKnowledgeBaseAPI.listAgKnowledgeBase({ page_no: 1, page_size: 100 });
-    resourceList.value = (res.data?.data?.items || []).map((item: any) => ({
-      id: item.id,
-      name: item.name || `Knowledge#${item.id}`,
-      description: item.description || ''
-    }));
-  }
-}
-
-// 拥有者类型变更时重置拥有者ID并加载列表
-async function handleOwnerTypeChange(type: string) {
+// 拥有者类型变更时重置拥有者ID
+function handleOwnerTypeChange(_type: string) {
   formData.owner_id = undefined;
-  if (type) await loadOwnerList(type);
-  else ownerList.value = [];
 }
 
-// 资源类型变更时重置资源ID并加载列表
-async function handleResourceTypeChange(type: string) {
+// 资源类型变更时重置资源ID
+function handleResourceTypeChange(_type: string) {
   formData.resource_id = undefined;
-  if (type) await loadResourceList(type);
-  else resourceList.value = [];
 }
 
 // 重置查询
@@ -1007,15 +1020,12 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
     } else if (type === "update") {
       dialogVisible.title = "修改";
       Object.assign(formData, response.data.data);
-      // 加载拥有者和资源列表
-      if (formData.owner_type) await loadOwnerList(formData.owner_type);
-      if (formData.resource_type) await loadResourceList(formData.resource_type);
+      // LazySelect 会在下拉打开时自动请求，无需预加载列表
     }
   } else {
     dialogVisible.title = "新增绑定关系";
     Object.assign(formData, initialFormData);
-    ownerList.value = [];
-    resourceList.value = [];
+    currentParamSchema.value = [];
   }
   dialogVisible.visible = true;
 }
@@ -1124,6 +1134,13 @@ const handleUpload = async (formData: FormData) => {
 };
 
 onMounted(async () => {
+  // 加载绑定元数据
+  try {
+    const res = await AgBindingAPI.getBindingMeta();
+    bindingMeta.value = res.data.data;
+  } catch (e) {
+    console.error("加载绑定元数据失败", e);
+  }
   // 预加载字典数据
   if (dictTypes.length > 0) {
     await dictStore.getDict(dictTypes);

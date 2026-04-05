@@ -310,8 +310,31 @@ function getEmbedderName(embedderId?: string): string {
    let initialized = false;
    observer = new IntersectionObserver((entries) => {
      if (!initialized) { initialized = true; return; } // ← 跳过初始检测
-     if (entries[0].isIntersecting && !loading.value && !noMore.value) loadMore();
+     if (entries[0].isIntersecting && !loading.value && !appending.value && !noMore.value) loadMore();
    }, { threshold: 0.1 });
+   ```
+
+4. **首次打开下拉有加载闪烁**：下拉打开时 options 为空才开始请求，用户看到"空 → 加载中 → 出现数据"的过程。
+   **修复**：使用 `preload` prop，组件挂载时立即预拉取第一页，用户打开下拉时数据已就绪：
+   ```vue
+   <LazySelect :preload="true" ... />
+   ```
+   适用场景：父组件通过 `v-if` 控制 LazySelect 的显示（如先选类型再出现选择器），组件挂载即意味着用户需要它，此时预加载合理。默认 `false`，不影响其他使用场景。
+
+5. **翻页时选择框卡顿**：滚动到第 20 条触发翻页时，`loading = true` 导致 input 出现转圈、底部文字抖动，用户感知明显。
+   **修复**：区分两种加载状态——`loading`（首次/搜索，显示 input 转圈）和 `appending`（翻页追加，静默）。翻页时仅用 `appending`，底部保持等高占位，新选项悄悄追加，input 不变：
+   ```typescript
+   const loading = ref(false);    // 首次/搜索加载
+   const appending = ref(false);  // 翻页追加（静默）
+
+   async function fetchPage(reset = false) {
+     if (loading.value || appending.value) return;
+     reset ? (loading.value = true) : (appending.value = true);
+     try { ... } finally {
+       loading.value = false;
+       appending.value = false;
+     }
+   }
    ```
 
 **前提条件：** 对应列表接口的 `PageQuery` 须支持 `name?: string` 过滤参数。
