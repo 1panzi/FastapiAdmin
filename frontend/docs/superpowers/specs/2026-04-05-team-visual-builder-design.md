@@ -24,15 +24,20 @@
 
 ```
 src/views/module_agno_manage/team_builder/
-└── index.vue          # 主页面
+└── index.vue                  # 主页面
+
+src/views/module_agno_manage/teams/
+├── index.vue                  # 现有列表页（新增「可视化」跳转按钮）
+└── components/
+    └── TeamFormFields.vue     # 抽出的表单字段组件（新增，供 index.vue Dialog 和 team_builder 右侧面板复用）
 
 src/api/module_agno_manage/
-├── teams.ts           # 已有，无需改动
-└── team_members.ts    # 已有，无需改动
+├── teams.ts                   # 已有，无需改动
+└── team_members.ts            # 已有，无需改动
 ```
 
 修改文件：
-- `src/views/module_agno_manage/teams/index.vue` — 操作列新增「可视化」跳转按钮
+- `src/views/module_agno_manage/teams/index.vue` — 操作列新增「可视化」跳转按钮；将编辑表单字段迁移到 `TeamFormFields.vue`
 
 ---
 
@@ -105,13 +110,15 @@ function buildGraph(
 ): { nodes: Node[], edges: Edge[] }
 ```
 
-### 保存（批量提交）
+### 保存（批量提交，串行执行）
 
-维护 `pendingChanges` 队列，点击「保存」后顺序执行：
-1. 新建 Team → `createAgTeam()`
-2. 删除成员关系 → `deleteAgTeamMember()`
-3. 新建成员关系 → `createAgTeamMember()`
-4. 修改 Team 配置 → `updateAgTeam()`
+维护 `pendingChanges` 队列，点击「保存」后按依赖顺序串行执行：
+1. 新建 Team（临时 id 替换为真实 id）→ `createAgTeam()`，拿到真实 id 后更新节点引用
+2. 修改 Team 配置 → `updateAgTeam()`
+3. 删除成员关系 → `deleteAgTeamMember()`
+4. 新建成员关系（使用真实 id）→ `createAgTeamMember()`
+
+> **注意**：画布中新建的 Team 节点使用临时 id（如 `tmp_uuid`），步骤 1 完成后所有引用该节点的 member 关系自动替换为真实 id，再执行步骤 4。
 
 ---
 
@@ -160,6 +167,18 @@ function wouldCreateCycle(
   targetId: string
 ): boolean
 ```
+
+---
+
+## 模块职责边界
+
+| 操作 | 在哪里做 |
+|---|---|
+| 创建/编辑 Agent 详细配置 | `agents/` 页面（独立维护） |
+| 创建/编辑 Team 详细配置 | `teams/` 页面 或 `team_builder` 右侧面板 |
+| 组合 Team 结构、建立嵌套关系 | `team_builder/` 画布 |
+
+**原则：画布只负责「组合」，不负责「从零创建 Agent」。** 画布中添加 Agent 成员时，通过 LazySelect 从已有 Agent 列表选择。
 
 ---
 
