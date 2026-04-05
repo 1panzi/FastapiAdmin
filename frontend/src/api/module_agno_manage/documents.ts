@@ -100,7 +100,6 @@ export interface AgDocumentPageQuery extends PageQuery {
   storage_path?: string;
   doc_status?: string;
   error_msg?: string;
-  metadata?: string;
   status?: string;
   created_id?: number;
   updated_id?: number;
@@ -110,13 +109,14 @@ export interface AgDocumentPageQuery extends PageQuery {
 
 // 列表展示项
 export interface AgDocumentTable extends BaseType {
-  kb_id?: string;
+  kb_id?: number;
   name?: string;
   storage_type?: string;
   storage_path?: string;
-  doc_status?: boolean;
+  doc_status?: string;
   error_msg?: string;
-  metadata?: string;
+  content_id?: string;
+  metadata_config?: Record<string, any>;
   created_id?: string;
   updated_id?: string;
   created_by?: CommonType;
@@ -125,11 +125,11 @@ export interface AgDocumentTable extends BaseType {
 
 // 新增/修改/详情表单参数
 export interface AgDocumentForm extends BaseFormType {
-  kb_id?: string;
+  kb_id?: number;
   name?: string;
   storage_type?: string;
   storage_path?: string;
-  doc_status?: boolean;
+  doc_status?: string;
   error_msg?: string;
-  metadata?: string;
+  metadata_config?: Record<string, any>;
 }

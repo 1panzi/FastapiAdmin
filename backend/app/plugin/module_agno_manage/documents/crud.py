@@ -121,3 +121,34 @@ class AgDocumentCRUD(CRUDBase[AgDocumentModel, AgDocumentCreateSchema, AgDocumen
             out_schema=AgDocumentOutSchema,
             preload=preload
         )
+
+    @staticmethod
+    async def update_status_internal_crud(
+        session,
+        doc_id: int,
+        doc_status: str,
+        error_msg: str | None = None,
+        content_id: str | None = None,
+    ) -> None:
+        """
+        后台任务专用：直接更新文档状态，不走 auth/created_id 逻辑。
+
+        参数:
+        - session: AsyncSession（调用方传入）
+        - doc_id: 文档 ID
+        - doc_status: 目标状态 pending/processing/indexed/failed
+        - error_msg: 失败原因（可选）
+        - content_id: Agno contents_db 记录 ID（可选）
+        """
+        from sqlalchemy import update as sa_update
+        values = {"doc_status": doc_status}
+        if error_msg is not None:
+            values["error_msg"] = error_msg
+        if content_id is not None:
+            values["content_id"] = content_id
+        await session.execute(
+            sa_update(AgDocumentModel)
+            .where(AgDocumentModel.id == doc_id)
+            .values(**values)
+        )
+        await session.commit()

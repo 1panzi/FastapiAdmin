@@ -55,11 +55,12 @@ Agno 原生表（agno_sessions / agno_user_memory / agno_traces）
 - `unregister_model(uuid: str)` — 从缓存移除
 - `get_model(uuid: str)` — 取模型实例（Agent 创建时使用）
 - `resolve_tools(agent_id)` / `resolve_knowledge(agent_id)` — callable factory 同步调用
-- LRUCache 用于 knowledge（maxsize=50）和 mcp（maxsize=20）
-- `update_kb_row(kid, row)` / `remove_kb_row(kid)` — 知识库行数据同步（自动失效 LRU 缓存）
-- `update_reader_row(rid, row)` / `remove_reader_row(rid)` — reader 行数据同步（同时通过 `_invalidate_kb_cache_by_reader` 级联失效所有绑定该 reader 的知识库 LRU 缓存）
+- LRUCache 用于 mcp（maxsize=20）；knowledge 改用普通 dict `_knowledge_map`（全量常驻，启动时预构建）
+- `update_kb_row(kid, row)` / `remove_kb_row(kid)` — 知识库行数据同步，同步更新 `_knowledge_map`
+- `update_reader_row(rid, row)` / `remove_reader_row(rid)` — reader 行数据同步（同时通过 `_invalidate_kb_cache_by_reader` 级联重建所有绑定该 reader 的知识库实例）
 - `_build_reader(reader_row, config_override)` — 构建 Agno Reader 实例，处理 chunking 策略（含 SemanticChunker/AgenticChunker 特殊依赖）
-- `_build_knowledge(kb_id, row)` — 构建 Agno Knowledge 实例，通过 SyncBindingRepo 查 reader 绑定
+- `_build_knowledge(kb_id, row)` — 构建 Agno Knowledge 实例，通过 SyncBindingRepo 查 reader 绑定，**必须传 `contents_db=self._agno_db`**
+- `get_knowledge(kb_id)` — 从 `_knowledge_map` 取已构建的 Knowledge 实例（供 documents 路由使用）
 
 ### `core/sync_db.py` — SyncBindingRepo
 - Agno callable factory 在 `run()` 时**同步**调用，不能 await
@@ -157,9 +158,62 @@ models → embedders
 - `ag_*` 表为管理表，Agno 原生表（`agno_sessions` 等）由 Agno 自动管理，勿手动修改
 - `api_key` 当前明文存储，生产环境应考虑加密
 - registry 在应用启动时由 `core/controller.py` 中的 CoreRouter 自动触发预热，无需修改上层配置
-- reader 行数据更新时，会级联失效所有绑定该 reader 的知识库 LRU 缓存（`_invalidate_kb_cache_by_reader`）
+- reader 行数据更新时，会级联重建所有绑定该 reader 的知识库实例（`_invalidate_kb_cache_by_reader`，名称保留但逻辑改为重建而非失效 LRU）
 - knowledge_bases 表已移除 reader_type/reader_config/default_filters 字段，reader 配置改由独立 ag_readers 表管理，通过 ag_bindings 绑定到知识库
 - bindings 的 config_override 字段支持在绑定层覆盖 reader/其他资源的参数配置
 - 同一知识库下每种 `reader_type` 只允许绑定一个 reader（在 `bindings/service.py` 的 `_check_knowledge_reader_type_unique` 中校验，创建和更新时触发，仅限 `owner_type="knowledge"` + `resource_type="reader"` 的绑定）
 - `bindings/controller.py` 维护静态 `BINDING_META` 字典，定义 owner 类型（agent/team/knowledge）→ 可绑资源类型及其前端 api_path 映射，通过 `GET /agno_manage/bindings/meta` 暴露给前端；前端 bindings 页面根据此元数据动态渲染下拉选项并发起列表请求，新增 owner/resource 类型只需修改 `BINDING_META`
 - team 的成员关系走独立的 `ag_team_members` 表（非 `ag_bindings`），有 `member_order`/`role` 字段；`ag_bindings` 只管 toolkit/skill/knowledge 等能力资源挂载
+- `ag_documents` 是文件注册表 + 向量化状态追踪，字段职责见下方「documents 模块设计」；**不使用** Agno 内置的 `/knowledge/content` 路由（其 `knowledge_id` 为哈希值，与我们的整数 ID 不兼容，auth 也不走我们的权限体系）
+- `_build_knowledge()` 必须传 `contents_db=self._agno_db`，否则 Agno 无法追踪文档处理状态
+- knowledge 实例从 LRU 改为普通 dict `_knowledge_map`，启动时全量预构建，CRUD 时同步更新
+
+---
+
+## documents 模块设计
+
+### 定位
+
+`ag_documents` = **文件注册表 + 向量化状态追踪**，独立于 Agno 的 `contents_db`。
+
+| 字段 | 职责 |
+|------|------|
+| `kb_id` | 属于哪个知识库 |
+| `name` | 文件名/来源名称 |
+| `storage_type` | `local` / `s3` / `url` |
+| `storage_path` | 文件本地路径、S3 Key 或 URL |
+| `doc_status` | `pending` → `processing` → `indexed` / `failed` |
+| `error_msg` | 向量化失败原因 |
+| `metadata_config` | 文件自身的业务元数据（标签、来源、分类等），独立于 Agno |
+| `content_id` | 对应 Agno `contents_db` 的记录 ID（外键引用，可为空） |
+
+### 为什么保留 `ag_documents`
+
+- **重新向量化**：更换 embedder 或 chunking 策略后，可从 `storage_path` 重新读取原始文件触发向量化，无需用户重传
+- **自己的状态查询**：管理界面展示文档状态、筛选失败记录，直接查自己的表，无需调 Agno 内部方法
+- **业务元数据独立**：`metadata_config` 存业务侧标签/分类/来源等，与 Agno `contents_db` 的 metadata 字段互相独立，宁可两边重复也不依赖 Agno 内部结构
+- Agno `contents_db` 是 Agno 内部追踪层，`ag_documents` 是我们的业务层，两者通过 `content_id` 关联，但各自独立，不强依赖
+
+### 文档路由（挂载在 `knowledge_bases/controller.py`）
+
+```
+POST   /knowledge_bases/{id}/docs/upload        上传文件 → 后台向量化
+POST   /knowledge_bases/{id}/docs               插入 URL / 文本
+GET    /knowledge_bases/{id}/docs               列出文档（分页，查 ag_documents）
+GET    /knowledge_bases/{id}/docs/{doc_id}      文档详情
+DELETE /knowledge_bases/{id}/docs/{doc_id}      删除文档（同时删 VectorDB chunks）
+POST   /knowledge_bases/{id}/docs/{doc_id}/reprocess  重新向量化（读 storage_path）
+GET    /knowledge_bases/{id}/search             向量检索
+```
+
+### 后台向量化任务模式
+
+```python
+async def _vectorize_document(kb, doc_id, content, auth):
+    await update_doc_status(doc_id, "processing", auth)
+    try:
+        await kb._aload_content(content, upsert=False, skip_if_exists=True)
+        await update_doc_status(doc_id, "indexed", auth, content_id=content.id)
+    except Exception as e:
+        await update_doc_status(doc_id, "failed", auth, error_msg=str(e))
+```

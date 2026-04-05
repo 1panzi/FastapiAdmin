@@ -9,7 +9,7 @@ from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
 from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
-
+from agno.knowledge import Knowledge
 from .crud import AgDocumentCRUD
 from .schema import (
     AgDocumentCreateSchema,
@@ -325,3 +325,306 @@ class AgDocumentService:
             selector_header_list=selector_header_list,
             option_list=option_list
         )
+
+    # ── 知识库文档管理（向量化相关）──────────────────────────────────────────
+
+    @classmethod
+    async def upload_document_service(
+        cls,
+        auth: AuthSchema,
+        kb_id: int,
+        file,
+        name: str | None,
+        description: str | None,
+        metadata_config: dict | None,
+        background_tasks,
+    ) -> dict:
+        """
+        上传文件到 knowledge base：
+        1. 保存文件到 settings.UPLOAD_FILE_PATH/knowledge/{kb_id}/
+        2. 写 ag_documents 记录（doc_status=pending）
+        3. 后台任务向量化
+        """
+        import uuid
+        from pathlib import Path
+        from app.config.setting import settings
+        from app.plugin.module_agno_manage.core.registry import get_registry
+
+        kb = get_registry().get_knowledge(str(kb_id))
+        if kb is None:
+            raise CustomException(msg=f"知识库 {kb_id} 不存在或未启用")
+
+        content_bytes = await file.read()
+        suffix = Path(file.filename).suffix if file.filename else ""
+        save_dir = settings.UPLOAD_FILE_PATH / "knowledge" / str(kb_id)
+        save_dir.mkdir(parents=True, exist_ok=True)
+        file_name = f"{uuid.uuid4().hex}{suffix}"
+        file_path = save_dir / file_name
+        file_path.write_bytes(content_bytes)
+
+        create_data = AgDocumentCreateSchema(
+            kb_id=kb_id,
+            name=name or file.filename or file_name,
+            storage_type="local",
+            storage_path=str(file_path.resolve()),
+            doc_status="pending",
+            metadata_config=metadata_config,
+            description=description,
+        )
+        obj = await AgDocumentCRUD(auth).create_documents_crud(data=create_data)
+
+        background_tasks.add_task(
+            cls._vectorize_file,
+            doc_id=obj.id,
+            kb=kb,
+            content_bytes=content_bytes,
+            filename=file.filename,
+            content_type=file.content_type,
+            file_size=file.size,
+            name=name or file.filename,
+            description=description,
+            metadata_config=metadata_config,
+        )
+
+        return AgDocumentOutSchema.model_validate(obj).model_dump()
+
+    @classmethod
+    async def insert_document_service(
+        cls,
+        auth: AuthSchema,
+        kb_id: int,
+        url: str | None,
+        text_content: str | None,
+        name: str | None,
+        description: str | None,
+        metadata_config: dict | None,
+        background_tasks,
+    ) -> dict:
+        """插入 URL 或纯文本到知识库，后台向量化。"""
+        from app.plugin.module_agno_manage.core.registry import get_registry
+
+        if not url and not text_content:
+            raise CustomException(msg="url 和 text_content 不能同时为空")
+
+        kb = get_registry().get_knowledge(str(kb_id))
+        if kb is None:
+            raise CustomException(msg=f"知识库 {kb_id} 不存在或未启用")
+
+        storage_type = "url" if url else "text"
+        storage_path = url or (text_content[:500] if text_content else "")
+
+        create_data = AgDocumentCreateSchema(
+            kb_id=kb_id,
+            name=name or url or "text_content",
+            storage_type=storage_type,
+            storage_path=storage_path,
+            doc_status="pending",
+            metadata_config=metadata_config,
+            description=description,
+        )
+        obj = await AgDocumentCRUD(auth).create_documents_crud(data=create_data)
+
+        background_tasks.add_task(
+            cls._vectorize_url_or_text,
+            doc_id=obj.id,
+            kb=kb,
+            url=url,
+            text_content=text_content,
+            name=name,
+            description=description,
+            metadata_config=metadata_config,
+        )
+
+        return AgDocumentOutSchema.model_validate(obj).model_dump()
+
+    @classmethod
+    async def reprocess_document_service(
+        cls,
+        auth: AuthSchema,
+        kb_id: int,
+        doc_id: int,
+        background_tasks,
+    ) -> dict:
+        """重新向量化已有文档（从原始文件 / storage_path 重建）。"""
+        from app.core.database import async_db_session
+        from app.plugin.module_agno_manage.core.registry import get_registry
+
+        obj = await AgDocumentCRUD(auth).get_by_id_documents_crud(id=doc_id)
+        if not obj or obj.kb_id != kb_id:
+            raise CustomException(msg="文档不存在")
+
+        kb = get_registry().get_knowledge(str(kb_id))
+        if kb is None:
+            raise CustomException(msg=f"知识库 {kb_id} 不存在或未启用")
+
+        if obj.storage_type == "local":
+            from pathlib import Path
+            file_path = Path(obj.storage_path)
+            if not file_path.exists():
+                raise CustomException(msg=f"原始文件不存在: {obj.storage_path}")
+            content_bytes = file_path.read_bytes()
+            background_tasks.add_task(
+                cls._vectorize_file,
+                doc_id=doc_id,
+                kb=kb,
+                content_bytes=content_bytes,
+                filename=obj.name,
+                content_type=None,
+                file_size=len(content_bytes),
+                name=obj.name,
+                description=obj.description,
+                metadata_config=obj.metadata_config,
+            )
+        else:
+            background_tasks.add_task(
+                cls._vectorize_url_or_text,
+                doc_id=doc_id,
+                kb=kb,
+                url=obj.storage_path if obj.storage_type == "url" else None,
+                text_content=obj.storage_path if obj.storage_type == "text" else None,
+                name=obj.name,
+                description=obj.description,
+                metadata_config=obj.metadata_config,
+            )
+
+        async with async_db_session() as session:
+            await AgDocumentCRUD.update_status_internal_crud(session, doc_id, "pending")
+
+        return AgDocumentOutSchema.model_validate(obj).model_dump()
+
+    @classmethod
+    async def delete_document_with_vectors_service(
+        cls,
+        auth: AuthSchema,
+        kb_id: int,
+        doc_id: int,
+    ) -> None:
+        """删除文档记录及 Agno 侧向量数据。"""
+        from app.plugin.module_agno_manage.core.registry import get_registry
+
+        obj = await AgDocumentCRUD(auth).get_by_id_documents_crud(id=doc_id)
+        if not obj or obj.kb_id != kb_id:
+            raise CustomException(msg="文档不存在")
+
+        if obj.content_id:
+            kb = get_registry().get_knowledge(str(kb_id))
+            if kb:
+                try:
+                    await kb.aremove_content_by_id(content_id=obj.content_id)
+                except Exception as e:
+                    log.warning(f"[Documents] 删除 Agno content {obj.content_id} 失败: {e}")
+
+        await AgDocumentCRUD(auth).delete_documents_crud(ids=[doc_id])
+
+    @classmethod
+    async def search_knowledge_service(
+        cls,
+        auth: AuthSchema,
+        kb_id: int,
+        query: str,
+        limit: int = 10,
+    ) -> list[dict]:
+        """向量检索知识库内容。"""
+        from app.plugin.module_agno_manage.core.registry import get_registry
+
+        kb:Knowledge = get_registry().get_knowledge(str(kb_id))
+        if kb is None:
+            raise CustomException(msg=f"知识库 {kb_id} 不存在或未启用")
+
+        docs = await kb.asearch(query=query, max_results=limit)
+        return [
+            {
+                "name": doc.name,
+                "content": doc.content,
+                "meta_data": doc.meta_data,
+                "reranking_score": getattr(doc, "reranking_score", None),
+            }
+            for doc in docs
+        ]
+
+    @staticmethod
+    async def _vectorize_file(
+        doc_id: int,
+        kb:Knowledge,
+        content_bytes: bytes,
+        filename: str | None,
+        content_type: str | None,
+        file_size: int | None,
+        name: str | None,
+        description: str | None,
+        metadata_config: dict | None,
+    ) -> None:
+        """后台任务：将文件向量化并回写 ag_documents 状态。"""
+        from agno.knowledge.content import Content, FileData
+        from agno.utils.string import generate_id
+        from app.core.database import async_db_session
+        from app.core.logger import log
+
+        async with async_db_session() as session:
+            await AgDocumentCRUD.update_status_internal_crud(session, doc_id, "processing")
+
+        file_data = FileData(
+            content=content_bytes,
+            type=content_type,
+            filename=filename,
+            size=file_size,
+        )
+        # TODO：reader 未传入
+        content = Content(
+            name=name,
+            description=description,
+            metadata=metadata_config,
+            file_data=file_data,
+            size=file_size,
+        )
+        content.content_hash = kb._build_content_hash(content)
+        content.id = generate_id(content.content_hash)
+
+        try:
+            await kb._aload_content(content, upsert=True, skip_if_exists=False)
+            async with async_db_session() as session:
+                await AgDocumentCRUD.update_status_internal_crud(
+                    session, doc_id, "indexed", content_id=content.id
+                )
+        except Exception as e:
+            log.error(f"[Documents] 向量化失败 doc_id={doc_id}: {e}")
+            async with async_db_session() as session:
+                await AgDocumentCRUD.update_status_internal_crud(
+                    session, doc_id, "failed", error_msg=str(e)
+                )
+
+    @staticmethod
+    async def _vectorize_url_or_text(
+        doc_id: int,
+        kb:Knowledge,
+        url: str | None,
+        text_content: str | None,
+        name: str | None,
+        description: str | None,
+        metadata_config: dict | None,
+    ) -> None:
+        """后台任务：将 URL/文本向量化并回写 ag_documents 状态。"""
+        from app.core.database import async_db_session
+        from app.core.logger import log
+
+        async with async_db_session() as session:
+            await AgDocumentCRUD.update_status_internal_crud(session, doc_id, "processing")
+
+        try:
+            # TODO reader没有传入或者选择。
+            await kb.ainsert(
+                name=name,
+                description=description,
+                url=url,
+                text_content=text_content,
+                metadata=metadata_config,
+                upsert=True,
+            )
+            async with async_db_session() as session:
+                await AgDocumentCRUD.update_status_internal_crud(session, doc_id, "indexed")
+        except Exception as e:
+            log.error(f"[Documents] URL/文本向量化失败 doc_id={doc_id}: {e}")
+            async with async_db_session() as session:
+                await AgDocumentCRUD.update_status_internal_crud(
+                    session, doc_id, "failed", error_msg=str(e)
+                )

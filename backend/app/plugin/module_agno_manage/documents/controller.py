@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, File, Form, Path, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from app.api.v1.module_system.auth.schema import AuthSchema
@@ -221,6 +221,73 @@ async def import_documents_list_controller(
     batch_import_result = await AgDocumentService.batch_import_documents_service(file=file, auth=auth, update_support=True)
     log.info("导入知识库文档成功")
     return SuccessResponse(data=batch_import_result, msg="导入知识库文档成功")
+
+
+@AgDocumentRouter.post(
+    "/upload",
+    summary="上传文件并向量化",
+    description="上传文件到指定知识库，后台异步向量化，返回文档记录（doc_status=pending）"
+)
+async def upload_document_controller(
+    background_tasks: BackgroundTasks,
+    kb_id: int = Form(..., description="知识库ID"),
+    file: UploadFile = File(...),
+    name: str | None = Form(None, description="文档名称（默认用文件名）"),
+    description: str | None = Form(None),
+    metadata_config: str | None = Form(None, description="JSON 格式元数据"),
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:documents:create"]))
+) -> JSONResponse:
+    import json
+    meta = json.loads(metadata_config) if metadata_config else None
+    result = await AgDocumentService.upload_document_service(
+        auth=auth, kb_id=kb_id, file=file,
+        name=name, description=description, metadata_config=meta,
+        background_tasks=background_tasks,
+    )
+    log.info(f"上传文件成功 kb_id={kb_id}")
+    return SuccessResponse(data=result, msg="文件上传成功，正在向量化")
+
+
+@AgDocumentRouter.post(
+    "/insert",
+    summary="插入 URL 或文本并向量化",
+    description="插入 URL 或纯文本到指定知识库，后台异步向量化"
+)
+async def insert_document_controller(
+    background_tasks: BackgroundTasks,
+    kb_id: int = Body(..., description="知识库ID"),
+    url: str | None = Body(None),
+    text_content: str | None = Body(None),
+    name: str | None = Body(None),
+    description: str | None = Body(None),
+    metadata_config: dict | None = Body(None),
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:documents:create"]))
+) -> JSONResponse:
+    result = await AgDocumentService.insert_document_service(
+        auth=auth, kb_id=kb_id, url=url, text_content=text_content,
+        name=name, description=description, metadata_config=metadata_config,
+        background_tasks=background_tasks,
+    )
+    log.info(f"插入文档成功 kb_id={kb_id}")
+    return SuccessResponse(data=result, msg="插入成功，正在向量化")
+
+
+@AgDocumentRouter.post(
+    "/{id}/reprocess",
+    summary="重新向量化文档",
+    description="从原始 storage_path 重新向量化已有文档"
+)
+async def reprocess_document_controller(
+    background_tasks: BackgroundTasks,
+    id: int = Path(..., description="文档ID"),
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:documents:update"]))
+) -> JSONResponse:
+    obj = await AgDocumentService.detail_documents_service(auth=auth, id=id)
+    result = await AgDocumentService.reprocess_document_service(
+        auth=auth, kb_id=obj["kb_id"], doc_id=id, background_tasks=background_tasks
+    )
+    log.info(f"重新向量化已提交 doc_id={id}")
+    return SuccessResponse(data=result, msg="重新向量化已提交")
 
 
 @AgDocumentRouter.post(

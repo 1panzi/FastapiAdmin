@@ -70,13 +70,23 @@ async def _do_warm_up() -> None:
 
         from app.plugin.module_agno_manage.knowledge_bases.model import AgKnowledgeBaseModel
         result = await db.execute(select(AgKnowledgeBaseModel).where(AgKnowledgeBaseModel.status == "0"))
-        for row in result.scalars().all():
+        kb_rows = result.scalars().all()
+        for row in kb_rows:
             registry._kb_rows[str(row.id)] = row
 
         from app.plugin.module_agno_manage.readers.model import AgReaderModel
         result = await db.execute(select(AgReaderModel).where(AgReaderModel.status == "0"))
         for row in result.scalars().all():
             registry._reader_rows[str(row.id)] = row
+
+        # 预构建所有 Knowledge 实例（vectordb_rows + reader_rows 已就绪）
+        for row in kb_rows:
+            try:
+                kb = registry._build_knowledge(str(row.id), row)
+                if kb:
+                    registry._knowledge_map[str(row.id)] = kb
+            except Exception as e:
+                log.warning(f"[Startup] skip knowledge build id={row.id}: {e}")
 
         # ── 第三层：工具类 ────────────────────────────────────────────────
         from app.plugin.module_agno_manage.toolkits.model import AgToolkitModel
@@ -178,6 +188,7 @@ async def _do_warm_up() -> None:
         f"[Registry] warm-up complete — "
         f"models={len(registry._model_cache)}, "
         f"embedders={len(registry._embedder_cache)}, "
+        f"knowledge={len(registry._knowledge_map)}, "
         f"toolkits={len(registry._toolkit_rows)}, "
         f"hooks={len(registry._hook_map)}, "
         f"guardrails={len(registry._guardrail_map)}"

@@ -430,6 +430,16 @@
             >
               删除
             </el-button>
+            <el-button
+              v-hasPerm="['module_agno_manage:knowledge_bases:query']"
+              type="warning"
+              size="small"
+              link
+              icon="folder"
+              @click="handleOpenDocDrawer(scope.row)"
+            >
+              文档
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -601,6 +611,201 @@
       :page-data="pageTableData"
       :selection-data="selectionRows"
     />
+
+    <!-- ── 文档管理抽屉 ─────────────────────────────────────────────── -->
+    <el-drawer
+      v-model="docDrawer.visible"
+      :title="`文档管理 — ${docDrawer.kbName}`"
+      direction="rtl"
+      size="75%"
+      :destroy-on-close="true"
+    >
+      <!-- 工具栏 -->
+      <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
+        <el-button type="primary" icon="upload" @click="uploadDialog.visible = true">上传文件</el-button>
+        <el-button type="success" icon="link" @click="insertDialog.visible = true">插入URL/文本</el-button>
+        <el-button icon="refresh" :loading="docLoading" @click="loadKBDocs">刷新</el-button>
+        <el-input
+          v-model="searchQuery"
+          placeholder="输入内容检索知识库..."
+          style="flex:1; min-width:200px;"
+          clearable
+          @keyup.enter="handleKBSearch"
+        >
+          <template #append>
+            <el-button icon="search" :loading="searchLoading" @click="handleKBSearch">检索</el-button>
+          </template>
+        </el-input>
+      </div>
+
+      <!-- 检索结果 -->
+      <el-card v-if="searchResults.length > 0" shadow="never" style="margin-bottom:16px;">
+        <template #header>
+          <span style="font-weight:600;">检索结果（{{ searchResults.length }} 条）</span>
+          <el-button style="float:right;" text @click="searchResults = []">清除</el-button>
+        </template>
+        <div
+          v-for="(r, i) in searchResults"
+          :key="i"
+          style="padding:8px 0; border-bottom:1px solid var(--el-border-color-lighter);"
+        >
+          <div style="font-weight:500; margin-bottom:4px;">
+            {{ r.name || `结果 ${i + 1}` }}
+            <el-tag
+              v-if="r.reranking_score != null"
+              size="small"
+              type="info"
+              style="margin-left:8px;"
+            >
+              score: {{ typeof r.reranking_score === 'number' ? r.reranking_score.toFixed(4) : r.reranking_score }}
+            </el-tag>
+          </div>
+          <div style="color:var(--el-text-color-secondary); font-size:13px; white-space:pre-wrap; word-break:break-all;">
+            {{ r.content }}
+          </div>
+        </div>
+      </el-card>
+
+      <!-- 文档列表 -->
+      <el-table v-loading="docLoading" :data="docList" border stripe>
+        <template #empty>
+          <el-empty :image-size="60" description="暂无文档，请上传文件或插入URL/文本" />
+        </template>
+        <el-table-column label="文档名称" prop="name" min-width="180" show-overflow-tooltip />
+        <el-table-column label="类型" prop="storage_type" min-width="80" align="center">
+          <template #default="scope">
+            <el-tag size="small" type="info">{{ scope.row.storage_type || '-' }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="向量化状态" prop="doc_status" min-width="110" align="center">
+          <template #default="scope">
+            <el-tag :type="docStatusTagType(scope.row.doc_status)" size="small">
+              {{ docStatusLabel(scope.row.doc_status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="错误信息" prop="error_msg" min-width="160" show-overflow-tooltip>
+          <template #default="scope">
+            <span v-if="scope.row.error_msg" style="color:var(--el-color-danger); font-size:12px;">
+              {{ scope.row.error_msg }}
+            </span>
+            <span v-else style="color:var(--el-text-color-placeholder);">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="创建时间" prop="created_time" min-width="150" show-overflow-tooltip />
+        <el-table-column label="操作" fixed="right" align="center" min-width="150">
+          <template #default="scope">
+            <el-button
+              size="small"
+              link
+              type="warning"
+              icon="refresh"
+              @click="handleReprocessDoc(scope.row)"
+            >
+              重新向量化
+            </el-button>
+            <el-button
+              size="small"
+              link
+              type="danger"
+              icon="delete"
+              @click="handleDeleteKBDoc(scope.row)"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <!-- 分页 -->
+      <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+        <el-pagination
+          v-model:current-page="docQuery.page_no"
+          v-model:page-size="docQuery.page_size"
+          :total="docTotal"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next"
+          @change="loadKBDocs"
+        />
+      </div>
+    </el-drawer>
+
+    <!-- ── 上传文件弹窗 ──────────────────────────────────────────────── -->
+    <el-dialog
+      v-model="uploadDialog.visible"
+      title="上传文件到知识库"
+      width="480px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-width="80px">
+        <el-form-item label="文件" required>
+          <el-upload
+            ref="uploadRef"
+            :auto-upload="false"
+            :limit="1"
+            :on-change="handleFileChange"
+            :on-remove="() => (uploadForm.file = null)"
+            drag
+            style="width:100%;"
+          >
+            <el-icon style="font-size:40px; color:var(--el-color-primary);"><UploadFilled /></el-icon>
+            <div style="margin-top:8px;">拖拽文件到此处，或 <em>点击选择</em></div>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="文档名称">
+          <el-input v-model="uploadForm.name" placeholder="留空则使用文件名" clearable />
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="uploadForm.description" type="textarea" :rows="2" placeholder="可选" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="uploadDialog.visible = false">取消</el-button>
+        <el-button type="primary" :loading="uploadDialog.loading" @click="handleUploadDoc">
+          上传并向量化
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- ── 插入 URL / 文本弹窗 ──────────────────────────────────────── -->
+    <el-dialog
+      v-model="insertDialog.visible"
+      title="插入 URL 或文本"
+      width="520px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-width="90px">
+        <el-form-item label="类型">
+          <el-radio-group v-model="insertForm.type">
+            <el-radio value="url">URL</el-radio>
+            <el-radio value="text">纯文本</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-if="insertForm.type === 'url'" label="URL" required>
+          <el-input v-model="insertForm.url" placeholder="https://..." clearable />
+        </el-form-item>
+        <el-form-item v-else label="文本内容" required>
+          <el-input
+            v-model="insertForm.text_content"
+            type="textarea"
+            :rows="6"
+            placeholder="输入要向量化的文本内容..."
+          />
+        </el-form-item>
+        <el-form-item label="文档名称">
+          <el-input v-model="insertForm.name" placeholder="可选，留空自动生成" clearable />
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="insertForm.description" type="textarea" :rows="2" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="insertDialog.visible = false">取消</el-button>
+        <el-button type="primary" :loading="insertDialog.loading" @click="handleInsertDoc">
+          确认插入
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -612,7 +817,7 @@ defineOptions({
 
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { QuestionFilled, ArrowUp, ArrowDown, Check, CircleClose } from "@element-plus/icons-vue";
+import { QuestionFilled, ArrowUp, ArrowDown, Check, CircleClose, UploadFilled } from "@element-plus/icons-vue";
 import { formatToDateTime } from "@/utils/dateUtil";
 import { ResultEnum } from "@/enums/api/result.enum";
 import DatePicker from "@/components/DatePicker/index.vue";
@@ -624,6 +829,8 @@ import AgKnowledgeBaseAPI, {
   AgKnowledgeBasePageQuery,
   AgKnowledgeBaseTable,
   AgKnowledgeBaseForm,
+  AgKBDocumentItem,
+  KBSearchResult,
 } from "@/api/module_agno_manage/knowledge_bases";
 import AgVectordbAPI from "@/api/module_agno_manage/vectordbs";
 
@@ -1016,6 +1223,170 @@ onMounted(async () => {
   await loadVectordbList();
   loadingData();
 });
+
+// ── 文档管理抽屉 ──────────────────────────────────────────────────────
+const docDrawer = reactive({ visible: false, kbId: 0, kbName: '' });
+const docList = ref<AgKBDocumentItem[]>([]);
+const docTotal = ref(0);
+const docLoading = ref(false);
+const docQuery = reactive({ page_no: 1, page_size: 10 });
+const searchQuery = ref('');
+const searchResults = ref<KBSearchResult[]>([]);
+const searchLoading = ref(false);
+const uploadRef = ref();
+const uploadDialog = reactive({ visible: false, loading: false });
+const uploadForm = reactive({ file: null as File | null, name: '', description: '' });
+const insertDialog = reactive({ visible: false, loading: false });
+const insertForm = reactive({ type: 'url' as 'url' | 'text', url: '', text_content: '', name: '', description: '' });
+
+function docStatusTagType(status?: string): 'success' | 'warning' | 'danger' | 'info' {
+  if (status === 'completed') return 'success';
+  if (status === 'pending') return 'warning';
+  if (status === 'failed') return 'danger';
+  return 'info';
+}
+
+function docStatusLabel(status?: string): string {
+  const map: Record<string, string> = {
+    pending: '待处理',
+    processing: '处理中',
+    completed: '已完成',
+    failed: '失败',
+  };
+  return map[status ?? ''] ?? (status || '-');
+}
+
+function handleOpenDocDrawer(row: AgKnowledgeBaseTable) {
+  docDrawer.kbId = row.id as number;
+  docDrawer.kbName = row.name || String(row.id);
+  docDrawer.visible = true;
+  docQuery.page_no = 1;
+  docList.value = [];
+  docTotal.value = 0;
+  searchResults.value = [];
+  searchQuery.value = '';
+  loadKBDocs();
+}
+
+async function loadKBDocs() {
+  docLoading.value = true;
+  try {
+    const res = await AgKnowledgeBaseAPI.listKBDocs(docDrawer.kbId, {
+      page_no: docQuery.page_no,
+      page_size: docQuery.page_size,
+    });
+    docList.value = res.data?.data?.items || [];
+    docTotal.value = res.data?.data?.total || 0;
+  } catch (e) {
+    console.error(e);
+  } finally {
+    docLoading.value = false;
+  }
+}
+
+async function handleKBSearch() {
+  if (!searchQuery.value.trim()) return;
+  searchLoading.value = true;
+  try {
+    const res = await AgKnowledgeBaseAPI.searchKB(docDrawer.kbId, { query: searchQuery.value.trim(), limit: 10 });
+    searchResults.value = res.data?.data || [];
+  } catch (e) {
+    console.error(e);
+  } finally {
+    searchLoading.value = false;
+  }
+}
+
+async function handleReprocessDoc(row: AgKBDocumentItem) {
+  try {
+    await AgKnowledgeBaseAPI.reprocessKBDoc(docDrawer.kbId, row.id as number);
+    ElMessage.success('重新向量化已提交');
+    loadKBDocs();
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function handleDeleteKBDoc(row: AgKBDocumentItem) {
+  ElMessageBox.confirm('确认删除该文档及其向量数据?', '警告', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  }).then(async () => {
+    try {
+      await AgKnowledgeBaseAPI.deleteKBDoc(docDrawer.kbId, row.id as number);
+      ElMessage.success('删除成功');
+      loadKBDocs();
+    } catch (e) {
+      console.error(e);
+    }
+  }).catch(() => {});
+}
+
+function handleFileChange(uploadFile: any) {
+  uploadForm.file = uploadFile.raw as File;
+}
+
+async function handleUploadDoc() {
+  if (!uploadForm.file) {
+    ElMessage.warning('请选择要上传的文件');
+    return;
+  }
+  uploadDialog.loading = true;
+  try {
+    const fd = new FormData();
+    fd.append('file', uploadForm.file);
+    if (uploadForm.name) fd.append('name', uploadForm.name);
+    if (uploadForm.description) fd.append('description', uploadForm.description);
+    await AgKnowledgeBaseAPI.uploadKBDoc(docDrawer.kbId, fd);
+    ElMessage.success('上传成功，正在向量化');
+    uploadDialog.visible = false;
+    uploadForm.file = null;
+    uploadForm.name = '';
+    uploadForm.description = '';
+    if (uploadRef.value) uploadRef.value.clearFiles();
+    loadKBDocs();
+  } catch (e) {
+    console.error(e);
+  } finally {
+    uploadDialog.loading = false;
+  }
+}
+
+async function handleInsertDoc() {
+  if (insertForm.type === 'url' && !insertForm.url.trim()) {
+    ElMessage.warning('请输入 URL');
+    return;
+  }
+  if (insertForm.type === 'text' && !insertForm.text_content.trim()) {
+    ElMessage.warning('请输入文本内容');
+    return;
+  }
+  insertDialog.loading = true;
+  try {
+    const body: any = {
+      name: insertForm.name || undefined,
+      description: insertForm.description || undefined,
+    };
+    if (insertForm.type === 'url') {
+      body.url = insertForm.url.trim();
+    } else {
+      body.text_content = insertForm.text_content.trim();
+    }
+    await AgKnowledgeBaseAPI.insertKBDoc(docDrawer.kbId, body);
+    ElMessage.success('插入成功，正在向量化');
+    insertDialog.visible = false;
+    insertForm.url = '';
+    insertForm.text_content = '';
+    insertForm.name = '';
+    insertForm.description = '';
+    loadKBDocs();
+  } catch (e) {
+    console.error(e);
+  } finally {
+    insertDialog.loading = false;
+  }
+}
 </script>
 
 <style lang="scss" scoped></style>

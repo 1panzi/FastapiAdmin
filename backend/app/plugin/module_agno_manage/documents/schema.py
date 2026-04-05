@@ -18,7 +18,9 @@ class AgDocumentCreateSchema(BaseModel):
     storage_path: str | None = Field(default=None, description='存储路径或URL')
     doc_status: str | None = Field(default=None, description='处理状态(pending/processing/indexed/failed)')
     error_msg: str | None = Field(default=None, description='处理失败错误信息')
+    content_id: str | None = Field(default=None, description='Agno contents_db 记录ID')
     metadata_config: dict | None = Field(default=None, description='文档元数据')
+    reader_id: int | None = Field(default=None, description='处理该文档所用的 Reader ID')
     status: str = Field(default="0", description='')
     description: str | None = Field(default=None, max_length=255, description='')
 
@@ -89,3 +91,29 @@ class AgDocumentQueryParam:
             self.created_time = (QueueEnum.between.value, (created_time[0], created_time[1]))
         if updated_time and len(updated_time) == 2:
             self.updated_time = (QueueEnum.between.value, (updated_time[0], updated_time[1]))
+
+
+class AgDocumentStatusUpdateSchema(BaseModel):
+    """内部状态回写，不走 auth 的更新模型"""
+    doc_status: str
+    error_msg: str | None = None
+    content_id: str | None = None
+
+
+class AgDocumentSubQueryParam:
+    """知识库子路由文档查询参数（不含 kb_id，避免与路径参数冲突）"""
+
+    def __init__(
+        self,
+        name: str | None = Query(None, description="文档名称"),
+        storage_type: str | None = Query(None, description="存储类型"),
+        doc_status: str | None = Query(None, description="处理状态"),
+        status: str | None = Query(None, description="记录状态"),
+    ) -> None:
+        self.name = (QueueEnum.like.value, name)
+        if storage_type:
+            self.storage_type = (QueueEnum.eq.value, storage_type)
+        if doc_status:
+            self.doc_status = (QueueEnum.eq.value, doc_status)
+        if status:
+            self.status = (QueueEnum.eq.value, status)

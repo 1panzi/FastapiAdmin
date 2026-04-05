@@ -8,8 +8,8 @@ Key 约定：所有 registry 字典的 key = str(row.id)（整数主键字符串
 AgentOS 路由约定：Agno agent_id = str(row.id)（如 "42"）
   → AgentOS 路由为 /agents/42/runs
 
-热区（全量常驻）：Model / Embedder / Toolkit / Hook / Guardrail / Agent / Team
-冷区（LRU 按需）：Knowledge（外部）/ MCP stdio
+热区（全量常驻）：Model / Embedder / Toolkit / Hook / Guardrail / Agent / Team / Knowledge
+冷区（LRU 按需）：MCP stdio
 行数据缓存（按需实例化子管理器）：vectordb / kb / mcp / skill / memory_manager / sub-configs
 """
 
@@ -103,8 +103,10 @@ class RuntimeRegistry:
         self._binding_rows: dict[str, object] = {}
 
         # ── 冷区（LRU 按需加载） ──────────────────────────────────────────
-        self._knowledge_cache: LRUCache = LRUCache(maxsize=50)
         self._mcp_cache: LRUCache = LRUCache(maxsize=20)
+
+        # ── 热区：Knowledge 全量常驻（文档路由需要即时获取实例） ─────────
+        self._knowledge_map: dict[str, object] = {}     # str(id) → Knowledge 实例（全量常驻）
 
         # ── 共享资源（lifespan 注入） ──────────────────────────────────────
         self._agno_db = _build_agno_db()
@@ -467,15 +469,9 @@ class RuntimeRegistry:
         from app.plugin.module_agno_manage.core.sync_db import SyncBindingRepo
         kbs = []
         for b in SyncBindingRepo.get_active(agent_id, "agent", resource_type="knowledge"):
-            kb_row = self._kb_rows.get(b.resource_id)
-            if kb_row:
-                kb = self._knowledge_cache.get(b.resource_id)
-                if kb is None:
-                    kb = self._build_knowledge(b.resource_id, kb_row)
-                    if kb:
-                        self._knowledge_cache.set(b.resource_id, kb)
-                if kb:
-                    kbs.append(kb)
+            kb = self._knowledge_map.get(b.resource_id)
+            if kb:
+                kbs.append(kb)
         return kbs[0] if kbs else None
 
     def _build_reader(self, reader_row, config_override: dict | None = None):
@@ -632,11 +628,18 @@ class RuntimeRegistry:
             if readers:
                 kwargs["readers"] = readers
 
+            kwargs["contents_db"] = self._agno_db
             return Knowledge(**kwargs)
 
         except Exception as e:
             log.error(f"[Registry] failed to build knowledge id={kb_id}: {e}")
             return None
+
+    # ── Knowledge（热区，全量常驻）─────────────────────────────────────────────
+
+    def get_knowledge(self, kb_id: str) -> object | None:
+        """取已构建的 Knowledge 实例（供文档路由使用）。"""
+        return self._knowledge_map.get(kb_id)
 
     # ── Row cache management (public API) ────────────────────────────────────
 
@@ -676,13 +679,17 @@ class RuntimeRegistry:
 
     def update_kb_row(self, kid: str, row) -> None:
         self._kb_rows[kid] = row
-        # 行数据变了，让 LRU 缓存失效，下次 resolve 时重建
-        self._knowledge_cache.remove(kid)
-        log.debug(f"[Registry] kb row updated: id={kid}")
+        # 重建 Knowledge 实例（全量常驻，即时生效）
+        kb = self._build_knowledge(kid, row)
+        if kb:
+            self._knowledge_map[kid] = kb
+        else:
+            self._knowledge_map.pop(kid, None)
+        log.debug(f"[Registry] kb row updated + knowledge rebuilt: id={kid}")
 
     def remove_kb_row(self, kid: str) -> None:
         self._kb_rows.pop(kid, None)
-        self._knowledge_cache.remove(kid)
+        self._knowledge_map.pop(kid, None)
 
     def update_reader_row(self, rid: str, row) -> None:
         self._reader_rows[rid] = row
@@ -695,14 +702,18 @@ class RuntimeRegistry:
         self._invalidate_kb_cache_by_reader(rid)
 
     def _invalidate_kb_cache_by_reader(self, reader_id: str) -> None:
-        """让所有绑定了指定 reader 的知识库 LRU 缓存失效。"""
+        """reader 配置变更时，重建所有绑定了该 reader 的知识库实例。"""
         from app.plugin.module_agno_manage.core.sync_db import SyncBindingRepo
         try:
-            for kb_id in list(self._kb_rows.keys()):
+            for kb_id, kb_row in list(self._kb_rows.items()):
                 bindings = SyncBindingRepo.get_active(kb_id, "knowledge", resource_type="reader")
                 if any(b.resource_id == reader_id for b in bindings):
-                    self._knowledge_cache.remove(kb_id)
-                    log.debug(f"[Registry] kb cache invalidated: id={kb_id} (reader {reader_id} changed)")
+                    kb = self._build_knowledge(kb_id, kb_row)
+                    if kb:
+                        self._knowledge_map[kb_id] = kb
+                    else:
+                        self._knowledge_map.pop(kb_id, None)
+                    log.debug(f"[Registry] kb rebuilt: id={kb_id} (reader {reader_id} changed)")
         except Exception as e:
             log.warning(f"[Registry] _invalidate_kb_cache_by_reader failed: {e}")
 
@@ -853,7 +864,6 @@ class RuntimeRegistry:
 
     def shutdown(self) -> None:
         self._mcp_cache.clear()
-        self._knowledge_cache.clear()
         log.info("[Registry] shutdown complete")
 
 

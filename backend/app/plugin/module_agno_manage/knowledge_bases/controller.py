@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Body, Depends, Path, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, File, Form, Path, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from app.api.v1.module_system.auth.schema import AuthSchema
@@ -16,6 +16,8 @@ from .schema import (
     AgKnowledgeBaseUpdateSchema,
 )
 from .service import AgKnowledgeBaseService
+from app.plugin.module_agno_manage.documents.service import AgDocumentService
+from app.plugin.module_agno_manage.documents.schema import AgDocumentQueryParam, AgDocumentSubQueryParam
 
 AgKnowledgeBaseRouter = APIRouter(prefix='/knowledge_bases', tags=["知识库模块"])
 
@@ -249,3 +251,123 @@ async def export_knowledge_bases_template_controller() -> StreamingResponse:
     )
 
 
+# ── 知识库文档管理子路由 ──────────────────────────────────────────────────────
+
+
+@AgKnowledgeBaseRouter.post(
+    "/{kb_id}/docs/upload",
+    summary="上传文件到知识库",
+    description="上传文件并异步向量化，返回文档记录（doc_status=pending）"
+)
+async def upload_knowledge_doc_controller(
+    kb_id: int = Path(..., description="知识库ID"),
+    background_tasks: BackgroundTasks = None,
+    file: UploadFile = File(...),
+    name: str | None = Form(None, description="文档名称（默认用文件名）"),
+    description: str | None = Form(None),
+    metadata_config: str | None = Form(None, description="JSON 格式元数据"),
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:knowledge_bases:create"]))
+) -> JSONResponse:
+    import json
+    meta = json.loads(metadata_config) if metadata_config else None
+    result = await AgDocumentService.upload_document_service(
+        auth=auth, kb_id=kb_id, file=file,
+        name=name, description=description, metadata_config=meta,
+        background_tasks=background_tasks,
+    )
+    log.info(f"上传文件到知识库成功 kb_id={kb_id}")
+    return SuccessResponse(data=result, msg="文件上传成功，正在向量化")
+
+
+@AgKnowledgeBaseRouter.post(
+    "/{kb_id}/docs",
+    summary="插入 URL 或文本到知识库",
+)
+async def insert_knowledge_doc_controller(
+    kb_id: int = Path(...),
+    background_tasks: BackgroundTasks = None,
+    url: str | None = Body(None),
+    text_content: str | None = Body(None),
+    name: str | None = Body(None),
+    description: str | None = Body(None),
+    metadata_config: dict | None = Body(None),
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:knowledge_bases:create"]))
+) -> JSONResponse:
+    result = await AgDocumentService.insert_document_service(
+        auth=auth, kb_id=kb_id, url=url, text_content=text_content,
+        name=name, description=description, metadata_config=metadata_config,
+        background_tasks=background_tasks,
+    )
+    log.info(f"插入文档到知识库成功 kb_id={kb_id}")
+    return SuccessResponse(data=result, msg="插入成功，正在向量化")
+
+
+@AgKnowledgeBaseRouter.get(
+    "/{kb_id}/docs",
+    summary="查询知识库文档列表",
+)
+async def list_knowledge_docs_controller(
+    kb_id: int = Path(...),
+    page: PaginationQueryParam = Depends(),
+    search: AgDocumentSubQueryParam = Depends(),
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:knowledge_bases:query"]))
+) -> JSONResponse:
+    from app.common.enums import QueueEnum
+    search.kb_id = (QueueEnum.eq.value, kb_id)
+    result = await AgDocumentService.page_documents_service(
+        auth=auth,
+        page_no=page.page_no or 1,
+        page_size=page.page_size or 10,
+        search=search,
+        order_by=page.order_by,
+    )
+    return SuccessResponse(data=result, msg="查询成功")
+
+
+@AgKnowledgeBaseRouter.delete(
+    "/{kb_id}/docs/{doc_id}",
+    summary="删除知识库文档（同时删除向量）",
+)
+async def delete_knowledge_doc_controller(
+    kb_id: int = Path(...),
+    doc_id: int = Path(...),
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:knowledge_bases:delete"]))
+) -> JSONResponse:
+    await AgDocumentService.delete_document_with_vectors_service(
+        auth=auth, kb_id=kb_id, doc_id=doc_id
+    )
+    log.info(f"删除知识库文档成功 kb_id={kb_id} doc_id={doc_id}")
+    return SuccessResponse(msg="删除成功")
+
+
+@AgKnowledgeBaseRouter.post(
+    "/{kb_id}/docs/{doc_id}/reprocess",
+    summary="重新向量化文档",
+)
+async def reprocess_knowledge_doc_controller(
+    kb_id: int = Path(...),
+    doc_id: int = Path(...),
+    background_tasks: BackgroundTasks = None,
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:knowledge_bases:update"]))
+) -> JSONResponse:
+    result = await AgDocumentService.reprocess_document_service(
+        auth=auth, kb_id=kb_id, doc_id=doc_id, background_tasks=background_tasks
+    )
+    log.info(f"重新向量化文档已提交 kb_id={kb_id} doc_id={doc_id}")
+    return SuccessResponse(data=result, msg="重新向量化已提交")
+
+
+@AgKnowledgeBaseRouter.post(
+    "/{kb_id}/search",
+    summary="知识库向量检索",
+)
+async def search_knowledge_controller(
+    kb_id: int = Path(...),
+    query: str = Body(..., description="检索问题"),
+    limit: int = Body(10, ge=1, le=50),
+    auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:knowledge_bases:query"]))
+) -> JSONResponse:
+    results = await AgDocumentService.search_knowledge_service(
+        auth=auth, kb_id=kb_id, query=query, limit=limit
+    )
+    return SuccessResponse(data=results, msg="检索成功")

@@ -593,6 +593,56 @@ function handleProviderChange() {
 - `provider`（向量库类型）使用枚举下拉，从 `AgVectordbAPI.agnoTypes()` 加载，选择后自动填入 `config_example`
 - 接口路径：`GET /agno_manage/vectordbs/agno/types`
 
+### knowledge_bases 视图特殊说明
+
+知识库列表页在常规 CRUD 基础上，通过 **`el-drawer`** 实现子资源（文档）管理，无需跳转页面。
+
+#### 文档管理抽屉
+
+操作列有「文档」按钮，点击后打开右侧抽屉，展示该知识库下所有文档并提供完整操作：
+
+| 功能 | API 方法 | 说明 |
+|---|---|---|
+| 上传文件 | `uploadKBDoc(kb_id, FormData)` | 文件 + 可选 name/description，后端异步向量化 |
+| 插入 URL / 文本 | `insertKBDoc(kb_id, KBDocInsertBody)` | type 可选 `url` 或 `text`，后端异步向量化 |
+| 查询文档列表 | `listKBDocs(kb_id, query)` | 分页，支持 `page_no`/`page_size` |
+| 删除文档 | `deleteKBDoc(kb_id, doc_id)` | 同时删除向量数据 |
+| 重新向量化 | `reprocessKBDoc(kb_id, doc_id)` | 状态回退为 pending 后重新处理 |
+| 向量检索 | `searchKB(kb_id, {query, limit})` | 返回 `KBSearchResult[]`，含 content 和 reranking_score |
+
+以上 6 个方法均在 `src/api/module_agno_manage/knowledge_bases.ts` 中定义，并附带 3 个 TS 类型：
+
+```typescript
+interface AgKBDocumentItem { id, uuid, kb_id, name, storage_type, storage_path,
+  doc_status, error_msg, content_id, metadata_config, description,
+  created_time, updated_time }
+
+interface KBDocInsertBody { url?, text_content?, name?, description?, metadata_config? }
+
+interface KBSearchResult { name?, content?, meta_data?, reranking_score? }
+```
+
+#### doc_status 映射
+
+| 值 | 标签 | tag type |
+|---|---|---|
+| `pending` | 待处理 | warning |
+| `processing` | 处理中 | info |
+| `completed` | 已完成 | success |
+| `failed` | 失败 | danger |
+
+辅助函数 `docStatusTagType(status)` 和 `docStatusLabel(status)` 已在 script 中定义，可直接复用于类似场景。
+
+#### 抽屉开启状态管理
+
+```typescript
+const docDrawer = reactive({ visible: false, kbId: 0, kbName: '' });
+// 打开时重置所有子状态再调用 loadKBDocs()
+function handleOpenDocDrawer(row: AgKnowledgeBaseTable) { ... }
+```
+
+`el-drawer` 使用 `:destroy-on-close="true"`，关闭后状态自动销毁，无需手动清理。
+
 ## 开发计划
 
 视图完善的优先级顺序：
@@ -601,7 +651,7 @@ function handleProviderChange() {
 2. **toolkits**（`src/views/module_agno_manage/toolkits/`）— 完善表单字段
 3. **mcp_servers** — 完善表单字段
 4. **skills** — 完善表单字段
-5. **knowledge_bases** — ✅ 已完成
+5. **knowledge_bases** — ✅ 已完成（含文档管理抽屉：上传文件 / 插入URL·文本 / 向量检索 / 重新向量化 / 删除，详见「knowledge_bases 视图特殊说明」）
 6. **embedders** — ✅ 已完成
 7. **reasoning_configs** — ✅ 已完成（bool 三态 select、model_id 关联下拉、数字字段 input-number）
 8. **hooks** — ✅ 已完成（hook_type 枚举 select、run_in_background 三态 select、status 非必须 select）
