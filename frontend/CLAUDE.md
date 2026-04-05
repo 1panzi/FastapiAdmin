@@ -432,6 +432,7 @@ onMounted(async () => {
 | `clearable` | `boolean` | 是否可清空，默认 `true` |
 | `pageSize` | `number` | 每页条数，默认 `20` |
 | `initialLabel` | `string` | 编辑场景回显标签（可选） |
+| `preload` | `boolean` | 挂载时立即预拉取第一页，消除首次打开的加载闪烁，默认 `false` |
 
 ### 4. 枚举类型下拉（来自后端 /agno/types 接口）
 

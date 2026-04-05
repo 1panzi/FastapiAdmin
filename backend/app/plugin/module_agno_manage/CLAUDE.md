@@ -161,3 +161,5 @@ models → embedders
 - knowledge_bases 表已移除 reader_type/reader_config/default_filters 字段，reader 配置改由独立 ag_readers 表管理，通过 ag_bindings 绑定到知识库
 - bindings 的 config_override 字段支持在绑定层覆盖 reader/其他资源的参数配置
 - 同一知识库下每种 `reader_type` 只允许绑定一个 reader（在 `bindings/service.py` 的 `_check_knowledge_reader_type_unique` 中校验，创建和更新时触发，仅限 `owner_type="knowledge"` + `resource_type="reader"` 的绑定）
+- `bindings/controller.py` 维护静态 `BINDING_META` 字典，定义 owner 类型（agent/team/knowledge）→ 可绑资源类型及其前端 api_path 映射，通过 `GET /agno_manage/bindings/meta` 暴露给前端；前端 bindings 页面根据此元数据动态渲染下拉选项并发起列表请求，新增 owner/resource 类型只需修改 `BINDING_META`
+- team 的成员关系走独立的 `ag_team_members` 表（非 `ag_bindings`），有 `member_order`/`role` 字段；`ag_bindings` 只管 toolkit/skill/knowledge 等能力资源挂载
