@@ -31,6 +31,7 @@ dependencies = [
     "langchain-mcp-adapters==0.2.1", # 大模型 mcp 适配器
     "langchain-openai==1.1.6", # 大模型 openai 适配器
     "loguru==0.7.3", # 日志
+    "markdown>=3.10.2",
     "ollama>=0.6.1",
     "openai==2.28.0",
     "openpyxl==3.1.5", # Excel
@@ -52,6 +53,7 @@ dependencies = [
     "sqlalchemy==2.0.45", # 数据库ORM
     "sqlglot[rs]==27.8.0", # sql 解析
     "typer==0.19.0", # 命令行工具
+    "unstructured>=0.18.32",
     "user-agents==2.2.0", # 获取用户UA
     "uvicorn==0.30.6", # uvicorn web 框架
     "websockets==16.0", # websocket 框架

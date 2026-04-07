@@ -200,6 +200,7 @@ export interface AgKBDocumentItem {
   error_msg?: string;
   content_id?: string;
   metadata_config?: Record<string, any>;
+  reader_id?: number;
   description?: string;
   created_time?: string;
   updated_time?: string;
@@ -212,6 +213,7 @@ export interface KBDocInsertBody {
   name?: string;
   description?: string;
   metadata_config?: Record<string, any>;
+  reader_id?: number;
 }
 
 // 向量检索结果条目

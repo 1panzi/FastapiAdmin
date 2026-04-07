@@ -338,12 +338,13 @@ class AgDocumentService:
         description: str | None,
         metadata_config: dict | None,
         background_tasks,
+        reader_id: int | None = None,
     ) -> dict:
         """
         上传文件到 knowledge base：
         1. 保存文件到 settings.UPLOAD_FILE_PATH/knowledge/{kb_id}/
-        2. 写 ag_documents 记录（doc_status=pending）
-        3. 后台任务向量化
+        2. 写 ag_documents 记录（doc_status=pending，记录 reader_id）
+        3. 后台任务向量化（若指定 reader_id，用该 reader；否则 Agno 自动路由）
         """
         import uuid
         from pathlib import Path
@@ -370,6 +371,7 @@ class AgDocumentService:
             doc_status="pending",
             metadata_config=metadata_config,
             description=description,
+            reader_id=reader_id,
         )
         obj = await AgDocumentCRUD(auth).create_documents_crud(data=create_data)
 
@@ -384,6 +386,7 @@ class AgDocumentService:
             name=name or file.filename,
             description=description,
             metadata_config=metadata_config,
+            reader_id=reader_id,
         )
 
         return AgDocumentOutSchema.model_validate(obj).model_dump()
@@ -399,6 +402,7 @@ class AgDocumentService:
         description: str | None,
         metadata_config: dict | None,
         background_tasks,
+        reader_id: int | None = None,
     ) -> dict:
         """插入 URL 或纯文本到知识库，后台向量化。"""
         from app.plugin.module_agno_manage.core.registry import get_registry
@@ -421,6 +425,7 @@ class AgDocumentService:
             doc_status="pending",
             metadata_config=metadata_config,
             description=description,
+            reader_id=reader_id,
         )
         obj = await AgDocumentCRUD(auth).create_documents_crud(data=create_data)
 
@@ -433,6 +438,7 @@ class AgDocumentService:
             name=name,
             description=description,
             metadata_config=metadata_config,
+            reader_id=reader_id,
         )
 
         return AgDocumentOutSchema.model_validate(obj).model_dump()
@@ -445,7 +451,7 @@ class AgDocumentService:
         doc_id: int,
         background_tasks,
     ) -> dict:
-        """重新向量化已有文档（从原始文件 / storage_path 重建）。"""
+        """重新向量化已有文档（从原始文件 / storage_path 重建，复用存储的 reader_id）。"""
         from app.core.database import async_db_session
         from app.plugin.module_agno_manage.core.registry import get_registry
 
@@ -474,6 +480,7 @@ class AgDocumentService:
                 name=obj.name,
                 description=obj.description,
                 metadata_config=obj.metadata_config,
+                reader_id=obj.reader_id,
             )
         else:
             background_tasks.add_task(
@@ -485,6 +492,7 @@ class AgDocumentService:
                 name=obj.name,
                 description=obj.description,
                 metadata_config=obj.metadata_config,
+                reader_id=obj.reader_id,
             )
 
         async with async_db_session() as session:
@@ -527,7 +535,7 @@ class AgDocumentService:
         """向量检索知识库内容。"""
         from app.plugin.module_agno_manage.core.registry import get_registry
 
-        kb:Knowledge = get_registry().get_knowledge(str(kb_id))
+        kb = get_registry().get_knowledge(str(kb_id))
         if kb is None:
             raise CustomException(msg=f"知识库 {kb_id} 不存在或未启用")
 
@@ -545,7 +553,7 @@ class AgDocumentService:
     @staticmethod
     async def _vectorize_file(
         doc_id: int,
-        kb:Knowledge,
+        kb,
         content_bytes: bytes,
         filename: str | None,
         content_type: str | None,
@@ -553,8 +561,13 @@ class AgDocumentService:
         name: str | None,
         description: str | None,
         metadata_config: dict | None,
+        reader_id: int | None = None,
     ) -> None:
-        """后台任务：将文件向量化并回写 ag_documents 状态。"""
+        """
+        后台任务：将文件向量化并回写 ag_documents 状态。
+        若指定 reader_id，从 registry 按 ID 构建对应 reader，临时注入 kb.readers 覆盖 Agno 自动路由；
+        否则 Agno 依文件类型自动选 reader。
+        """
         from agno.knowledge.content import Content, FileData
         from agno.utils.string import generate_id
         from app.core.database import async_db_session
@@ -569,7 +582,6 @@ class AgDocumentService:
             filename=filename,
             size=file_size,
         )
-        # TODO：reader 未传入
         content = Content(
             name=name,
             description=description,
@@ -579,6 +591,22 @@ class AgDocumentService:
         )
         content.content_hash = kb._build_content_hash(content)
         content.id = generate_id(content.content_hash)
+
+        # 若指定 reader_id，临时覆盖 kb.readers 以强制使用该 reader
+        saved_readers = None
+        if reader_id is not None:
+            from app.plugin.module_agno_manage.core.registry import get_registry
+            reg = get_registry()
+            reader_row = reg._reader_rows.get(str(reader_id))
+            if reader_row:
+                specific_reader = reg._build_reader(reader_row)
+                if specific_reader:
+                    saved_readers = getattr(kb, "readers", None)
+                    kb.readers = {reader_row.reader_type: specific_reader}
+                else:
+                    log.warning(f"[Documents] reader_id={reader_id} 构建失败，回退 Agno 自动路由")
+            else:
+                log.warning(f"[Documents] reader_id={reader_id} 不在 registry，回退 Agno 自动路由")
 
         try:
             await kb._aload_content(content, upsert=True, skip_if_exists=False)
@@ -592,26 +620,49 @@ class AgDocumentService:
                 await AgDocumentCRUD.update_status_internal_crud(
                     session, doc_id, "failed", error_msg=str(e)
                 )
+        finally:
+            if saved_readers is not None:
+                kb.readers = saved_readers
 
     @staticmethod
     async def _vectorize_url_or_text(
         doc_id: int,
-        kb:Knowledge,
+        kb,
         url: str | None,
         text_content: str | None,
         name: str | None,
         description: str | None,
         metadata_config: dict | None,
+        reader_id: int | None = None,
     ) -> None:
-        """后台任务：将 URL/文本向量化并回写 ag_documents 状态。"""
+        """
+        后台任务：将 URL/文本向量化并回写 ag_documents 状态。
+        若指定 reader_id，从 registry 按 ID 构建对应 reader，临时注入 kb.readers；
+        否则 Agno 依内容类型自动选 reader。
+        """
         from app.core.database import async_db_session
         from app.core.logger import log
 
         async with async_db_session() as session:
             await AgDocumentCRUD.update_status_internal_crud(session, doc_id, "processing")
 
+        # 若指定 reader_id，临时覆盖 kb.readers
+        saved_readers = None
+        if reader_id is not None:
+            from app.plugin.module_agno_manage.core.registry import get_registry
+            reg = get_registry()
+            reader_row = reg._reader_rows.get(str(reader_id))
+            if reader_row:
+                specific_reader = reg._build_reader(reader_row)
+                if specific_reader:
+                    saved_readers = getattr(kb, "readers", None)
+                    kb.readers = {reader_row.reader_type: specific_reader}
+                else:
+                    log.warning(f"[Documents] reader_id={reader_id} 构建失败，回退 Agno 自动路由")
+            else:
+                log.warning(f"[Documents] reader_id={reader_id} 不在 registry，回退 Agno 自动路由")
+
         try:
-            # TODO reader没有传入或者选择。
             await kb.ainsert(
                 name=name,
                 description=description,
@@ -628,3 +679,7 @@ class AgDocumentService:
                 await AgDocumentCRUD.update_status_internal_crud(
                     session, doc_id, "failed", error_msg=str(e)
                 )
+        finally:
+            if saved_readers is not None:
+                kb.readers = saved_readers
+

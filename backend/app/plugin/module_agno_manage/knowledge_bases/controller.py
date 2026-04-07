@@ -266,6 +266,7 @@ async def upload_knowledge_doc_controller(
     name: str | None = Form(None, description="文档名称（默认用文件名）"),
     description: str | None = Form(None),
     metadata_config: str | None = Form(None, description="JSON 格式元数据"),
+    reader_id: int | None = Form(None, description="指定 Reader ID（不填则按文件类型自动匹配）"),
     auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:knowledge_bases:create"]))
 ) -> JSONResponse:
     import json
@@ -273,7 +274,7 @@ async def upload_knowledge_doc_controller(
     result = await AgDocumentService.upload_document_service(
         auth=auth, kb_id=kb_id, file=file,
         name=name, description=description, metadata_config=meta,
-        background_tasks=background_tasks,
+        background_tasks=background_tasks, reader_id=reader_id,
     )
     log.info(f"上传文件到知识库成功 kb_id={kb_id}")
     return SuccessResponse(data=result, msg="文件上传成功，正在向量化")
@@ -291,12 +292,13 @@ async def insert_knowledge_doc_controller(
     name: str | None = Body(None),
     description: str | None = Body(None),
     metadata_config: dict | None = Body(None),
+    reader_id: int | None = Body(None, description="指定 Reader ID（不填则按 url/text 自动匹配）"),
     auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:knowledge_bases:create"]))
 ) -> JSONResponse:
     result = await AgDocumentService.insert_document_service(
         auth=auth, kb_id=kb_id, url=url, text_content=text_content,
         name=name, description=description, metadata_config=metadata_config,
-        background_tasks=background_tasks,
+        background_tasks=background_tasks, reader_id=reader_id,
     )
     log.info(f"插入文档到知识库成功 kb_id={kb_id}")
     return SuccessResponse(data=result, msg="插入成功，正在向量化")

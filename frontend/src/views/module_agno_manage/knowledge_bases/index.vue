@@ -692,6 +692,11 @@
             <span v-else style="color:var(--el-text-color-placeholder);">-</span>
           </template>
         </el-table-column>
+        <el-table-column label="Reader" prop="reader_id" min-width="120" show-overflow-tooltip>
+          <template #default="scope">
+            <span>{{ getReaderName(scope.row.reader_id) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column label="创建时间" prop="created_time" min-width="150" show-overflow-tooltip />
         <el-table-column label="操作" fixed="right" align="center" min-width="150">
           <template #default="scope">
@@ -755,6 +760,16 @@
         <el-form-item label="文档名称">
           <el-input v-model="uploadForm.name" placeholder="留空则使用文件名" clearable />
         </el-form-item>
+        <el-form-item label="Reader配置">
+          <el-select v-model="uploadForm.reader_id" placeholder="不填则 Agno 自动路由" clearable filterable style="width: 100%">
+            <el-option
+              v-for="item in readerList"
+              :key="item.id"
+              :label="`${item.name} (${item.reader_type})`"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="描述">
           <el-input v-model="uploadForm.description" type="textarea" :rows="2" placeholder="可选" />
         </el-form-item>
@@ -795,6 +810,16 @@
         <el-form-item label="文档名称">
           <el-input v-model="insertForm.name" placeholder="可选，留空自动生成" clearable />
         </el-form-item>
+        <el-form-item label="Reader配置">
+          <el-select v-model="insertForm.reader_id" placeholder="不填则 Agno 自动路由" clearable filterable style="width: 100%">
+            <el-option
+              v-for="item in readerList"
+              :key="item.id"
+              :label="`${item.name} (${item.reader_type})`"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="描述">
           <el-input v-model="insertForm.description" type="textarea" :rows="2" />
         </el-form-item>
@@ -833,6 +858,7 @@ import AgKnowledgeBaseAPI, {
   KBSearchResult,
 } from "@/api/module_agno_manage/knowledge_bases";
 import AgVectordbAPI from "@/api/module_agno_manage/vectordbs";
+import AgReaderAPI from "@/api/module_agno_manage/readers";
 
 const visible = ref(false);
 const queryFormRef = ref();
@@ -859,6 +885,24 @@ function getVectordbName(vectordbId?: string): string {
   if (!vectordbId) return "-";
   const found = vectordbList.value.find((e) => String(e.id) === String(vectordbId));
   return found ? found.name : String(vectordbId);
+}
+
+// Reader 列表（文档上传/插入时选择）
+const readerList = ref<{ id: number; name: string; reader_type: string }[]>([]);
+
+async function loadReaderList() {
+  const res = await AgReaderAPI.listAgReader({ page_no: 1, page_size: 20 });
+  readerList.value = (res.data?.data?.items || []).map((item: any) => ({
+    id: item.id,
+    name: item.name || `Reader#${item.id}`,
+    reader_type: item.reader_type || '',
+  }));
+}
+
+function getReaderName(readerId?: number): string {
+  if (!readerId) return "自动";
+  const found = readerList.value.find((e) => e.id === readerId);
+  return found ? `${found.name} (${found.reader_type})` : String(readerId);
 }
 
 // 分页表单
@@ -1220,7 +1264,7 @@ const handleUpload = async (formData: FormData) => {
 };
 
 onMounted(async () => {
-  await loadVectordbList();
+  await Promise.all([loadVectordbList(), loadReaderList()]);
   loadingData();
 });
 
@@ -1235,9 +1279,9 @@ const searchResults = ref<KBSearchResult[]>([]);
 const searchLoading = ref(false);
 const uploadRef = ref();
 const uploadDialog = reactive({ visible: false, loading: false });
-const uploadForm = reactive({ file: null as File | null, name: '', description: '' });
+const uploadForm = reactive({ file: null as File | null, name: '', description: '', reader_id: undefined as number | undefined });
 const insertDialog = reactive({ visible: false, loading: false });
-const insertForm = reactive({ type: 'url' as 'url' | 'text', url: '', text_content: '', name: '', description: '' });
+const insertForm = reactive({ type: 'url' as 'url' | 'text', url: '', text_content: '', name: '', description: '', reader_id: undefined as number | undefined });
 
 function docStatusTagType(status?: string): 'success' | 'warning' | 'danger' | 'info' {
   if (status === 'completed') return 'success';
@@ -1338,12 +1382,14 @@ async function handleUploadDoc() {
     fd.append('file', uploadForm.file);
     if (uploadForm.name) fd.append('name', uploadForm.name);
     if (uploadForm.description) fd.append('description', uploadForm.description);
+    if (uploadForm.reader_id != null) fd.append('reader_id', String(uploadForm.reader_id));
     await AgKnowledgeBaseAPI.uploadKBDoc(docDrawer.kbId, fd);
     ElMessage.success('上传成功，正在向量化');
     uploadDialog.visible = false;
     uploadForm.file = null;
     uploadForm.name = '';
     uploadForm.description = '';
+    uploadForm.reader_id = undefined;
     if (uploadRef.value) uploadRef.value.clearFiles();
     loadKBDocs();
   } catch (e) {
@@ -1367,6 +1413,7 @@ async function handleInsertDoc() {
     const body: any = {
       name: insertForm.name || undefined,
       description: insertForm.description || undefined,
+      reader_id: insertForm.reader_id,
     };
     if (insertForm.type === 'url') {
       body.url = insertForm.url.trim();
@@ -1380,6 +1427,7 @@ async function handleInsertDoc() {
     insertForm.text_content = '';
     insertForm.name = '';
     insertForm.description = '';
+    insertForm.reader_id = undefined;
     loadKBDocs();
   } catch (e) {
     console.error(e);

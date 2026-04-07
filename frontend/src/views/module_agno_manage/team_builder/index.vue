@@ -292,7 +292,7 @@ async function fetchAllMembers(
       const res = await AgTeamMemberAPI.listAgTeamMember({
         team_id: id,
         page_no: 1,
-        page_size: 200,
+        page_size: 20,
       });
       const members: AgTeamMemberTable[] = res.data?.data?.items || [];
       membersMap.set(id, members);

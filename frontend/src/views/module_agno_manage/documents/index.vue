@@ -22,32 +22,40 @@
             :inline="true"
             @submit.prevent="handleQuery"
           >
-            <el-form-item label="所属知识库ID" prop="kb_id">
-              <el-input v-model="queryFormData.kb_id" placeholder="请输入所属知识库ID" clearable />
+            <el-form-item label="所属知识库" prop="kb_id">
+              <el-select v-model="queryFormData.kb_id" placeholder="请选择知识库" clearable filterable style="width: 200px">
+                <el-option
+                  v-for="item in kbList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                />
+              </el-select>
             </el-form-item>
             <el-form-item label="文档名称" prop="name">
               <el-input v-model="queryFormData.name" placeholder="请输入文档名称" clearable />
             </el-form-item>
-            <el-form-item label="存储类型(local/s3/gcs/url)" prop="storage_type">
-              <el-input v-model="queryFormData.storage_type" placeholder="请输入存储类型(local/s3/gcs/url)" clearable />
+            <el-form-item label="存储类型" prop="storage_type">
+              <el-select v-model="queryFormData.storage_type" placeholder="请选择存储类型" clearable style="width: 140px">
+                <el-option value="local" label="本地(local)" />
+                <el-option value="s3" label="S3" />
+                <el-option value="gcs" label="GCS" />
+                <el-option value="url" label="URL" />
+              </el-select>
             </el-form-item>
-            <el-form-item label="存储路径或URL" prop="storage_path">
-              <el-input v-model="queryFormData.storage_path" placeholder="请输入存储路径或URL" clearable />
-            </el-form-item>
-            <el-form-item label="处理状态(pending/processing/indexed/failed)" prop="doc_status">
-              <el-input v-model="queryFormData.doc_status" placeholder="请输入处理状态(pending/processing/indexed/failed)" clearable />
-            </el-form-item>
-            <el-form-item label="处理失败错误信息" prop="error_msg">
-              <el-input v-model="queryFormData.error_msg" placeholder="请输入处理失败错误信息" clearable />
-            </el-form-item>
-            <el-form-item label="文档元数据" prop="metadata">
-              <el-input v-model="queryFormData.metadata" placeholder="请输入文档元数据" clearable />
+            <el-form-item label="向量化状态" prop="doc_status">
+              <el-select v-model="queryFormData.doc_status" placeholder="请选择状态" clearable style="width: 140px">
+                <el-option value="pending" label="待处理" />
+                <el-option value="processing" label="处理中" />
+                <el-option value="indexed" label="已完成" />
+                <el-option value="failed" label="失败" />
+              </el-select>
             </el-form-item>
             <el-form-item prop="status" label="状态">
               <el-select
                 v-model="queryFormData.status"
                 placeholder="请选择状态"
-                style="width: 170px"
+                style="width: 120px"
                 clearable
               >
                 <el-option value="0" label="启用" />
@@ -99,7 +107,7 @@
               </el-button>
               <!-- 展开/收起 -->
               <template v-if="isExpandable">
-                <el-link 
+                <el-link
                   class="ml-3"
                   type="primary"
                   underline="never"
@@ -133,6 +141,26 @@
                 @click="handleOpenDialog('create')"
               >
                 新增
+              </el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button
+                v-hasPerm="['module_agno_manage:documents:create']"
+                type="primary"
+                icon="upload"
+                @click="uploadDocDialog.visible = true"
+              >
+                上传文件
+              </el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button
+                v-hasPerm="['module_agno_manage:documents:create']"
+                type="success"
+                icon="link"
+                @click="insertDocDialog.visible = true"
+              >
+                插入URL/文本
               </el-button>
             </el-col>
             <el-col :span="1.5">
@@ -227,7 +255,7 @@
         </div>
       </div>
 
-      <!-- 表格区域：系统配置列表 -->
+      <!-- 表格区域 -->
       <el-table
         ref="tableRef"
         v-loading="loading"
@@ -259,66 +287,86 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'kb_id')?.show"
-          label="所属知识库ID"
+          label="所属知识库"
           prop="kb_id"
           min-width="140"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <span>{{ getKbName(scope.row.kb_id) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'name')?.show"
           label="文档名称"
           prop="name"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'storage_type')?.show"
-          label="存储类型(local/s3/gcs/url)"
+          label="存储类型"
           prop="storage_type"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="90"
+          align="center"
+        >
+          <template #default="scope">
+            <el-tag v-if="scope.row.storage_type" size="small" type="info">{{ scope.row.storage_type }}</el-tag>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'storage_path')?.show"
-          label="存储路径或URL"
+          label="存储路径"
           prop="storage_path"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'doc_status')?.show"
-          label="处理状态(pending/processing/indexed/failed)"
+          label="向量化状态"
           prop="doc_status"
-          min-width="140"
-          show-overflow-tooltip
-        />
+          min-width="110"
+          align="center"
+        >
+          <template #default="scope">
+            <el-tag :type="docStatusTagType(scope.row.doc_status)" size="small">
+              {{ docStatusLabel(scope.row.doc_status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'error_msg')?.show"
-          label="处理失败错误信息"
+          label="错误信息"
           prop="error_msg"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <span v-if="scope.row.error_msg" style="color:var(--el-color-danger); font-size:12px;">
+              {{ scope.row.error_msg }}
+            </span>
+            <span v-else style="color:var(--el-text-color-placeholder);">-</span>
+          </template>
+        </el-table-column>
         <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'metadata')?.show"
-          label="文档元数据"
-          prop="metadata"
-          min-width="140"
+          v-if="tableColumns.find((col) => col.prop === 'reader_id')?.show"
+          label="Reader"
+          prop="reader_id"
+          min-width="120"
           show-overflow-tooltip
-        />
+        >
+          <template #default="scope">
+            <span v-if="scope.row.reader_id">{{ getReaderName(scope.row.reader_id) }}</span>
+            <span v-else style="color:var(--el-text-color-placeholder);">自动</span>
+          </template>
+        </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
+          label="状态"
           prop="status"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'status')?.show"
-          label=""
-          prop="status"
-          min-width="140"
-          show-overflow-tooltip
+          min-width="80"
+          align="center"
         >
           <template #default="scope">
             <el-tag :type="scope.row.status == '0' ? 'success' : 'info'">
@@ -328,37 +376,30 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'description')?.show"
-          label=""
+          label="描述"
           prop="description"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_time')?.show"
-          label=""
+          label="创建时间"
           prop="created_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_time')?.show"
-          label=""
+          label="更新时间"
           prop="updated_time"
-          min-width="140"
+          min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
+          label="创建人"
           prop="created_id"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'created_id')?.show"
-          label=""
-          prop="created_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -367,16 +408,9 @@
         </el-table-column>
         <el-table-column
           v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
+          label="更新人"
           prop="updated_id"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          v-if="tableColumns.find((col) => col.prop === 'updated_id')?.show"
-          label=""
-          prop="updated_id"
-          min-width="140"
+          min-width="100"
           show-overflow-tooltip
         >
           <template #default="scope">
@@ -388,7 +422,7 @@
           fixed="right"
           label="操作"
           align="center"
-          min-width="180"
+          min-width="210"
         >
           <template #default="scope">
             <el-button
@@ -410,6 +444,16 @@
               @click="handleOpenDialog('update', scope.row.id)"
             >
               编辑
+            </el-button>
+            <el-button
+              v-hasPerm="['module_agno_manage:documents:update']"
+              type="warning"
+              size="small"
+              link
+              icon="refresh"
+              @click="handleReprocessDocument(scope.row.id)"
+            >
+              重新向量化
             </el-button>
             <el-button
               v-hasPerm="['module_agno_manage:documents:delete']"
@@ -445,45 +489,52 @@
       <!-- 详情 -->
       <template v-if="dialogVisible.type === 'detail'">
         <el-descriptions :column="4" border>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="ID" :span="2">
             {{ detailFormData.id }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="UUID" :span="2">
             {{ detailFormData.uuid }}
           </el-descriptions-item>
-          <el-descriptions-item label="所属知识库ID" :span="2">
-            {{ detailFormData.kb_id }}
+          <el-descriptions-item label="所属知识库" :span="2">
+            {{ getKbName(detailFormData.kb_id) }}
           </el-descriptions-item>
           <el-descriptions-item label="文档名称" :span="2">
             {{ detailFormData.name }}
           </el-descriptions-item>
-          <el-descriptions-item label="存储类型(local/s3/gcs/url)" :span="2">
+          <el-descriptions-item label="存储类型" :span="2">
             {{ detailFormData.storage_type }}
           </el-descriptions-item>
-          <el-descriptions-item label="存储路径或URL" :span="2">
+          <el-descriptions-item label="存储路径" :span="2">
             {{ detailFormData.storage_path }}
           </el-descriptions-item>
-          <el-descriptions-item label="处理状态(pending/processing/indexed/failed)" :span="2">
-            {{ detailFormData.doc_status }}
+          <el-descriptions-item label="向量化状态" :span="2">
+            <el-tag :type="docStatusTagType(detailFormData.doc_status)" size="small">
+              {{ docStatusLabel(detailFormData.doc_status) }}
+            </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="处理失败错误信息" :span="2">
-            {{ detailFormData.error_msg }}
+          <el-descriptions-item label="Reader" :span="2">
+            <span v-if="detailFormData.reader_id">{{ getReaderName(detailFormData.reader_id) }}</span>
+            <span v-else style="color:var(--el-text-color-placeholder);">自动</span>
           </el-descriptions-item>
-          <el-descriptions-item label="文档元数据" :span="2">
-            {{ detailFormData.metadata }}
+          <el-descriptions-item label="错误信息" :span="4">
+            <span v-if="detailFormData.error_msg" style="color:var(--el-color-danger);">{{ detailFormData.error_msg }}</span>
+            <span v-else>-</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="文档元数据" :span="4">
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px">{{ JSON.stringify(detailFormData.metadata_config, null, 2) }}</pre>
           </el-descriptions-item>
           <el-descriptions-item label="状态" :span="2">
             <el-tag :type="detailFormData.status == '0' ? 'success' : 'danger'">
               {{ detailFormData.status == "0" ? "启用" : "停用" }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="描述" :span="2">
             {{ detailFormData.description }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="创建时间" :span="2">
             {{ detailFormData.created_time }}
           </el-descriptions-item>
-          <el-descriptions-item label="" :span="2">
+          <el-descriptions-item label="更新时间" :span="2">
             {{ detailFormData.updated_time }}
           </el-descriptions-item>
           <el-descriptions-item label="创建人" :span="2">
@@ -505,26 +556,50 @@
           label-width="auto"
           label-position="right"
         >
-          <el-form-item label="所属知识库ID" prop="kb_id" :required="false">
-            <el-input v-model="formData.kb_id" placeholder="请输入所属知识库ID" />
+          <el-form-item label="所属知识库" prop="kb_id" :required="false">
+            <el-select v-model="formData.kb_id" placeholder="请选择知识库" clearable filterable style="width: 100%">
+              <el-option
+                v-for="item in kbList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              />
+            </el-select>
           </el-form-item>
-          <el-form-item label="文档名称" prop="name" :required="false">
+          <el-form-item label="文档名称" prop="name" :required="true">
             <el-input v-model="formData.name" placeholder="请输入文档名称" />
           </el-form-item>
-          <el-form-item label="存储类型(local/s3/gcs/url)" prop="storage_type" :required="false">
-            <el-input v-model="formData.storage_type" placeholder="请输入存储类型(local/s3/gcs/url)" />
+          <el-form-item label="存储类型" prop="storage_type" :required="false">
+            <el-select v-model="formData.storage_type" placeholder="请选择存储类型" clearable style="width: 100%">
+              <el-option value="local" label="本地(local)" />
+              <el-option value="s3" label="S3" />
+              <el-option value="gcs" label="GCS" />
+              <el-option value="url" label="URL" />
+            </el-select>
           </el-form-item>
-          <el-form-item label="存储路径或URL" prop="storage_path" :required="false">
+          <el-form-item label="存储路径" prop="storage_path" :required="false">
             <el-input v-model="formData.storage_path" placeholder="请输入存储路径或URL" />
           </el-form-item>
-          <el-form-item label="处理状态(pending/processing/indexed/failed)" prop="doc_status" :required="false">
-            <el-input v-model="formData.doc_status" placeholder="请输入处理状态(pending/processing/indexed/failed)" />
+          <el-form-item label="向量化状态" prop="doc_status" :required="false">
+            <el-select v-model="formData.doc_status" placeholder="请选择状态" clearable style="width: 100%">
+              <el-option value="pending" label="待处理(pending)" />
+              <el-option value="processing" label="处理中(processing)" />
+              <el-option value="indexed" label="已完成(indexed)" />
+              <el-option value="failed" label="失败(failed)" />
+            </el-select>
           </el-form-item>
-          <el-form-item label="处理失败错误信息" prop="error_msg" :required="false">
+          <el-form-item label="错误信息" prop="error_msg" :required="false">
             <el-input v-model="formData.error_msg" placeholder="请输入处理失败错误信息" />
           </el-form-item>
-          <el-form-item label="文档元数据" prop="metadata" :required="false">
-            <el-input v-model="formData.metadata" placeholder="请输入文档元数据" />
+          <el-form-item label="Reader配置" prop="reader_id" :required="false">
+            <el-select v-model="formData.reader_id" placeholder="不填则 Agno 自动路由" clearable filterable style="width: 100%">
+              <el-option
+                v-for="item in readerList"
+                :key="item.id"
+                :label="`${item.name} (${item.reader_type})`"
+                :value="item.id"
+              />
+            </el-select>
           </el-form-item>
           <el-form-item label="状态" prop="status" :required="true">
             <el-radio-group v-model="formData.status">
@@ -547,7 +622,6 @@
 
       <template #footer>
         <div class="dialog-footer">
-          <!-- 详情弹窗不需要确定按钮的提交逻辑 -->
           <el-button @click="handleCloseDialog">取消</el-button>
           <el-button v-if="dialogVisible.type !== 'detail'" type="primary" @click="handleSubmit">
             确定
@@ -573,6 +647,123 @@
       :page-data="pageTableData"
       :selection-data="selectionRows"
     />
+
+    <!-- ── 上传文件弹窗 ──────────────────────────────────────────────── -->
+    <el-dialog
+      v-model="uploadDocDialog.visible"
+      title="上传文件并向量化"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-width="100px">
+        <el-form-item label="所属知识库" required>
+          <el-select v-model="uploadDocForm.kb_id" placeholder="请选择知识库" filterable clearable style="width: 100%">
+            <el-option
+              v-for="item in kbList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="文件" required>
+          <el-upload
+            ref="uploadDocRef"
+            :auto-upload="false"
+            :limit="1"
+            :on-change="handleUploadDocFileChange"
+            :on-remove="() => (uploadDocForm.file = null)"
+            drag
+            style="width: 100%;"
+          >
+            <el-icon style="font-size: 40px; color: var(--el-color-primary);"><UploadFilled /></el-icon>
+            <div style="margin-top: 8px;">拖拽文件到此处，或 <em>点击选择</em></div>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="文档名称">
+          <el-input v-model="uploadDocForm.name" placeholder="留空则使用文件名" clearable />
+        </el-form-item>
+        <el-form-item label="Reader配置">
+          <el-select v-model="uploadDocForm.reader_id" placeholder="不填则 Agno 自动路由" clearable filterable style="width: 100%">
+            <el-option
+              v-for="item in readerList"
+              :key="item.id"
+              :label="`${item.name} (${item.reader_type})`"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="uploadDocForm.description" type="textarea" :rows="2" placeholder="可选" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="uploadDocDialog.visible = false">取消</el-button>
+        <el-button type="primary" :loading="uploadDocDialog.loading" @click="handleUploadDocument">
+          上传并向量化
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- ── 插入 URL / 文本弹窗 ──────────────────────────────────────── -->
+    <el-dialog
+      v-model="insertDocDialog.visible"
+      title="插入 URL 或文本并向量化"
+      width="540px"
+      :close-on-click-modal="false"
+    >
+      <el-form label-width="100px">
+        <el-form-item label="所属知识库" required>
+          <el-select v-model="insertDocForm.kb_id" placeholder="请选择知识库" filterable clearable style="width: 100%">
+            <el-option
+              v-for="item in kbList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="类型">
+          <el-radio-group v-model="insertDocForm.type">
+            <el-radio value="url">URL</el-radio>
+            <el-radio value="text">纯文本</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-if="insertDocForm.type === 'url'" label="URL" required>
+          <el-input v-model="insertDocForm.url" placeholder="https://..." clearable />
+        </el-form-item>
+        <el-form-item v-else label="文本内容" required>
+          <el-input
+            v-model="insertDocForm.text_content"
+            type="textarea"
+            :rows="6"
+            placeholder="输入要向量化的文本内容..."
+          />
+        </el-form-item>
+        <el-form-item label="文档名称">
+          <el-input v-model="insertDocForm.name" placeholder="可选，留空自动生成" clearable />
+        </el-form-item>
+        <el-form-item label="Reader配置">
+          <el-select v-model="insertDocForm.reader_id" placeholder="不填则 Agno 自动路由" clearable filterable style="width: 100%">
+            <el-option
+              v-for="item in readerList"
+              :key="item.id"
+              :label="`${item.name} (${item.reader_type})`"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="insertDocForm.description" type="textarea" :rows="2" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="insertDocDialog.visible = false">取消</el-button>
+        <el-button type="primary" :loading="insertDocDialog.loading" @click="handleInsertDocument">
+          确认插入
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -584,7 +775,7 @@ defineOptions({
 
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { QuestionFilled, ArrowUp, ArrowDown, Check, CircleClose } from "@element-plus/icons-vue";
+import { QuestionFilled, ArrowUp, ArrowDown, Check, CircleClose, UploadFilled } from "@element-plus/icons-vue";
 import { formatToDateTime } from "@/utils/dateUtil";
 import { useDictStore } from "@/store";
 import { ResultEnum } from "@/enums/api/result.enum";
@@ -596,7 +787,10 @@ import AgDocumentAPI, {
   AgDocumentPageQuery,
   AgDocumentTable,
   AgDocumentForm,
+  DocInsertBody,
 } from "@/api/module_agno_manage/documents";
+import AgKnowledgeBaseAPI from "@/api/module_agno_manage/knowledge_bases";
+import AgReaderAPI from "@/api/module_agno_manage/readers";
 
 const visible = ref(false);
 const queryFormRef = ref();
@@ -607,6 +801,59 @@ const selectionRows = ref<AgDocumentTable[]>([]);
 const loading = ref(false);
 const isExpand = ref(false);
 const isExpandable = ref(true);
+const uploadDocRef = ref();
+
+// 知识库列表（关联外键下拉）
+const kbList = ref<{ id: number; name: string }[]>([]);
+
+async function loadKbList() {
+  const res = await AgKnowledgeBaseAPI.listAgKnowledgeBase({ page_no: 1, page_size: 20 });
+  kbList.value = (res.data?.data?.items || []).map((item: any) => ({
+    id: item.id,
+    name: item.name || `KB#${item.id}`,
+  }));
+}
+
+function getKbName(kbId?: number): string {
+  if (!kbId) return "-";
+  const found = kbList.value.find((e) => e.id === kbId);
+  return found ? found.name : String(kbId);
+}
+
+// Reader 列表
+const readerList = ref<{ id: number; name: string; reader_type: string }[]>([]);
+
+async function loadReaderList() {
+  const res = await AgReaderAPI.listAgReader({ page_no: 1, page_size: 20 });
+  readerList.value = (res.data?.data?.items || []).map((item: any) => ({
+    id: item.id,
+    name: item.name || `Reader#${item.id}`,
+    reader_type: item.reader_type || '',
+  }));
+}
+
+function getReaderName(readerId?: number): string {
+  if (!readerId) return "-";
+  const found = readerList.value.find((e) => e.id === readerId);
+  return found ? `${found.name} (${found.reader_type})` : String(readerId);
+}
+
+function docStatusTagType(status?: string): 'success' | 'warning' | 'danger' | 'info' {
+  if (status === 'indexed') return 'success';
+  if (status === 'pending') return 'warning';
+  if (status === 'failed') return 'danger';
+  return 'info';
+}
+
+function docStatusLabel(status?: string): string {
+  const map: Record<string, string> = {
+    pending: '待处理',
+    processing: '处理中',
+    indexed: '已完成',
+    failed: '失败',
+  };
+  return map[status ?? ''] ?? (status || '-');
+}
 
 // 分页表单
 const pageTableData = ref<AgDocumentTable[]>([]);
@@ -615,19 +862,19 @@ const pageTableData = ref<AgDocumentTable[]>([]);
 const tableColumns = ref([
   { prop: "selection", label: "选择框", show: true },
   { prop: "index", label: "序号", show: true },
-  { prop: "kb_id", label: "所属知识库ID", show: true },
+  { prop: "kb_id", label: "所属知识库", show: true },
   { prop: "name", label: "文档名称", show: true },
-  { prop: "storage_type", label: "存储类型(local/s3/gcs/url)", show: true },
-  { prop: "storage_path", label: "存储路径或URL", show: true },
-  { prop: "doc_status", label: "处理状态(pending/processing/indexed/failed)", show: true },
-  { prop: "error_msg", label: "处理失败错误信息", show: true },
-  { prop: "metadata", label: "文档元数据", show: true },
-  { prop: "status", label: "status", show: true },
-  { prop: "description", label: "description", show: true },
-  { prop: "created_time", label: "created_time", show: true },
-  { prop: "updated_time", label: "updated_time", show: true },
-  { prop: "created_id", label: "created_id", show: true },
-  { prop: "updated_id", label: "updated_id", show: true },
+  { prop: "storage_type", label: "存储类型", show: true },
+  { prop: "storage_path", label: "存储路径", show: false },
+  { prop: "doc_status", label: "向量化状态", show: true },
+  { prop: "error_msg", label: "错误信息", show: true },
+  { prop: "reader_id", label: "Reader", show: true },
+  { prop: "status", label: "状态", show: true },
+  { prop: "description", label: "描述", show: false },
+  { prop: "created_time", label: "创建时间", show: true },
+  { prop: "updated_time", label: "更新时间", show: false },
+  { prop: "created_id", label: "创建人", show: false },
+  { prop: "updated_id", label: "更新人", show: false },
   { prop: "operation", label: "操作", show: true },
 ]);
 
@@ -635,17 +882,17 @@ const tableColumns = ref([
 const exportColumns = [
   { prop: "kb_id", label: "所属知识库ID" },
   { prop: "name", label: "文档名称" },
-  { prop: "storage_type", label: "存储类型(local/s3/gcs/url)" },
-  { prop: "storage_path", label: "存储路径或URL" },
-  { prop: "doc_status", label: "处理状态(pending/processing/indexed/failed)" },
-  { prop: "error_msg", label: "处理失败错误信息" },
-  { prop: "metadata", label: "文档元数据" },
-  { prop: "status", label: "status" },
-  { prop: "description", label: "description" },
-  { prop: "created_time", label: "created_time" },
-  { prop: "updated_time", label: "updated_time" },
-  { prop: "created_id", label: "created_id" },
-  { prop: "updated_id", label: "updated_id" },
+  { prop: "storage_type", label: "存储类型" },
+  { prop: "storage_path", label: "存储路径" },
+  { prop: "doc_status", label: "向量化状态" },
+  { prop: "error_msg", label: "错误信息" },
+  { prop: "reader_id", label: "Reader ID" },
+  { prop: "status", label: "状态" },
+  { prop: "description", label: "描述" },
+  { prop: "created_time", label: "创建时间" },
+  { prop: "updated_time", label: "更新时间" },
+  { prop: "created_id", label: "创建人ID" },
+  { prop: "updated_id", label: "更新人ID" },
 ];
 
 // 导入/导出配置
@@ -675,10 +922,8 @@ const curdContentConfig = {
 const detailFormData = ref<AgDocumentTable>({});
 // 日期范围临时变量
 const createdDateRange = ref<[Date, Date] | []>([]);
-// 更新时间范围临时变量
 const updatedDateRange = ref<[Date, Date] | []>([]);
 
-// 处理创建时间范围变化
 function handleCreatedDateRangeChange(range: [Date, Date]) {
   createdDateRange.value = range;
   if (range && range.length === 2) {
@@ -688,7 +933,6 @@ function handleCreatedDateRangeChange(range: [Date, Date]) {
   }
 }
 
-// 处理更新时间范围变化
 function handleUpdatedDateRangeChange(range: [Date, Date]) {
   updatedDateRange.value = range;
   if (range && range.length === 2) {
@@ -708,7 +952,6 @@ const queryFormData = reactive<AgDocumentPageQuery>({
   storage_path: undefined,
   doc_status: undefined,
   error_msg: undefined,
-  metadata: undefined,
   status: undefined,
   created_time: undefined,
   updated_time: undefined,
@@ -723,17 +966,17 @@ const formData = reactive<AgDocumentForm>({
   name: undefined,
   storage_type: undefined,
   storage_path: undefined,
-  doc_status: "0",
+  doc_status: undefined,
   error_msg: undefined,
-  metadata: undefined,
+  metadata_config: undefined,
+  reader_id: undefined,
   status: "0",
   description: undefined,
 });
 
 // 字典仓库与需要加载的字典类型
 const dictStore = useDictStore();
-const dictTypes: any = [
-];
+const dictTypes: any = [];
 
 // 弹窗状态
 const dialogVisible = reactive({
@@ -744,21 +987,8 @@ const dialogVisible = reactive({
 
 // 表单验证规则
 const rules = reactive({
-  id: [{ required: false, message: "请输入id", trigger: "blur" }],
-  uuid: [{ required: false, message: "请输入uuid", trigger: "blur" }],
-  kb_id: [{ required: false, message: "请输入所属知识库ID", trigger: "blur" }],
   name: [{ required: true, message: "请输入文档名称", trigger: "blur" }],
-  storage_type: [{ required: false, message: "请输入存储类型(local/s3/gcs/url)", trigger: "blur" }],
-  storage_path: [{ required: false, message: "请输入存储路径或URL", trigger: "blur" }],
-  doc_status: [{ required: false, message: "请输入处理状态(pending/processing/indexed/failed)", trigger: "blur" }],
-  error_msg: [{ required: true, message: "请输入处理失败错误信息", trigger: "blur" }],
-  metadata: [{ required: false, message: "请输入文档元数据", trigger: "blur" }],
-  status: [{ required: false, message: "请输入status", trigger: "blur" }],
-  description: [{ required: false, message: "请输入description", trigger: "blur" }],
-  created_time: [{ required: false, message: "请输入created_time", trigger: "blur" }],
-  updated_time: [{ required: false, message: "请输入updated_time", trigger: "blur" }],
-  created_id: [{ required: true, message: "请输入created_id", trigger: "blur" }],
-  updated_id: [{ required: true, message: "请输入updated_id", trigger: "blur" }],
+  status: [{ required: false, message: "请选择状态", trigger: "change" }],
 });
 
 // 导入弹窗显示状态
@@ -768,22 +998,40 @@ const uploadLoading = ref(false);
 // 导出弹窗显示状态
 const exportsDialogVisible = ref(false);
 
-// 打开导入弹窗
+// 上传文件弹窗
+const uploadDocDialog = reactive({ visible: false, loading: false });
+const uploadDocForm = reactive({
+  kb_id: undefined as number | undefined,
+  file: null as File | null,
+  name: '',
+  description: '',
+  reader_id: undefined as number | undefined,
+});
+
+// 插入 URL/文本弹窗
+const insertDocDialog = reactive({ visible: false, loading: false });
+const insertDocForm = reactive({
+  kb_id: undefined as number | undefined,
+  type: 'url' as 'url' | 'text',
+  url: '',
+  text_content: '',
+  name: '',
+  description: '',
+  reader_id: undefined as number | undefined,
+});
+
 function handleOpenImportDialog() {
   importDialogVisible.value = true;
 }
 
-// 打开导出弹窗
 function handleOpenExportsModal() {
   exportsDialogVisible.value = true;
 }
 
-// 列表刷新
 async function handleRefresh() {
   await loadingData();
 }
 
-// 加载表格数据
 async function loadingData() {
   loading.value = true;
   try {
@@ -797,22 +1045,18 @@ async function loadingData() {
   }
 }
 
-// 查询（重置页码后获取数据）
 async function handleQuery() {
   queryFormData.page_no = 1;
   loadingData();
 }
 
-// 选择创建人后触发查询
 function handleConfirm() {
   handleQuery();
 }
 
-// 重置查询
 async function handleResetQuery() {
   queryFormRef.value.resetFields();
   queryFormData.page_no = 1;
-  // 重置日期范围选择器
   createdDateRange.value = [];
   updatedDateRange.value = [];
   queryFormData.created_time = undefined;
@@ -820,43 +1064,38 @@ async function handleResetQuery() {
   loadingData();
 }
 
-// 定义初始表单数据常量
 const initialFormData: AgDocumentForm = {
   id: undefined,
   kb_id: undefined,
   name: undefined,
   storage_type: undefined,
   storage_path: undefined,
-  doc_status: "0",
+  doc_status: undefined,
   error_msg: undefined,
-  metadata: undefined,
+  metadata_config: undefined,
+  reader_id: undefined,
   status: "0",
   description: undefined,
 };
 
-// 重置表单
 async function resetForm() {
   if (dataFormRef.value) {
     dataFormRef.value.resetFields();
     dataFormRef.value.clearValidate();
   }
-  // 完全重置 formData 为初始状态
   Object.assign(formData, initialFormData);
 }
 
-// 行复选框选中项变化
 async function handleSelectionChange(selection: any) {
   selectIds.value = selection.map((item: any) => item.id);
   selectionRows.value = selection;
 }
 
-// 关闭弹窗
 async function handleCloseDialog() {
   dialogVisible.visible = false;
   resetForm();
 }
 
-// 打开弹窗
 async function handleOpenDialog(type: "create" | "update" | "detail", id?: number) {
   dialogVisible.type = type;
   if (id) {
@@ -869,28 +1108,16 @@ async function handleOpenDialog(type: "create" | "update" | "detail", id?: numbe
       Object.assign(formData, response.data.data);
     }
   } else {
-    dialogVisible.title = "新增AgDocument";
-    formData.id = undefined;
-    formData.kb_id = undefined;
-    formData.name = undefined;
-    formData.storage_type = undefined;
-    formData.storage_path = undefined;
-    formData.doc_status = undefined;
-    formData.error_msg = undefined;
-    formData.metadata = undefined;
-    formData.status = "0";
-    formData.description = undefined;
+    dialogVisible.title = "新增文档";
+    Object.assign(formData, initialFormData);
   }
   dialogVisible.visible = true;
 }
 
-// 提交表单（防抖）
 async function handleSubmit() {
-  // 表单校验
   dataFormRef.value.validate(async (valid: any) => {
     if (valid) {
       loading.value = true;
-      // 根据弹窗传入的参数(deatil\create\update)判断走什么逻辑
       const submitData = { ...formData };
       const id = formData.id;
       if (id) {
@@ -922,7 +1149,6 @@ async function handleSubmit() {
   });
 }
 
-// 删除、批量删除
 async function handleDelete(ids: number[]) {
   ElMessageBox.confirm("确认删除该项数据?", "警告", {
     confirmButtonText: "确定",
@@ -945,7 +1171,6 @@ async function handleDelete(ids: number[]) {
     });
 }
 
-// 批量启用/停用
 async function handleMoreClick(status: string) {
   if (selectIds.value.length) {
     ElMessageBox.confirm(`确认${status === "0" ? "启用" : "停用"}该项数据?`, "警告", {
@@ -970,11 +1195,10 @@ async function handleMoreClick(status: string) {
   }
 }
 
-// 处理上传
-const handleUpload = async (formData: FormData) => {
+const handleUpload = async (fd: FormData) => {
   try {
     uploadLoading.value = true;
-    const response = await AgDocumentAPI.importAgDocument(formData);
+    const response = await AgDocumentAPI.importAgDocument(fd);
     if (response.data.code === ResultEnum.SUCCESS) {
       ElMessage.success(`${response.data.msg}，${response.data.data}`);
       importDialogVisible.value = false;
@@ -987,11 +1211,100 @@ const handleUpload = async (formData: FormData) => {
   }
 };
 
+function handleUploadDocFileChange(uploadFile: any) {
+  uploadDocForm.file = uploadFile.raw as File;
+}
+
+async function handleUploadDocument() {
+  if (!uploadDocForm.kb_id) {
+    ElMessage.warning('请选择知识库');
+    return;
+  }
+  if (!uploadDocForm.file) {
+    ElMessage.warning('请选择要上传的文件');
+    return;
+  }
+  uploadDocDialog.loading = true;
+  try {
+    const fd = new FormData();
+    fd.append('kb_id', String(uploadDocForm.kb_id));
+    fd.append('file', uploadDocForm.file);
+    if (uploadDocForm.name) fd.append('name', uploadDocForm.name);
+    if (uploadDocForm.description) fd.append('description', uploadDocForm.description);
+    if (uploadDocForm.reader_id != null) fd.append('reader_id', String(uploadDocForm.reader_id));
+    await AgDocumentAPI.uploadDocument(fd);
+    ElMessage.success('上传成功，正在向量化');
+    uploadDocDialog.visible = false;
+    uploadDocForm.file = null;
+    uploadDocForm.name = '';
+    uploadDocForm.description = '';
+    uploadDocForm.reader_id = undefined;
+    if (uploadDocRef.value) uploadDocRef.value.clearFiles();
+    handleQuery();
+  } catch (e) {
+    console.error(e);
+  } finally {
+    uploadDocDialog.loading = false;
+  }
+}
+
+async function handleInsertDocument() {
+  if (!insertDocForm.kb_id) {
+    ElMessage.warning('请选择知识库');
+    return;
+  }
+  if (insertDocForm.type === 'url' && !insertDocForm.url.trim()) {
+    ElMessage.warning('请输入 URL');
+    return;
+  }
+  if (insertDocForm.type === 'text' && !insertDocForm.text_content.trim()) {
+    ElMessage.warning('请输入文本内容');
+    return;
+  }
+  insertDocDialog.loading = true;
+  try {
+    const body: DocInsertBody = {
+      kb_id: insertDocForm.kb_id,
+      name: insertDocForm.name || undefined,
+      description: insertDocForm.description || undefined,
+      reader_id: insertDocForm.reader_id,
+    };
+    if (insertDocForm.type === 'url') {
+      body.url = insertDocForm.url.trim();
+    } else {
+      body.text_content = insertDocForm.text_content.trim();
+    }
+    await AgDocumentAPI.insertDocument(body);
+    ElMessage.success('插入成功，正在向量化');
+    insertDocDialog.visible = false;
+    insertDocForm.url = '';
+    insertDocForm.text_content = '';
+    insertDocForm.name = '';
+    insertDocForm.description = '';
+    insertDocForm.reader_id = undefined;
+    handleQuery();
+  } catch (e) {
+    console.error(e);
+  } finally {
+    insertDocDialog.loading = false;
+  }
+}
+
+async function handleReprocessDocument(id: number) {
+  try {
+    await AgDocumentAPI.reprocessDocument(id);
+    ElMessage.success('重新向量化已提交');
+    handleQuery();
+  } catch (e) {
+    console.error(e);
+  }
+}
+
 onMounted(async () => {
-  // 预加载字典数据
   if (dictTypes.length > 0) {
     await dictStore.getDict(dictTypes);
   }
+  await Promise.all([loadKbList(), loadReaderList()]);
   loadingData();
 });
 </script>

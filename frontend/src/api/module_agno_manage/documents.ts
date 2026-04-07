@@ -84,6 +84,33 @@ const AgDocumentAPI = {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
+
+  // 上传文件并向量化
+  uploadDocument(body: FormData) {
+    return request<ApiResponse<AgDocumentTable>>({
+      url: `${API_PATH}/upload`,
+      method: "post",
+      data: body,
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  // 插入 URL 或文本并向量化
+  insertDocument(body: DocInsertBody) {
+    return request<ApiResponse<AgDocumentTable>>({
+      url: `${API_PATH}/insert`,
+      method: "post",
+      data: body,
+    });
+  },
+
+  // 重新向量化文档
+  reprocessDocument(id: number) {
+    return request<ApiResponse<AgDocumentTable>>({
+      url: `${API_PATH}/${id}/reprocess`,
+      method: "post",
+    });
+  },
 };
 
 export default AgDocumentAPI;
@@ -94,7 +121,7 @@ export default AgDocumentAPI;
 
 // 列表查询参数
 export interface AgDocumentPageQuery extends PageQuery {
-  kb_id?: string;
+  kb_id?: number;
   name?: string;
   storage_type?: string;
   storage_path?: string;
@@ -117,6 +144,7 @@ export interface AgDocumentTable extends BaseType {
   error_msg?: string;
   content_id?: string;
   metadata_config?: Record<string, any>;
+  reader_id?: number;
   created_id?: string;
   updated_id?: string;
   created_by?: CommonType;
@@ -132,4 +160,16 @@ export interface AgDocumentForm extends BaseFormType {
   doc_status?: string;
   error_msg?: string;
   metadata_config?: Record<string, any>;
+  reader_id?: number;
+}
+
+// 插入 URL/文本的请求体
+export interface DocInsertBody {
+  kb_id?: number;
+  url?: string;
+  text_content?: string;
+  name?: string;
+  description?: string;
+  metadata_config?: Record<string, any>;
+  reader_id?: number;
 }
