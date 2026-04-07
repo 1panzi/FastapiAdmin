@@ -44,7 +44,7 @@ class AgResourceCRUD(CRUDBase[AgResourceModel, AgResourceCreateSchema, AgResourc
         返回:
         - Sequence[AgResourceModel]: 资源实例序列
         """
-        return await self.list(search={'category': (('eq',), category)}, preload=preload)
+        return await self.list(search={'category': ('eq', category)}, preload=preload)
 
     async def list_all_enabled(self, preload: list | None = None) -> Sequence[AgResourceModel]:
         """
@@ -56,7 +56,7 @@ class AgResourceCRUD(CRUDBase[AgResourceModel, AgResourceCreateSchema, AgResourc
         返回:
         - Sequence[AgResourceModel]: 资源实例序列
         """
-        return await self.list(search={'status': (('eq',), '0')}, preload=preload)
+        return await self.list(search={'status': ('eq', '0')}, preload=preload)
 
     async def get_by_id_resources_crud(self, id: int, preload: list | None = None) -> AgResourceModel | None:
         """

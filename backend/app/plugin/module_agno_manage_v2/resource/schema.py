@@ -11,10 +11,10 @@ class AgResourceCreateSchema(BaseModel):
     """
     AI资源统一管理新增模型
     """
-    name: str | None = Field(default=None, max_length=255, description='资源名称')
-    category: str | None = Field(default=None, description='资源大类(model/embedder/reader/toolkit/knowledge/agent/team)')
-    type: str | None = Field(default=None, description='具体类型(openai/pdf/duckduckgo/base等)')
-    config: dict | None = Field(default=None, description='资源配置（支持ref引用或inline内联）')
+    name: str = Field(default=..., max_length=255, description='资源名称')
+    category: str = Field(default=..., description='资源大类(model/embedder/reader/toolkit/knowledge/agent/team)')
+    type: str = Field(default=..., description='具体类型(openai/pdf/duckduckgo/base等)')
+    config: dict = Field(default_factory=dict, description='资源配置（支持ref引用或inline内联）')
     status: str = Field(default="0", description='状态(0:启用 1:禁用)')
     description: str | None = Field(default=None, max_length=255, description='描述')
 
