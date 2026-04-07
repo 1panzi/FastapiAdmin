@@ -1,120 +1,110 @@
 """
-BaseReaderBuilder — 所有 Reader Builder 的基类
+BaseReaderBuilder — Reader Builder 基类。
 
-分块策略处理：
-- build() 是同步方法，对于 SemanticChunker/AgenticChunker 这类需要 resolver 的情况，
-  直接用默认初始化（不传 embedder/model 参数），后续可按需优化。
+核心设计：
+- 每个子类声明 agno_class（对应 agno reader 类）和 extra_fields（reader 专属字段）
+- schema 属性 = extra_fields 的字段 + _get_chunk_schema_fields()
+- _get_chunk_schema_fields() 调用 agno reader 类的 get_supported_chunking_strategies()
+  动态获取支持的策略，再从 CHUNKER_REGISTRY 取各策略字段（带 depends_on 联动）
+- _build_chunker() 委托给 CHUNKER_REGISTRY 对应的 ChunkerBuilder
 """
 
 from app.plugin.module_agno_manage_v2.core.builder_base import BaseBuilder
-
-
-def _build_chunker(strategy: str):
-    """根据策略名称构建 Agno Chunker 实例（同步）。"""
-    if strategy == "FixedSizeChunker":
-        from agno.document.chunking.fixed import FixedSizeChunker
-        return FixedSizeChunker()
-    elif strategy == "RecursiveChunker":
-        from agno.document.chunking.recursive import RecursiveChunker
-        return RecursiveChunker()
-    elif strategy == "DocumentChunker":
-        from agno.document.chunking.document import DocumentChunker
-        return DocumentChunker()
-    elif strategy == "MarkdownChunker":
-        from agno.document.chunking.markdown import MarkdownChunker
-        return MarkdownChunker()
-    elif strategy == "RowChunker":
-        from agno.document.chunking.row import RowChunker
-        return RowChunker()
-    elif strategy == "SemanticChunker":
-        # SemanticChunker 理想情况下需要 embedder，但 build 是同步的
-        # 用默认初始化，后续可通过配置优化
-        from agno.document.chunking.semantic import SemanticChunker
-        return SemanticChunker()
-    elif strategy == "AgenticChunker":
-        from agno.document.chunking.agentic import AgenticChunker
-        return AgenticChunker()
-    elif strategy == "CodeChunker":
-        from agno.document.chunking.code import CodeChunker
-        return CodeChunker()
-    return None
+from app.plugin.module_agno_manage_v2.builders.readers.chunk import CHUNKER_REGISTRY
 
 
 class BaseReaderBuilder(BaseBuilder):
     category = "reader"
-    agno_class = None  # 延迟导入，由子类设置
+    agno_class = None  # 各子类声明对应的 agno reader 类
 
-    extra_fields = [
-        {"name": "chunk", "type": "bool", "required": False, "default": True, "order": 1},
-        {"name": "chunk_size", "type": "int", "required": False, "default": 5000, "order": 2},
-        {
+    extra_fields: list[dict] = []
+    field_meta: dict[str, dict] = {}
+
+    def _get_supported_strategies(self) -> list[str]:
+        """调用 agno reader 类的 get_supported_chunking_strategies() 获取策略列表。"""
+        try:
+            cls = type(self).agno_class
+            if cls is None:
+                return list(CHUNKER_REGISTRY.keys())
+            return [s.value for s in cls.get_supported_chunking_strategies()]
+        except Exception:
+            return list(CHUNKER_REGISTRY.keys())
+
+    def _get_chunk_schema_fields(self) -> list[dict]:
+        """
+        生成分块相关字段：
+        1. chunk（开关）
+        2. chunking_strategy（select，按该 reader 支持的策略过滤）
+        3. 每种策略的参数字段（带 depends_on: {chunking_strategy: strategy_type}）
+        """
+        supported = self._get_supported_strategies()
+        fields: list[dict] = []
+
+        # 1. chunk 开关
+        fields.append({
+            "name": "chunk", "type": "bool", "required": False, "default": True,
+            "label": "启用分块", "group": "分块配置", "span": 8, "order": 100,
+        })
+
+        # 2. chunking_strategy select
+        strategy_options = [
+            {"value": s, "label": CHUNKER_REGISTRY[s].label}
+            for s in supported if s in CHUNKER_REGISTRY
+        ]
+        default_strategy = supported[0] if supported else "FixedSizeChunker"
+        fields.append({
             "name": "chunking_strategy",
             "type": "select",
             "required": False,
-            "order": 3,
-            "options": [
-                "FixedSizeChunker",
-                "RecursiveChunker",
-                "DocumentChunker",
-                "MarkdownChunker",
-                "RowChunker",
-                "SemanticChunker",
-                "AgenticChunker",
-                "CodeChunker",
-            ],
-            "default": "FixedSizeChunker",
-        },
-        {"name": "chunk_overlap", "type": "int", "required": False, "default": 0, "order": 4},
-        {"name": "encoding", "type": "str", "required": False, "default": "utf-8", "order": 5},
-    ]
-    field_meta = {
-        "chunk": {
-            "label": "启用分块",
-            "group": "分块配置",
-            "span": 12,
-        },
-        "chunk_size": {
-            "label": "分块大小",
-            "group": "分块配置",
-            "span": 12,
-            "min": 100,
-        },
-        "chunking_strategy": {
+            "default": default_strategy,
             "label": "分块策略",
             "group": "分块配置",
-            "span": 12,
-        },
-        "chunk_overlap": {
-            "label": "分块重叠",
-            "group": "分块配置",
-            "span": 12,
-        },
-        "encoding": {
-            "label": "文本编码",
-            "group": "基础配置",
-            "span": 12,
-            "hidden": True,
-        },
-    }
+            "span": 16,
+            "order": 101,
+            "options": strategy_options,
+            "depends_on": {"chunk": True},
+        })
 
-    def _get_chunker_kwargs(self, config: dict) -> dict:
-        """提取公共 chunking 参数，返回可传给 Reader 的 kwargs。"""
-        kwargs: dict = {}
-        chunk = config.get("chunk", True)
-        kwargs["chunk"] = chunk
+        # 3. 各策略的参数字段（带 depends_on）
+        for strategy_type in supported:
+            builder = CHUNKER_REGISTRY.get(strategy_type)
+            if not builder:
+                continue
+            for i, f in enumerate(builder.schema):
+                fields.append({
+                    **f,
+                    "depends_on": {"chunking_strategy": strategy_type},
+                    "order": 110 + list(supported).index(strategy_type) * 10 + i,
+                })
 
-        if chunk:
-            chunk_size = config.get("chunk_size", 5000)
-            chunk_overlap = config.get("chunk_overlap", 0)
-            kwargs["chunk_size"] = chunk_size
-            kwargs["chunk_overlap"] = chunk_overlap
+        return fields
 
-            strategy = config.get("chunking_strategy", "FixedSizeChunker")
-            chunker = _build_chunker(strategy)
-            if chunker is not None:
-                kwargs["chunker"] = chunker
+    @property
+    def schema(self) -> list[dict]:
+        """Reader 专属字段 + 分块配置字段。"""
+        fields: list[dict] = []
 
-        return kwargs
+        # reader 专属字段（extra_fields + field_meta）
+        fm = type(self).field_meta or {}
+        for i, f in enumerate(type(self).extra_fields):
+            merged = {**f, **fm.get(f["name"], {})}
+            merged.setdefault("order", i)
+            fields.append(merged)
+
+        # 分块配置字段
+        fields += self._get_chunk_schema_fields()
+
+        return sorted(fields, key=lambda x: x.get("order", 99))
+
+    def _build_chunker(self, config: dict, resolver):
+        """从 config 中取 chunking_strategy，委托给对应的 ChunkerBuilder 构建。"""
+        strategy = config.get("chunking_strategy")
+        if not strategy or not config.get("chunk", True):
+            return None
+        builder = CHUNKER_REGISTRY.get(strategy)
+        if builder:
+            return builder.build(config, resolver)
+        return None
 
     def build(self, config: dict, resolver):
-        raise NotImplementedError("BaseReaderBuilder 不可直接实例化，请使用具体类型的 Builder")
+        raise NotImplementedError

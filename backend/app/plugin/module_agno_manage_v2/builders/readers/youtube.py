@@ -1,36 +1,24 @@
-"""
-YoutubeReaderBuilder — YouTube 视频字幕 Reader Builder
-"""
-
 from typing import Any
-
 from app.plugin.module_agno_manage_v2.builders.readers.base import BaseReaderBuilder
 
 
 class YoutubeReaderBuilder(BaseReaderBuilder):
     type = "youtube"
-    label = "YouTube Reader"
-    agno_class = None  # 延迟导入
+    label = "YouTube 视频"
 
-    extra_fields = [
-        *BaseReaderBuilder.extra_fields,
-        {"name": "language", "type": "str", "required": False, "default": "en", "order": 20},
-    ]
-    field_meta = {
-        **BaseReaderBuilder.field_meta,
-        "language": {
-            "label": "字幕语言",
-            "group": "基础配置",
-            "span": 12,
-            "placeholder": "如 en / zh-Hans",
-            "tooltip": "YouTube 字幕语言代码",
-        },
-    }
+    try:
+        from agno.knowledge.reader.youtube_reader import YouTubeReader
+        agno_class = YouTubeReader
+    except ImportError:
+        agno_class = None
 
     def build(self, config: dict, resolver) -> Any:
-        from agno.document.reader.youtube import YoutubeReader
-
-        kwargs = self._get_chunker_kwargs(config)
-        if config.get("language"):
-            kwargs["language"] = config["language"]
-        return YoutubeReader(**kwargs)
+        from agno.knowledge.reader.youtube_reader import YouTubeReader
+        chunker = self._build_chunker(config, resolver)
+        kwargs: dict = {
+            "chunk": config.get("chunk", True),
+            "chunk_size": config.get("chunk_size", 5000),
+        }
+        if chunker is not None:
+            kwargs["chunking_strategy"] = chunker
+        return YouTubeReader(**kwargs)

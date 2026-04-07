@@ -1,25 +1,35 @@
-"""
-JsonReaderBuilder — JSON 文件 Reader Builder
-
-文件名用 json_reader.py 避免与内置 json 模块冲突。
-"""
-
 from typing import Any
-
 from app.plugin.module_agno_manage_v2.builders.readers.base import BaseReaderBuilder
 
 
 class JsonReaderBuilder(BaseReaderBuilder):
     type = "json"
-    label = "JSON Reader"
-    agno_class = None  # 延迟导入
+    label = "JSON / JSONL"
 
-    field_meta = {
-        **BaseReaderBuilder.field_meta,
-    }
+    try:
+        from agno.knowledge.reader.json_reader import JSONReader
+        agno_class = JSONReader
+    except ImportError:
+        agno_class = None
+
+    extra_fields = [
+        {
+            "name": "encoding", "type": "str", "default": "utf-8", "required": False,
+            "label": "文本编码", "group": "基础配置", "span": 12, "order": 1,
+            "placeholder": "utf-8 / gbk / auto",
+            "tooltip": "文本编码，留空自动检测",
+        },
+    ]
 
     def build(self, config: dict, resolver) -> Any:
-        from agno.document.reader.json import JSONReader
-
-        kwargs = self._get_chunker_kwargs(config)
+        from agno.knowledge.reader.json_reader import JSONReader
+        chunker = self._build_chunker(config, resolver)
+        kwargs: dict = {
+            "chunk": config.get("chunk", True),
+            "chunk_size": config.get("chunk_size", 5000),
+        }
+        if chunker is not None:
+            kwargs["chunking_strategy"] = chunker
+        if config.get("encoding"):
+            kwargs["encoding"] = config["encoding"]
         return JSONReader(**kwargs)

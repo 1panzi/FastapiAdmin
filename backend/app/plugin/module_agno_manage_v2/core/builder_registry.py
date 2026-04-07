@@ -3,6 +3,9 @@
 
 key = (category, type) tuple
 value = BaseBuilder 实例
+
+- Reader: 每种类型独立 Builder 文件，BaseReaderBuilder 负责 chunking schema 动态生成
+- Toolkit: GenericToolkitBuilder 按 catalog 懒加载（100+ agno 工具，不逐一写 Builder）
 """
 
 from typing import TYPE_CHECKING
@@ -29,7 +32,7 @@ from app.plugin.module_agno_manage_v2.builders.embedders.ollama import OllamaEmb
 from app.plugin.module_agno_manage_v2.builders.embedders.cohere import CohereEmbedderBuilder
 from app.plugin.module_agno_manage_v2.builders.embedders.google import GoogleEmbedderBuilder
 
-# ── Reader Builders ──────────────────────────────────────────────────────────
+# ── Reader Builders ───────────────────────────────────────────────────────────
 from app.plugin.module_agno_manage_v2.builders.readers.pdf import PdfReaderBuilder
 from app.plugin.module_agno_manage_v2.builders.readers.docx import DocxReaderBuilder
 from app.plugin.module_agno_manage_v2.builders.readers.text import TextReaderBuilder
@@ -39,9 +42,9 @@ from app.plugin.module_agno_manage_v2.builders.readers.website import WebsiteRea
 from app.plugin.module_agno_manage_v2.builders.readers.youtube import YoutubeReaderBuilder
 from app.plugin.module_agno_manage_v2.builders.readers.arxiv import ArxivReaderBuilder
 
-# ── Toolkit Builders ─────────────────────────────────────────────────────────
-from app.plugin.module_agno_manage_v2.builders.toolkits.duckduckgo import DuckDuckGoBuilder
-from app.plugin.module_agno_manage_v2.builders.toolkits.python import PythonToolsBuilder
+# ── Toolkit Builders (Catalog-based) ─────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.toolkits.catalog import TOOLKIT_CATALOG
+from app.plugin.module_agno_manage_v2.builders.toolkits.generic import GenericToolkitBuilder
 from app.plugin.module_agno_manage_v2.builders.toolkits.custom import CustomToolkitBuilder
 
 # ── Knowledge Builders ───────────────────────────────────────────────────────
@@ -53,7 +56,7 @@ from app.plugin.module_agno_manage_v2.builders.agents.base import AgentBuilder
 # ── Team Builders ────────────────────────────────────────────────────────────
 from app.plugin.module_agno_manage_v2.builders.teams.base import TeamBuilder
 
-# 注册表：(category, type) -> Builder 实例
+# ── 注册表 ────────────────────────────────────────────────────────────────────
 builder_registry: dict[tuple[str, str], "BaseBuilder"] = {
     # models
     ("model", "openai"):      OpenAIModelBuilder(),
@@ -73,22 +76,23 @@ builder_registry: dict[tuple[str, str], "BaseBuilder"] = {
     ("embedder", "cohere"):   CohereEmbedderBuilder(),
     ("embedder", "google"):   GoogleEmbedderBuilder(),
     # readers
-    ("reader", "pdf"):        PdfReaderBuilder(),
-    ("reader", "docx"):       DocxReaderBuilder(),
-    ("reader", "text"):       TextReaderBuilder(),
-    ("reader", "csv"):        CsvReaderBuilder(),
-    ("reader", "json"):       JsonReaderBuilder(),
-    ("reader", "website"):    WebsiteReaderBuilder(),
-    ("reader", "youtube"):    YoutubeReaderBuilder(),
-    ("reader", "arxiv"):      ArxivReaderBuilder(),
-    # toolkits
-    ("toolkit", "duckduckgo"): DuckDuckGoBuilder(),
-    ("toolkit", "python"):     PythonToolsBuilder(),
-    ("toolkit", "custom"):     CustomToolkitBuilder(),
+    ("reader", "pdf"):     PdfReaderBuilder(),
+    ("reader", "docx"):    DocxReaderBuilder(),
+    ("reader", "text"):    TextReaderBuilder(),
+    ("reader", "csv"):     CsvReaderBuilder(),
+    ("reader", "json"):    JsonReaderBuilder(),
+    ("reader", "website"): WebsiteReaderBuilder(),
+    ("reader", "youtube"): YoutubeReaderBuilder(),
+    ("reader", "arxiv"):   ArxivReaderBuilder(),
     # knowledge
-    ("knowledge", "base"):     KnowledgeBuilder(),
+    ("knowledge", "base"): KnowledgeBuilder(),
     # agents
-    ("agent", "base"):         AgentBuilder(),
+    ("agent", "base"):     AgentBuilder(),
     # teams
-    ("team", "base"):          TeamBuilder(),
+    ("team", "base"):      TeamBuilder(),
 }
+
+# toolkits：按 catalog 批量注册 + custom 单独注册
+for _type_key in TOOLKIT_CATALOG:
+    builder_registry[("toolkit", _type_key)] = GenericToolkitBuilder(_type_key)
+builder_registry[("toolkit", "custom")] = CustomToolkitBuilder()

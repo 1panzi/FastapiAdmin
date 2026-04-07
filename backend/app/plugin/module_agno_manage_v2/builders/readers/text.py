@@ -1,31 +1,35 @@
-"""
-TextReaderBuilder — 纯文本文件 Reader Builder
-"""
-
 from typing import Any
-
 from app.plugin.module_agno_manage_v2.builders.readers.base import BaseReaderBuilder
 
 
 class TextReaderBuilder(BaseReaderBuilder):
     type = "text"
-    label = "Text Reader"
-    agno_class = None  # 延迟导入
+    label = "纯文本文件"
 
-    field_meta = {
-        **BaseReaderBuilder.field_meta,
-        "encoding": {
-            "label": "文本编码",
-            "group": "基础配置",
-            "span": 12,
-            "hidden": False,  # 文本文件编码比较重要，展示出来
+    try:
+        from agno.knowledge.reader.text_reader import TextReader
+        agno_class = TextReader
+    except ImportError:
+        agno_class = None
+
+    extra_fields = [
+        {
+            "name": "encoding", "type": "str", "default": "utf-8", "required": False,
+            "label": "文本编码", "group": "基础配置", "span": 12, "order": 1,
+            "placeholder": "utf-8 / gbk / auto",
+            "tooltip": "文本编码，留空自动检测",
         },
-    }
+    ]
 
     def build(self, config: dict, resolver) -> Any:
-        from agno.document.reader.text import TextReader
-
-        kwargs = self._get_chunker_kwargs(config)
+        from agno.knowledge.reader.text_reader import TextReader
+        chunker = self._build_chunker(config, resolver)
+        kwargs: dict = {
+            "chunk": config.get("chunk", True),
+            "chunk_size": config.get("chunk_size", 5000),
+        }
+        if chunker is not None:
+            kwargs["chunking_strategy"] = chunker
         if config.get("encoding"):
             kwargs["encoding"] = config["encoding"]
         return TextReader(**kwargs)

@@ -1,37 +1,52 @@
-"""
-ArxivReaderBuilder — arXiv 论文 Reader Builder
-"""
-
 from typing import Any
-
 from app.plugin.module_agno_manage_v2.builders.readers.base import BaseReaderBuilder
 
 
 class ArxivReaderBuilder(BaseReaderBuilder):
     type = "arxiv"
-    label = "Arxiv Reader"
-    agno_class = None  # 延迟导入
+    label = "ArXiv 论文"
+
+    try:
+        from agno.knowledge.reader.arxiv_reader import ArxivReader
+        agno_class = ArxivReader
+    except ImportError:
+        agno_class = None
 
     extra_fields = [
-        *BaseReaderBuilder.extra_fields,
-        {"name": "max_results", "type": "int", "required": False, "default": 5, "order": 20},
-    ]
-    field_meta = {
-        **BaseReaderBuilder.field_meta,
-        "max_results": {
-            "label": "最大结果数",
-            "group": "基础配置",
+        {
+            "name": "sort_by",
+            "type": "select",
+            "default": "Relevance",
+            "required": False,
+            "label": "排序方式",
+            "group": "ArXiv 配置",
             "span": 12,
-            "min": 1,
-            "max": 100,
-            "tooltip": "单次查询最多返回的论文数量",
+            "order": 1,
+            "options": [
+                {"value": "Relevance",       "label": "相关性"},
+                {"value": "LastUpdatedDate", "label": "最近更新"},
+                {"value": "SubmittedDate",   "label": "提交日期"},
+            ],
         },
-    }
+    ]
 
     def build(self, config: dict, resolver) -> Any:
-        from agno.document.reader.arxiv import ArxivReader
-
-        kwargs = self._get_chunker_kwargs(config)
-        if config.get("max_results") is not None:
-            kwargs["max_results"] = config["max_results"]
+        from agno.knowledge.reader.arxiv_reader import ArxivReader
+        chunker = self._build_chunker(config, resolver)
+        kwargs: dict = {
+            "chunk": config.get("chunk", True),
+            "chunk_size": config.get("chunk_size", 5000),
+        }
+        if chunker is not None:
+            kwargs["chunking_strategy"] = chunker
+        if config.get("sort_by"):
+            import arxiv
+            sort_map = {
+                "Relevance":       arxiv.SortCriterion.Relevance,
+                "LastUpdatedDate": arxiv.SortCriterion.LastUpdatedDate,
+                "SubmittedDate":   arxiv.SortCriterion.SubmittedDate,
+            }
+            sort_val = sort_map.get(config["sort_by"])
+            if sort_val is not None:
+                kwargs["sort_by"] = sort_val
         return ArxivReader(**kwargs)
