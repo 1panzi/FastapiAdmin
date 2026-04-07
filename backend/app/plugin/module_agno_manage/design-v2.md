@@ -205,7 +205,7 @@ tools/members 等字段支持数组，每个元素均可为 ref 或 inline：
 ```
 module_agno_manage_v2/
 ├── core/
-│   ├── builder_base.py      # Builder 基类 + generate_schema_from_class
+│   ├── builder_base.py      # BaseBuilder 基类 + generate_schema_from_class
 │   ├── ref_resolver.py      # ref/inline/override 统一处理
 │   ├── builder_registry.py  # 全局 Builder 注册表
 │   ├── registry.py          # RuntimeRegistry（极简，只管 agent/team 列表）
@@ -220,15 +220,34 @@ module_agno_manage_v2/
 │   │   ├── ollama.py
 │   │   └── ...
 │   ├── embedders/
-│   │   ├── base.py
+│   │   ├── base.py          # BaseEmbedderBuilder
 │   │   ├── openai.py
 │   │   └── ...
 │   ├── readers/
-│   │   ├── base.py
-│   │   ├── pdf.py
+│   │   ├── base.py          # BaseReaderBuilder（schema = extra_fields + chunk 动态字段）
+│   │   ├── pdf.py           # 各 reader 独立 Builder（声明 agno_class + extra_fields）
+│   │   ├── csv.py
+│   │   ├── docx.py
+│   │   ├── text.py
+│   │   ├── json_reader.py
 │   │   ├── website.py
-│   │   └── ...
+│   │   ├── youtube.py
+│   │   ├── arxiv.py
+│   │   └── chunk/           # Chunker Builder 子模块
+│   │       ├── base.py      # BaseChunkerBuilder（继承 BaseBuilder）+ CHUNKER_REGISTRY
+│   │       ├── fixed.py     # FixedSizeChunkerBuilder
+│   │       ├── recursive.py
+│   │       ├── document.py
+│   │       ├── markdown.py
+│   │       ├── row.py
+│   │       ├── code.py
+│   │       ├── semantic.py
+│   │       └── agentic.py
 │   ├── toolkits/
+│   │   ├── catalog.py   # TOOLKIT_CATALOG（100+ agno 工具）
+│   │   ├── base.py      # BaseToolkitBuilder
+│   │   ├── generic.py   # GenericToolkitBuilder（懒加载 + 反射，替代所有独立 toolkit builder）
+│   │   └── custom.py    # CustomToolkitBuilder（用户自定义 module_path/class_name）
 │   ├── knowledge/
 │   ├── agents/
 │   └── teams/
@@ -410,23 +429,128 @@ class OllamaModelBuilder(BaseModelBuilder):
 
 ```python
 # core/builder_registry.py
-from builders.models.openai import OpenAIModelBuilder
-from builders.models.anthropic import AnthropicModelBuilder
-from builders.models.ollama import OllamaModelBuilder
-# ... 其他 import
-
+# readers 逐一手动注册（每种 reader 有独立 Builder 文件）
 builder_registry: dict[tuple[str, str], BaseBuilder] = {
     ("model",   "openai"):     OpenAIModelBuilder(),
     ("model",   "anthropic"):  AnthropicModelBuilder(),
     ("model",   "ollama"):     OllamaModelBuilder(),
     ("embedder","openai"):     OpenAIEmbedderBuilder(),
     ("reader",  "pdf"):        PdfReaderBuilder(),
+    ("reader",  "docx"):       DocxReaderBuilder(),
+    ("reader",  "text"):       TextReaderBuilder(),
+    ("reader",  "csv"):        CsvReaderBuilder(),
+    ("reader",  "json"):       JsonReaderBuilder(),
     ("reader",  "website"):    WebsiteReaderBuilder(),
-    ("toolkit", "duckduckgo"): DuckDuckGoBuilder(),
+    ("reader",  "youtube"):    YoutubeReaderBuilder(),
+    ("reader",  "arxiv"):      ArxivReaderBuilder(),
     ("agent",   "base"):       AgentBuilder(),
     ("team",    "base"):       TeamBuilder(),
     # ...
 }
+
+# toolkits：按 TOOLKIT_CATALOG 批量注册，custom 单独注册
+for _type_key in TOOLKIT_CATALOG:
+    builder_registry[("toolkit", _type_key)] = GenericToolkitBuilder(_type_key)
+builder_registry[("toolkit", "custom")] = CustomToolkitBuilder()
+```
+
+### 5.5 Toolkit Catalog + GenericToolkitBuilder
+
+agno 内置工具多达 100+，不能为每个工具写独立 Builder 文件。改为：
+
+- **`catalog.py`**：维护 `TOOLKIT_CATALOG`，key 为 `type` 字符串，value 含 `module_path / class_name / name / category / description`
+- **`generic.py`**：`GenericToolkitBuilder` 按 type 从 catalog 查找并懒加载目标类，自动反射 `__init__` 生成 schema
+- **`builder_registry.py`**：一行循环注册所有 catalog 工具，`custom` 单独注册
+
+```python
+# builders/toolkits/generic.py（核心逻辑）
+class GenericToolkitBuilder(BaseToolkitBuilder):
+    def __init__(self, type_key: str):
+        info = TOOLKIT_CATALOG[type_key]
+        self.type = type_key
+        self.label = info["name"]
+        self._module_path = info["module_path"]
+        self._class_name = info["class_name"]
+        self._agno_cls = None  # 懒加载
+
+    @property
+    def schema(self) -> list[dict]:
+        try:
+            return generate_schema_from_class(self._load_class())
+        except Exception:
+            return []  # 对应包未安装时优雅降级
+
+    def build(self, config: dict, resolver) -> Any:
+        return self._load_class()(**config)
+```
+
+```python
+# builder_registry.py 中 toolkit 注册
+for _type_key in TOOLKIT_CATALOG:
+    builder_registry[("toolkit", _type_key)] = GenericToolkitBuilder(_type_key)
+builder_registry[("toolkit", "custom")] = CustomToolkitBuilder()
+```
+
+### 5.6 Reader Builder + Chunker 子系统
+
+Reader 每种类型有独立 Builder 文件（和 model/embedder 保持一致），chunking 逻辑抽到 `chunk/` 子模块。
+
+#### 设计结构
+
+**`BaseReaderBuilder`**（`readers/base.py`）：
+- `schema` = reader 的 `extra_fields` + `_get_chunk_schema_fields()` 动态生成的分块字段
+- `_get_chunk_schema_fields()` 调用 `agno_class.get_supported_chunking_strategies()` 获取该 reader 支持的策略，从 `CHUNKER_REGISTRY` 取各策略字段，带 `depends_on` 联动
+- `_build_chunker()` 委托给 `CHUNKER_REGISTRY` 对应的 `ChunkerBuilder.build()`
+
+**各 reader 子类**（如 `PdfReaderBuilder`）：
+- 声明 `agno_class`（类体顶层 `try/except ImportError`，可选包安全降级）
+- 声明 `extra_fields`（reader 专属参数，如 `split_on_pages`、`max_depth` 等）
+- 实现 `build(config, resolver)`
+
+**`BaseChunkerBuilder`**（`chunk/base.py`，继承 `BaseBuilder`）：
+- `category = "chunker"`，`extra_fields` 手写参数字段（字段名与 agno 构造参数保持一致）
+- 8 种策略对应 8 个子类，注册到 `CHUNKER_REGISTRY`
+
+#### Chunker 字段与 agno 参数对齐原则
+
+`extra_fields` 中的 `name` 与 agno 构造参数名保持一致，`build()` 中不做字段名映射：
+
+```python
+# chunk/fixed.py
+class FixedSizeChunkerBuilder(BaseChunkerBuilder):
+    type = "FixedSizeChunker"
+    label = "固定大小分块"
+    extra_fields = [
+        {"name": "chunk_size", "type": "int", "default": 5000, ...},
+        {"name": "overlap",    "type": "int", "default": 0, ...},   # 与 agno 参数名一致
+    ]
+
+    def build(self, config, resolver):
+        from agno.knowledge.chunking.fixed import FixedSizeChunking
+        return FixedSizeChunking(
+            chunk_size=config.get("chunk_size", 5000),
+            overlap=config.get("overlap", 0),   # 直接透传，无需映射
+        )
+```
+
+#### _get_chunk_schema_fields() 生成的字段结构
+
+| order | 字段 | 说明 |
+|-------|------|------|
+| 100 | `chunk`（bool） | 启用分块开关 |
+| 101 | `chunking_strategy`（select） | 按 reader 支持的策略过滤选项，`depends_on: {chunk: true}` |
+| 110+ | 各策略参数字段 | 带 `depends_on: {chunking_strategy: "策略名"}`，按策略分组 |
+
+```python
+# builder_registry.py 中 reader 注册（逐一手动）
+(\"reader\", \"pdf\"):     PdfReaderBuilder(),
+(\"reader\", \"docx\"):    DocxReaderBuilder(),
+(\"reader\", \"text\"):    TextReaderBuilder(),
+(\"reader\", \"csv\"):     CsvReaderBuilder(),
+(\"reader\", \"json\"):    JsonReaderBuilder(),
+(\"reader\", \"website\"): WebsiteReaderBuilder(),
+(\"reader\", \"youtube\"): YoutubeReaderBuilder(),
+(\"reader\", \"arxiv\"):   ArxivReaderBuilder(),
 ```
 
 ---
