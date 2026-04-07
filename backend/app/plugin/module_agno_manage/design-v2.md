@@ -866,7 +866,99 @@ async def delete(uuid, db, registry):
 
 ---
 
-## 十二、暂不设计的部分
+## 十三、知识库设计
+
+### 13.1 资源关系链
+
+```
+ag_resources (category=embedder)
+    ↑ ref（在 vectordb config 中）
+ag_resources (category=vectordb)
+    ↑ ref（在 knowledge config 中）
+ag_resources (category=knowledge)
+    ↑ kb_uuid
+ag_documents                        ← 独立表，追踪文档上传/索引状态
+```
+
+### 13.2 各资源 config 示例
+
+**vectordb config：**
+```json
+{
+  "embedder": {"ref": "embedder-uuid"},
+  "table_name": "kb_products"
+}
+```
+
+**knowledge config：**
+```json
+{
+  "vectordb": {"ref": "vectordb-uuid"},
+  "max_results": 10,
+  "search_type": "vector"
+}
+```
+
+> Reader 由 agno Knowledge 内部根据文档类型自动选择，无需在 knowledge config 中配置。
+> Reader 资源（category=reader）独立管理，供文档上传时指定使用。
+
+### 13.3 VectorDB Builder
+
+```
+builders/vectordbs/
+    base.py       # BaseVectordbBuilder（schema 固定含 embedder 字段在首位）
+    pgvector.py   # extra_fields: table_name, schema, db_url
+    qdrant.py     # extra_fields: collection, url, api_key
+    chroma.py     # extra_fields: collection, path/host/port
+    pinecone.py   # extra_fields: index_name, api_key, namespace
+    weaviate.py   # extra_fields: collection, url, api_key
+    milvus.py     # extra_fields: collection, uri, token
+    mongodb.py    # extra_fields: collection, connection_string, database
+    lancedb.py    # extra_fields: table_name, uri
+```
+
+所有 vectordb build() 流程：
+1. `resolver.resolve(config["embedder"])` → Embedder 实例
+2. 实例化对应 agno VectorDB 类，传入 embedder
+
+### 13.4 ag_documents 表
+
+```sql
+CREATE TABLE ag_documents (
+    id           SERIAL PRIMARY KEY,
+    uuid         VARCHAR(64)  NOT NULL UNIQUE,
+    kb_uuid      VARCHAR(64)  NOT NULL,
+    name         VARCHAR(500),
+    storage_type VARCHAR(20)  NOT NULL DEFAULT 'local',  -- local/s3/url
+    storage_path TEXT         NOT NULL,
+    doc_status   VARCHAR(20)  NOT NULL DEFAULT 'pending', -- pending/processing/indexed/failed
+    error_msg    TEXT,
+    metadata     JSONB        NOT NULL DEFAULT '{}',
+    status       VARCHAR(10)  NOT NULL DEFAULT '0',
+    created_time TIMESTAMP    NOT NULL,
+    updated_time TIMESTAMP    NOT NULL,
+    created_id   INTEGER,
+    updated_id   INTEGER
+);
+
+CREATE INDEX ix_ag_documents_kb_uuid    ON ag_documents(kb_uuid);
+CREATE INDEX ix_ag_documents_doc_status ON ag_documents(kb_uuid, doc_status);
+CREATE INDEX ix_ag_documents_status     ON ag_documents(status);
+```
+
+### 13.5 文档索引流程
+
+```
+POST /agno_manage/v2/knowledge/{kb_uuid}/documents
+  → 保存文件到存储
+  → 写 ag_documents（doc_status=pending）
+  → 后台任务：
+      resolver = RefResolver(db)
+      kb = builder_registry[("knowledge","base")].build(config, resolver)
+      kb.load_document(path)   # 分块 → embed → 写 vectordb
+      ag_documents doc_status=indexed
+  → 失败时：doc_status=failed + error_msg
+```
 
 - **ag_documents**（文件注册表 + 向量化状态）：延续 v1 设计，暂不迁移
 - **权限/审计**（roles/audit_logs/user_roles）：延续 v1 设计，暂不迁移
