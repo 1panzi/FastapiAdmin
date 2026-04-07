@@ -706,6 +706,16 @@
               编辑
             </el-button>
             <el-button
+              v-hasPerm="['module_agno_manage:teams:update']"
+              type="warning"
+              size="small"
+              link
+              icon="Share"
+              @click="handleOpenVisualBuilder(scope.row.id)"
+            >
+              可视化
+            </el-button>
+            <el-button
               v-hasPerm="['module_agno_manage:teams:delete']"
               type="danger"
               size="small"
@@ -904,281 +914,7 @@
 
       <!-- 新增、编辑表单 -->
       <template v-else>
-        <el-form
-          ref="dataFormRef"
-          :model="formData"
-          :rules="rules"
-          label-suffix=":"
-          label-width="160px"
-          label-position="right"
-        >
-          <el-tabs type="border-card" class="team-form-tabs">
-            <!-- ══ Tab 1: 基本信息 ══ -->
-            <el-tab-pane label="基本信息">
-              <el-row :gutter="20">
-                <el-col :span="12">
-                  <el-form-item label="Team名称" prop="name">
-                    <el-input v-model="formData.name" placeholder="请输入Team名称" />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="主模型" prop="model_id">
-                    <LazySelect
-                      v-model="formData.model_id"
-                      :fetcher="modelFetcher"
-                      placeholder="请选择主模型"
-                    />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="记忆管理器" prop="memory_manager_id">
-                    <LazySelect
-                      v-model="formData.memory_manager_id"
-                      :fetcher="memoryManagerFetcher"
-                      placeholder="请选择记忆管理器"
-                    />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="协作模式" prop="mode">
-                    <el-select v-model="formData.mode" placeholder="请选择协作模式" clearable style="width: 100%">
-                      <el-option value="route" label="route（路由）" />
-                      <el-option value="coordinate" label="coordinate（协调）" />
-                      <el-option value="collaborate" label="collaborate（协作）" />
-                      <el-option value="tasks" label="tasks（任务）" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="状态" prop="status" :required="false">
-                    <el-radio-group v-model="formData.status">
-                      <el-radio value="0">启用</el-radio>
-                      <el-radio value="1">停用</el-radio>
-                    </el-radio-group>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="24">
-                  <el-form-item label="Team指令" prop="instructions">
-                    <el-input v-model="formData.instructions" placeholder="请输入Team指令（system prompt）" type="textarea" :rows="4" />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="24">
-                  <el-form-item label="期望输出格式" prop="expected_output">
-                    <el-input v-model="formData.expected_output" placeholder="请输入期望输出格式说明" type="textarea" :rows="2" />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="24">
-                  <el-form-item label="描述" prop="description">
-                    <el-input v-model="formData.description" :rows="3" :maxlength="100" show-word-limit type="textarea" placeholder="请输入描述" />
-                  </el-form-item>
-                </el-col>
-              </el-row>
-            </el-tab-pane>
-
-            <!-- ══ Tab 2: 成员协作 ══ -->
-            <el-tab-pane label="成员协作">
-              <el-row :gutter="20">
-                <el-col :span="12">
-                  <el-form-item label="是否直接响应" prop="respond_directly">
-                    <el-select v-model="formData.respond_directly" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="分发给所有成员" prop="delegate_to_all_members">
-                    <el-select v-model="formData.delegate_to_all_members" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="为成员决定输入" prop="determine_input_for_members">
-                    <el-select v-model="formData.determine_input_for_members" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="最大迭代次数" prop="max_iterations">
-                    <el-input-number v-model="formData.max_iterations" :min="1" :max="1000" placeholder="默认" style="width:100%" :controls="false" />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="传Team历史给成员" prop="add_team_history_to_members">
-                    <el-select v-model="formData.add_team_history_to_members" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="传给成员历史次数" prop="num_team_history_runs">
-                    <el-input-number v-model="formData.num_team_history_runs" :min="0" placeholder="默认" style="width:100%" :controls="false" />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="共享成员交互" prop="share_member_interactions">
-                    <el-select v-model="formData.share_member_interactions" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="成员工具加入上下文" prop="add_member_tools_to_context">
-                    <el-select v-model="formData.add_member_tools_to_context" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-              </el-row>
-            </el-tab-pane>
-
-            <!-- ══ Tab 3: 记忆 & 历史 & 知识库 ══ -->
-            <el-tab-pane label="记忆 / 历史 / 知识库">
-              <el-row :gutter="20">
-                <el-col :span="12">
-                  <el-form-item label="读取聊天历史" prop="read_chat_history">
-                    <el-select v-model="formData.read_chat_history" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="搜索历史会话" prop="search_past_sessions">
-                    <el-select v-model="formData.search_past_sessions" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="搜索历史会话数量" prop="num_past_sessions_to_search">
-                    <el-input-number v-model="formData.num_past_sessions_to_search" :min="0" placeholder="默认" style="width:100%" :controls="false" />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="智能记忆" prop="enable_agentic_memory">
-                    <el-select v-model="formData.enable_agentic_memory" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="运行后更新记忆" prop="update_memory_on_run">
-                    <el-select v-model="formData.update_memory_on_run" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="搜索知识库" prop="search_knowledge">
-                    <el-select v-model="formData.search_knowledge" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="允许更新知识库" prop="update_knowledge">
-                    <el-select v-model="formData.update_knowledge" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="智能知识过滤" prop="enable_agentic_knowledge_filters">
-                    <el-select v-model="formData.enable_agentic_knowledge_filters" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="智能状态" prop="enable_agentic_state">
-                    <el-select v-model="formData.enable_agentic_state" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-              </el-row>
-            </el-tab-pane>
-
-            <!-- ══ Tab 4: 会话摘要 & 工具 & 流式 ══ -->
-            <el-tab-pane label="摘要 / 工具 / 流式">
-              <el-row :gutter="20">
-                <el-col :span="12">
-                  <el-form-item label="开启会话摘要" prop="enable_session_summaries">
-                    <el-select v-model="formData.enable_session_summaries" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="摘要加入上下文" prop="add_session_summary_to_context">
-                    <el-select v-model="formData.add_session_summary_to_context" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="工具调用次数上限" prop="tool_call_limit">
-                    <el-input-number v-model="formData.tool_call_limit" :min="0" placeholder="不限制" style="width:100%" :controls="false" />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="流式输出" prop="stream">
-                    <el-select v-model="formData.stream" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="流式推送事件" prop="stream_events">
-                    <el-select v-model="formData.stream_events" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="输出Markdown" prop="markdown">
-                    <el-select v-model="formData.markdown" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="调试模式" prop="debug_mode">
-                    <el-select v-model="formData.debug_mode" placeholder="默认" clearable style="width:100%">
-                      <el-option label="开启" :value="true" />
-                      <el-option label="关闭" :value="false" />
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="24">
-                  <el-form-item label="元数据" prop="metadata_config">
-                    <DictEditor v-model="formData.metadata_config" />
-                  </el-form-item>
-                </el-col>
-              </el-row>
-            </el-tab-pane>
-          </el-tabs>
-        </el-form>
+        <TeamFormFields ref="dataFormRef" :form-data="formData" />
       </template>
 
       <template #footer>
@@ -1220,6 +956,7 @@ defineOptions({
 });
 
 import { ref, reactive, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { QuestionFilled, ArrowUp, ArrowDown, Check, CircleClose } from "@element-plus/icons-vue";
 import { formatToDateTime } from "@/utils/dateUtil";
@@ -1238,6 +975,13 @@ import AgTeamAPI, {
 import AgModelAPI from "@/api/module_agno_manage/models";
 import AgMemoryManagerAPI from "@/api/module_agno_manage/memory_managers";
 import LazySelect from "@/views/module_agno_manage/components/LazySelect/index.vue";
+import TeamFormFields from "./components/TeamFormFields.vue";
+
+const router = useRouter();
+
+function handleOpenVisualBuilder(id: number) {
+  router.push(`/agno/team-builder?root_id=${id}`);
+}
 
 // model 懒加载 fetcher
 const modelFetcher = async (params: { page_no: number; page_size: number; name?: string }) => {
