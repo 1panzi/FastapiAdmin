@@ -8,12 +8,11 @@
 import pytest
 from fastapi.testclient import TestClient
 
-API_PREFIX = "/api/v1"
 
 
 def test_check_health(test_client: TestClient) -> None:
     """测试健康检查接口"""
-    response = test_client.get(API_PREFIX + "/common/health")
+    response = test_client.get("/common/health")
     assert response.status_code == 200
     data = response.json()
     assert data["code"] == 0

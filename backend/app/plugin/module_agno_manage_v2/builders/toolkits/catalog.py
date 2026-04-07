@@ -50,7 +50,7 @@ TOOLKIT_CATALOG: dict[str, dict] = {
     "file_gen":     {"module_path": "agno.tools.file_generation", "class_name": "FileGenerationTools", "name": "文件生成工具", "category": "文件", "description": "生成文件内容"},
     "docling":      {"module_path": "agno.tools.docling", "class_name": "DoclingTools", "name": "Docling 文档解析", "category": "文件", "description": "Docling 文档结构化解析"},
     # ── 金融与数据分析 ────────────────────────────────────────────────────────
-    "yfinance":     {"module_path": "agno.tools.yfinance", "class_name": "YFinanceTools", "name": "YFinance 金融", "category": "金融", "description": "Yahoo Finance 股票数据"},
+    "yfinance":     {"module_path": "agno.tools.yfinance", "class_name": "YFinanceTools", "name": "YFinance 金融", "category": "金融", "description": "Yahoo Finance 股票数据", "param_map": {"stock_price": "enable_stock_price", "stock_fundamentals": "enable_stock_fundamentals", "income_statements": "enable_income_statements", "key_financial_ratios": "enable_key_financial_ratios", "analyst_recommendations": "enable_analyst_recommendations", "company_news": "enable_company_news", "technical_indicators": "enable_technical_indicators", "historical_prices": "enable_historical_prices", "company_info": "enable_company_info"}},
     "openbb":       {"module_path": "agno.tools.openbb", "class_name": "OpenBBTools", "name": "OpenBB 金融", "category": "金融", "description": "OpenBB 金融数据分析"},
     "financial_ds": {"module_path": "agno.tools.financial_datasets", "class_name": "FinancialDatasetsTools", "name": "Financial Datasets", "category": "金融", "description": "金融数据集 API"},
     "visualization": {"module_path": "agno.tools.visualization", "class_name": "VisualizationTools", "name": "可视化工具", "category": "数据", "description": "数据可视化图表生成"},

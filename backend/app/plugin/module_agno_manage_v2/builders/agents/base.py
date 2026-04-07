@@ -277,7 +277,6 @@ class AgentBuilder(BaseBuilder):
             "tools": tools if tools else None,
             "knowledge": knowledge,
             "markdown": config.get("markdown", True),
-            "show_tool_calls": config.get("show_tool_calls", False),
             "cache_callables": False,
         }
 
@@ -318,9 +317,7 @@ class AgentBuilder(BaseBuilder):
         if compression_manager is not None:
             kwargs["compression_manager"] = compression_manager
 
-        # 护栏
-        if guardrails:
-            kwargs["guardrails"] = guardrails
+        # 护栏（agno 当前版本 Agent 不直接接受 guardrails 参数，已移除）
 
         # 推理
         if reasoning_enabled:

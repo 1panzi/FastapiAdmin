@@ -52,4 +52,6 @@ class GenericToolkitBuilder(BaseToolkitBuilder):
 
     def build(self, config: dict, resolver) -> Any:
         cls = self._load_class()
-        return cls(**config)
+        param_map = TOOLKIT_CATALOG[self.type].get("param_map", {})
+        mapped_config = {param_map.get(k, k): v for k, v in config.items()}
+        return cls(**mapped_config)

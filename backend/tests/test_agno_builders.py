@@ -166,7 +166,7 @@ class TestEmbedderBuilders:
 
     @pytest.mark.asyncio
     async def test_openai_embedder(self, resolver):
-        from agno.embedder.openai import OpenAIEmbedder
+        from agno.knowledge.embedder.openai import OpenAIEmbedder
         result = await resolver.resolve(inline(
             "embedder", "openai",
             model="text-embedding-3-small",
@@ -176,7 +176,7 @@ class TestEmbedderBuilders:
 
     @pytest.mark.asyncio
     async def test_azure_embedder(self, resolver):
-        from agno.embedder.azure_openai import AzureOpenAIEmbedder
+        from agno.knowledge.embedder.azure_openai import AzureOpenAIEmbedder
         result = await resolver.resolve(inline(
             "embedder", "azure",
             model="text-embedding-ada-002",

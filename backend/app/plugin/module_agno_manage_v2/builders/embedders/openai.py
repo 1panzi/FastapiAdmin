@@ -26,7 +26,7 @@ class OpenAIEmbedderBuilder(BaseEmbedderBuilder):
     }
 
     def build(self, config: dict, resolver) -> Any:
-        from agno.embedder.openai import OpenAIEmbedder
+        from agno.knowledge.embedder.openai import OpenAIEmbedder
 
         kwargs: dict = {
             "id": config.get("model_id"),

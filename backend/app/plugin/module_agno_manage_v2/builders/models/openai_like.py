@@ -53,9 +53,9 @@ class OpenAILikeModelBuilder(BaseModelBuilder):
     }
 
     def build(self, config: dict, resolver) -> Any:
-        from agno.models.openai import OpenAIChat
+        from agno.models.openai.like import OpenAILike
 
-        return OpenAIChat(
+        return OpenAILike(
             id=config.get("model_id"),
             api_key=config.get("api_key") or None,
             base_url=config.get("base_url"),

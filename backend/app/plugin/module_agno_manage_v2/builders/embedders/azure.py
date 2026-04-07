@@ -50,11 +50,11 @@ class AzureEmbedderBuilder(BaseEmbedderBuilder):
     }
 
     def build(self, config: dict, resolver) -> Any:
-        from agno.embedder.azure_openai import AzureOpenAIEmbedder
+        from agno.knowledge.embedder.azure_openai import AzureOpenAIEmbedder
 
         kwargs: dict = {
-            "id": config.get("model_id"),
-            "azure_endpoint": config.get("base_url"),
+            "id": config.get("model_id") or config.get("model"),
+            "azure_endpoint": config.get("azure_endpoint") or config.get("base_url"),
         }
         if config.get("api_key"):
             kwargs["api_key"] = config["api_key"]

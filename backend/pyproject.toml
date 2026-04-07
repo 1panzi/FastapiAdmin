@@ -5,7 +5,7 @@ description = "fastapiadmin后端工程"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "agno==2.5.8",
+    "agno==2.5.14",
     "aiofiles==24.1.0", # 文件操作
     "aiosqlite==0.17.0", # sqlite 异步操作数据库
     "alembic==1.15.1", # 数据库迁移
@@ -14,6 +14,7 @@ dependencies = [
     "asyncpg==0.30.0", # postgresql 异步操作数据库基于 psycopg2：asyncpg 是 psycopg2 的异步版本，psycopg2 是一个 pure-Python PostgreSQL 数据库适配器。性能：asyncpg 通常在性能上优于 psycopg2，特别是在高并发和大数据量的场景下。
     "bcrypt==4.0.1", # 密码加密解析,切勿升级，如果升级，请同时升级python版本
     "bleach==6.3.0", # 过滤 HTML 标签
+    "chonkie[semantic]>=1.6.0",
     "chromadb>=1.4.1",
     "click==8.1.7", # 命令行参数解析
     "croniter==6.0.0", # 实现cron表达式验证和解析执行计划
@@ -46,6 +47,7 @@ dependencies = [
     "pyjwt==2.9.0", # OAuth2
     "pymysql==1.1.2", # mysql 同步步操作数据库基于 pymysql：aiomysql 是 pymysql 的异步版本，pymysql 是一个纯 Python 实现的 MySQL 客户端。成熟度：aiomysql 相对较为成熟，社区支持较好，文档也比较完善。
     "pytest==9.0.2",
+    "pytest-asyncio>=1.3.0",
     "python-multipart==0.0.9", # request.form() 对表单进行「解析」时安装
     "redis==7.1.0", # redis 同/异步操作数据库(用户celery配套使用)redis 异步操作数据库 redis已经完全具备了aioredis的功能，无需重复安全,且aioredis已经不再维护也不兼容3.10+的版本
     "rich==13.9.4", # 终端打印美化
@@ -57,11 +59,14 @@ dependencies = [
     "user-agents==2.2.0", # 获取用户UA
     "uvicorn==0.30.6", # uvicorn web 框架
     "websockets==16.0", # websocket 框架
+    "wikipedia>=1.4.0",
+    "yfinance>=1.2.0",
 ]
 
 [dependency-groups]
 dev = [
-    "ruff>=0.14.13",    # 代码格式化
+    "pytest-asyncio>=1.3.0",
+    "ruff>=0.14.13", # 代码格式化
 ]
 
 [[tool.uv.index]]
@@ -132,3 +137,8 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"

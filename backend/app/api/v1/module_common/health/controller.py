@@ -7,7 +7,7 @@ HealthRouter = APIRouter(prefix="/health", tags=["健康检查"])
 
 
 @HealthRouter.get(
-    "/",
+    "",
     summary="健康检查",
     description="检查系统健康状态",
     response_model=ResponseSchema[dict],
