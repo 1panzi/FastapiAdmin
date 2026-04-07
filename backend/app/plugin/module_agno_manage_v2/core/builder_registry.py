@@ -32,6 +32,16 @@ from app.plugin.module_agno_manage_v2.builders.embedders.ollama import OllamaEmb
 from app.plugin.module_agno_manage_v2.builders.embedders.cohere import CohereEmbedderBuilder
 from app.plugin.module_agno_manage_v2.builders.embedders.google import GoogleEmbedderBuilder
 
+# ── VectorDB Builders ────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.vectordbs.pgvector import PgVectorBuilder
+from app.plugin.module_agno_manage_v2.builders.vectordbs.qdrant import QdrantBuilder
+from app.plugin.module_agno_manage_v2.builders.vectordbs.chroma import ChromaBuilder
+from app.plugin.module_agno_manage_v2.builders.vectordbs.pinecone import PineconeBuilder
+from app.plugin.module_agno_manage_v2.builders.vectordbs.weaviate import WeaviateBuilder
+from app.plugin.module_agno_manage_v2.builders.vectordbs.milvus import MilvusBuilder
+from app.plugin.module_agno_manage_v2.builders.vectordbs.mongodb import MongodbBuilder
+from app.plugin.module_agno_manage_v2.builders.vectordbs.lancedb import LanceDbBuilder
+
 # ── Reader Builders ───────────────────────────────────────────────────────────
 from app.plugin.module_agno_manage_v2.builders.readers.pdf import PdfReaderBuilder
 from app.plugin.module_agno_manage_v2.builders.readers.docx import DocxReaderBuilder
@@ -75,6 +85,15 @@ builder_registry: dict[tuple[str, str], "BaseBuilder"] = {
     ("embedder", "ollama"):   OllamaEmbedderBuilder(),
     ("embedder", "cohere"):   CohereEmbedderBuilder(),
     ("embedder", "google"):   GoogleEmbedderBuilder(),
+    # vectordbs
+    ("vectordb", "pgvector"):  PgVectorBuilder(),
+    ("vectordb", "qdrant"):    QdrantBuilder(),
+    ("vectordb", "chroma"):    ChromaBuilder(),
+    ("vectordb", "pinecone"):  PineconeBuilder(),
+    ("vectordb", "weaviate"):  WeaviateBuilder(),
+    ("vectordb", "milvus"):    MilvusBuilder(),
+    ("vectordb", "mongodb"):   MongodbBuilder(),
+    ("vectordb", "lancedb"):   LanceDbBuilder(),
     # readers
     ("reader", "pdf"):     PdfReaderBuilder(),
     ("reader", "docx"):    DocxReaderBuilder(),
