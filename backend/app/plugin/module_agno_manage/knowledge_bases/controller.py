@@ -8,6 +8,10 @@ from app.core.base_params import PaginationQueryParam
 from app.core.base_schema import BatchSetAvailable
 from app.core.dependencies import AuthPermission
 from app.core.logger import log
+from app.plugin.module_agno_manage.documents.schema import (
+    AgDocumentSubQueryParam,
+)
+from app.plugin.module_agno_manage.documents.service import AgDocumentService
 from app.utils.common_util import bytes2file_response
 
 from .schema import (
@@ -16,8 +20,6 @@ from .schema import (
     AgKnowledgeBaseUpdateSchema,
 )
 from .service import AgKnowledgeBaseService
-from app.plugin.module_agno_manage.documents.service import AgDocumentService
-from app.plugin.module_agno_manage.documents.schema import AgDocumentQueryParam, AgDocumentSubQueryParam
 
 AgKnowledgeBaseRouter = APIRouter(prefix='/knowledge_bases', tags=["知识库模块"])
 

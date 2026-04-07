@@ -1,4 +1,5 @@
 from typing import Any
+
 from app.plugin.module_agno_manage_v2.builders.readers.base import BaseReaderBuilder
 
 
@@ -23,9 +24,9 @@ class ArxivReaderBuilder(BaseReaderBuilder):
             "span": 12,
             "order": 1,
             "options": [
-                {"value": "Relevance",       "label": "相关性"},
+                {"value": "Relevance", "label": "相关性"},
                 {"value": "LastUpdatedDate", "label": "最近更新"},
-                {"value": "SubmittedDate",   "label": "提交日期"},
+                {"value": "SubmittedDate", "label": "提交日期"},
             ],
         },
     ]

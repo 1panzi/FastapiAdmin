@@ -8,14 +8,23 @@
 import pytest
 from fastapi.testclient import TestClient
 
+API_PREFIX = "/api/v1"
+
 
 def test_check_health(test_client: TestClient) -> None:
     """测试健康检查接口"""
-    response = test_client.get("/common/health")
+    response = test_client.get(API_PREFIX + "/common/health")
     assert response.status_code == 200
-    assert response.json() == {"msg": "Healthy"}
+    data = response.json()
+    assert data["code"] == 0
+    assert data["success"] is True
+    assert data["msg"] == "系统健康"
+    assert data["data"] is True
 
 
 # 运行所有测试
 if __name__ == "__main__":
-    pytest.main(["-v", "tests/test_main.py"])
+    import os
+    # 确保 rootdir 始终指向 backend/，无论 IDE 从哪里调起
+    backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    pytest.main(["-v", __file__, f"--rootdir={backend_dir}"])

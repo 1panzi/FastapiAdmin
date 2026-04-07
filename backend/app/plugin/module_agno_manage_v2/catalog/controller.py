@@ -27,7 +27,7 @@ CatalogRouter = APIRouter(prefix="/v2/schema", tags=["V2-Schema目录"])
     ),
 )
 async def get_schema_controller(
-    category: str = Query(..., description="资源大类，如 model/reader/agent/team"),
+    category: str | None = Query(None, description="资源大类，如 model/reader/agent/team"),
     type: str | None = Query(None, description="具体类型，如 openai/pdf/base；不传则返回类型列表"),
     auth: AuthSchema = Depends(AuthPermission(["module_agno_manage:v2:query"])),
 ) -> JSONResponse:
@@ -42,6 +42,14 @@ async def get_schema_controller(
     返回:
     - JSONResponse — Schema 信息
     """
+    if category is None:
+        cat = [k[0] for k, v in builder_registry.items()]
+        cat = list(set(cat))
+        return SuccessResponse(
+            data={"category": cat},
+            msg="获取分类列表成功",
+        )
+
     if type is None:
         # 返回该 category 支持的所有 type 列表
         types = [

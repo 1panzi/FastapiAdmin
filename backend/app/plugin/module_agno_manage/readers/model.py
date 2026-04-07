@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 
-from datetime import datetime
-from sqlalchemy import Boolean, DateTime, Text, String, Integer, JSON
+from sqlalchemy import JSON, Boolean, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin
@@ -25,4 +23,3 @@ class AgReaderModel(ModelMixin, UserMixin):
     reader_config: Mapped[dict | None] = mapped_column(JSON, nullable=True, comment='Reader专属参数（按reader_type不同，见表注释）')
     embedder_id: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='关联Embedder ID（SemanticChunker使用）')
     model_id: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='关联Model ID（AgenticChunker使用）')
-

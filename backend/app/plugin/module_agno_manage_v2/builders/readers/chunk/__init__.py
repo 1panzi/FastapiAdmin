@@ -1,12 +1,17 @@
-from app.plugin.module_agno_manage_v2.builders.readers.chunk.base import BaseChunkerBuilder, CHUNKER_REGISTRY
-from app.plugin.module_agno_manage_v2.builders.readers.chunk.fixed import FixedSizeChunkerBuilder
-from app.plugin.module_agno_manage_v2.builders.readers.chunk.recursive import RecursiveChunkerBuilder
-from app.plugin.module_agno_manage_v2.builders.readers.chunk.document import DocumentChunkerBuilder
-from app.plugin.module_agno_manage_v2.builders.readers.chunk.markdown import MarkdownChunkerBuilder
-from app.plugin.module_agno_manage_v2.builders.readers.chunk.row import RowChunkerBuilder
-from app.plugin.module_agno_manage_v2.builders.readers.chunk.code import CodeChunkerBuilder
-from app.plugin.module_agno_manage_v2.builders.readers.chunk.semantic import SemanticChunkerBuilder
 from app.plugin.module_agno_manage_v2.builders.readers.chunk.agentic import AgenticChunkerBuilder
+from app.plugin.module_agno_manage_v2.builders.readers.chunk.base import (
+    CHUNKER_REGISTRY,
+    BaseChunkerBuilder,
+)
+from app.plugin.module_agno_manage_v2.builders.readers.chunk.code import CodeChunkerBuilder
+from app.plugin.module_agno_manage_v2.builders.readers.chunk.document import DocumentChunkerBuilder
+from app.plugin.module_agno_manage_v2.builders.readers.chunk.fixed import FixedSizeChunkerBuilder
+from app.plugin.module_agno_manage_v2.builders.readers.chunk.markdown import MarkdownChunkerBuilder
+from app.plugin.module_agno_manage_v2.builders.readers.chunk.recursive import (
+    RecursiveChunkerBuilder,
+)
+from app.plugin.module_agno_manage_v2.builders.readers.chunk.row import RowChunkerBuilder
+from app.plugin.module_agno_manage_v2.builders.readers.chunk.semantic import SemanticChunkerBuilder
 
 # 填充注册表
 CHUNKER_REGISTRY.update({

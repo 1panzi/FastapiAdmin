@@ -11,16 +11,12 @@ test-agent.py
   - 热插拔只需改 _bindings，下次 run 自动生效
 """
 
-from typing import List
 
 from agno.agent import Agent
 from agno.db.sqlite import SqliteDb
-from agno.models.ollama import Ollama
-from agno.os import AgentOS
-from agno.tools.duckduckgo import DuckDuckGoTools
-from agno.tools.calculator import CalculatorTools
 from agno.knowledge.embedder.openai_like import OpenAILikeEmbedder
-
+from agno.models.ollama import Ollama
+from agno.tools.calculator import CalculatorTools
 
 agnodb_db = SqliteDb(db_file="./agno.db")
 
@@ -30,41 +26,41 @@ model = Ollama(
     host="http://192.168.81.15:7869",
 )
 
-#测试模型
-agent = Agent(id="agno_test_lcoal",model=model)
+# 测试模型
+agent = Agent(id="agno_test_lcoal", model=model)
 agent.print_response("你好")
-#测试工具
-agent = Agent(id="agno_test_lcoal",model=model,tools=[CalculatorTools()])
+# 测试工具
+agent = Agent(id="agno_test_lcoal", model=model, tools=[CalculatorTools()])
 agent.print_response("你好,你有什么工具，请你搜索 计算2*5")
 
-#测试embeder
+# 测试embeder
 embeder = OpenAILikeEmbedder(id="qwen3-e4b",
-    dimensions=512,base_url="http://192.168.81.51:9998/v1")
+    dimensions=512, base_url="http://192.168.81.51:9998/v1")
 # print(embeder.get_embedding_and_usage("你好"))
 # print(embeder.get_embedding("你好"))
 
-from agno.team import Team
 
 # ---------------------------------------------------------------------------
-broadcast_team = Team(
-    name="Broadcast Review Team",
-    members=[product_manager, engineer, designer],
-    model=Ollama(id="qwen3.5:27b-q8_0",host="http://192.168.81.51:7869",api_key=""),
-    mode=TeamMode.broadcast,
-    instructions=[
-        "Each member must independently evaluate the same request.",
-        "Provide concise recommendations from your specialist perspective.",
-        "Highlight tradeoffs and open risks clearly.",
-    ],
-    markdown=True,
-    show_members_responses=True,
-)
+# broadcast_team = Team(
+#     name="Broadcast Review Team",
+#     members=[product_manager, engineer, designer],
+#     model=Ollama(id="qwen3.5:27b-q8_0", host="http://192.168.81.51:7869", api_key=""),
+#     mode=TeamMode.broadcast,
+#     instructions=[
+#         "Each member must independently evaluate the same request.",
+#         "Provide concise recommendations from your specialist perspective.",
+#         "Highlight tradeoffs and open risks clearly.",
+#     ],
+#     markdown=True,
+#     show_members_responses=True,
+# )
 
 
-## 向量数据库
+# 向量数据库
 from agno.vectordb.chroma import ChromaDb
 from agno.vectordb.search import SearchType
-vector_db=ChromaDb(
+
+vector_db = ChromaDb(
         name="agno_docs",
         collection="agno_docs",
         path="tmp/chromadb",
@@ -78,8 +74,9 @@ vector_db=ChromaDb(
         embedder=embeder,
     )
 
-#测试知识库
+# 测试知识库
 from agno.knowledge import Knowledge
+
 knowledge = Knowledge(
     name="Agno Documentation",
     vector_db=vector_db,
@@ -92,17 +89,15 @@ knowledge.insert(text_content="张杰的个人简介")
 kg_result = knowledge.search("个人简介")
 print(kg_result)
 
-## 推理模型
+# 推理模型
 from agno.knowledge.reasoning import Reasoning
+
 reasoning = Reasoning(knowledge=knowledge, model=model)
 print(reasoning("你好"))
 
 
 from agno.agent import Agent
-from agno.knowledge.chunking.agentic import AgenticChunking
 from agno.knowledge.knowledge import Knowledge
-from agno.knowledge.reader.pdf_reader import PDFReader
-from agno.vectordb.pgvector import PgVector
 
 db_url = "postgresql+psycopg://ai:ai@localhost:5532/ai"
 

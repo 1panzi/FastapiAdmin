@@ -485,8 +485,8 @@ class RuntimeRegistry:
           4. 合并 reader_config（reader 专属参数）
           5. 调用 ReaderFactory 实例化
         """
-        from agno.knowledge.reader.reader_factory import ReaderFactory
         from agno.knowledge.chunking.strategy import ChunkingStrategyFactory, ChunkingStrategyType
+        from agno.knowledge.reader.reader_factory import ReaderFactory
 
         try:
             override = config_override or {}
@@ -497,10 +497,10 @@ class RuntimeRegistry:
                 log.warning("[Registry] reader_row missing reader_type, skip")
                 return None
 
-            chunk      = override.get("chunk",         getattr(reader_row, "chunk",         True))
-            chunk_size = override.get("chunk_size",    getattr(reader_row, "chunk_size",    5000))
-            encoding   = override.get("encoding",      getattr(reader_row, "encoding",      None))
-            overlap    = override.get("chunk_overlap", getattr(reader_row, "chunk_overlap", 0))
+            chunk = override.get("chunk", getattr(reader_row, "chunk", True))
+            chunk_size = override.get("chunk_size", getattr(reader_row, "chunk_size", 5000))
+            encoding = override.get("encoding", getattr(reader_row, "encoding", None))
+            overlap = override.get("chunk_overlap", getattr(reader_row, "chunk_overlap", 0))
 
             # ── Chunking 策略 ──────────────────────────────────────────────
             strategy_name = override.get(
@@ -591,6 +591,7 @@ class RuntimeRegistry:
         """
         try:
             from agno.knowledge.knowledge import Knowledge
+
             from app.plugin.module_agno_manage.core.sync_db import SyncBindingRepo
 
             # ── vector_db ──────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 
-from sqlalchemy import Integer, String, Boolean
+from sqlalchemy import Boolean, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.base_model import ModelMixin, UserMixin

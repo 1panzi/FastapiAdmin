@@ -12,10 +12,10 @@ schema 构建优先级：
 import importlib
 from typing import Any
 
+from app.core.logger import log
 from app.plugin.module_agno_manage_v2.builders.toolkits.base import BaseToolkitBuilder
 from app.plugin.module_agno_manage_v2.builders.toolkits.catalog import TOOLKIT_CATALOG
 from app.plugin.module_agno_manage_v2.core.builder_base import generate_schema_from_class
-from app.core.logger import log
 
 
 class GenericToolkitBuilder(BaseToolkitBuilder):

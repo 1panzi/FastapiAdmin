@@ -86,7 +86,7 @@ def run(
             reload=env.value == EnvironmentEnum.DEV.value,
             factory=True,
             log_config=None,
-            reload_excludes=["./static/","./tmp"],
+            reload_excludes=["./static/", "./tmp"],
         )
     except Exception:
         raise

@@ -9,7 +9,7 @@ from app.core.base_schema import BatchSetAvailable
 from app.core.exceptions import CustomException
 from app.core.logger import log
 from app.utils.excel_util import ExcelUtil
-from agno.knowledge import Knowledge
+
 from .crud import AgDocumentCRUD
 from .schema import (
     AgDocumentCreateSchema,
@@ -348,6 +348,7 @@ class AgDocumentService:
         """
         import uuid
         from pathlib import Path
+
         from app.config.setting import settings
         from app.plugin.module_agno_manage.core.registry import get_registry
 
@@ -570,6 +571,7 @@ class AgDocumentService:
         """
         from agno.knowledge.content import Content, FileData
         from agno.utils.string import generate_id
+
         from app.core.database import async_db_session
         from app.core.logger import log
 
@@ -682,4 +684,3 @@ class AgDocumentService:
         finally:
             if saved_readers is not None:
                 kb.readers = saved_readers
-

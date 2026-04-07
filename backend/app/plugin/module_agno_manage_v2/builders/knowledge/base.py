@@ -55,9 +55,9 @@ class KnowledgeBuilder(BaseBuilder):
             "span": 12,
             "order": 3,
             "options": [
-                {"value": "vector",  "label": "向量检索"},
+                {"value": "vector", "label": "向量检索"},
                 {"value": "keyword", "label": "关键词检索"},
-                {"value": "hybrid",  "label": "混合检索"},
+                {"value": "hybrid", "label": "混合检索"},
             ],
         },
     ]
@@ -75,4 +75,3 @@ class KnowledgeBuilder(BaseBuilder):
             kwargs["search_type"] = config["search_type"]
 
         return Knowledge(**kwargs)
-

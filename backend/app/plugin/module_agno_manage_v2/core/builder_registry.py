@@ -14,75 +14,21 @@ if TYPE_CHECKING:
     from app.plugin.module_agno_manage_v2.core.builder_base import BaseBuilder
 
 # ── Model Builders ──────────────────────────────────────────────────────────
-from app.plugin.module_agno_manage_v2.builders.models.openai import OpenAIModelBuilder
-from app.plugin.module_agno_manage_v2.builders.models.anthropic import AnthropicModelBuilder
-from app.plugin.module_agno_manage_v2.builders.models.ollama import OllamaModelBuilder
-from app.plugin.module_agno_manage_v2.builders.models.groq import GroqModelBuilder
-from app.plugin.module_agno_manage_v2.builders.models.deepseek import DeepSeekModelBuilder
-from app.plugin.module_agno_manage_v2.builders.models.mistral import MistralModelBuilder
-from app.plugin.module_agno_manage_v2.builders.models.azure import AzureModelBuilder
-from app.plugin.module_agno_manage_v2.builders.models.cohere import CohereModelBuilder
-from app.plugin.module_agno_manage_v2.builders.models.together import TogetherModelBuilder
-from app.plugin.module_agno_manage_v2.builders.models.openai_like import OpenAILikeModelBuilder
-
-# ── Embedder Builders ────────────────────────────────────────────────────────
-from app.plugin.module_agno_manage_v2.builders.embedders.openai import OpenAIEmbedderBuilder
-from app.plugin.module_agno_manage_v2.builders.embedders.azure import AzureEmbedderBuilder
-from app.plugin.module_agno_manage_v2.builders.embedders.ollama import OllamaEmbedderBuilder
-from app.plugin.module_agno_manage_v2.builders.embedders.cohere import CohereEmbedderBuilder
-from app.plugin.module_agno_manage_v2.builders.embedders.google import GoogleEmbedderBuilder
-
-# ── VectorDB Builders ────────────────────────────────────────────────────────
-from app.plugin.module_agno_manage_v2.builders.vectordbs.pgvector import PgVectorBuilder
-from app.plugin.module_agno_manage_v2.builders.vectordbs.qdrant import QdrantBuilder
-from app.plugin.module_agno_manage_v2.builders.vectordbs.chroma import ChromaBuilder
-from app.plugin.module_agno_manage_v2.builders.vectordbs.pinecone import PineconeBuilder
-from app.plugin.module_agno_manage_v2.builders.vectordbs.weaviate import WeaviateBuilder
-from app.plugin.module_agno_manage_v2.builders.vectordbs.milvus import MilvusBuilder
-from app.plugin.module_agno_manage_v2.builders.vectordbs.mongodb import MongodbBuilder
-from app.plugin.module_agno_manage_v2.builders.vectordbs.lancedb import LanceDbBuilder
-
-# ── Reader Builders ───────────────────────────────────────────────────────────
-from app.plugin.module_agno_manage_v2.builders.readers.pdf import PdfReaderBuilder
-from app.plugin.module_agno_manage_v2.builders.readers.docx import DocxReaderBuilder
-from app.plugin.module_agno_manage_v2.builders.readers.text import TextReaderBuilder
-from app.plugin.module_agno_manage_v2.builders.readers.csv import CsvReaderBuilder
-from app.plugin.module_agno_manage_v2.builders.readers.json_reader import JsonReaderBuilder
-from app.plugin.module_agno_manage_v2.builders.readers.website import WebsiteReaderBuilder
-from app.plugin.module_agno_manage_v2.builders.readers.youtube import YoutubeReaderBuilder
-from app.plugin.module_agno_manage_v2.builders.readers.arxiv import ArxivReaderBuilder
-
-# ── Toolkit Builders (Catalog-based) ─────────────────────────────────────────
-from app.plugin.module_agno_manage_v2.builders.toolkits.catalog import TOOLKIT_CATALOG
-from app.plugin.module_agno_manage_v2.builders.toolkits.generic import GenericToolkitBuilder
-from app.plugin.module_agno_manage_v2.builders.toolkits.custom import CustomToolkitBuilder
-
-# ── Knowledge Builders ───────────────────────────────────────────────────────
-from app.plugin.module_agno_manage_v2.builders.knowledge.base import KnowledgeBuilder
-
 # ── Agent Builders ───────────────────────────────────────────────────────────
 from app.plugin.module_agno_manage_v2.builders.agents.base import AgentBuilder
 
-# ── Team Builders ────────────────────────────────────────────────────────────
-from app.plugin.module_agno_manage_v2.builders.teams.base import TeamBuilder
+# ── Compress Builders ─────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.compress.base import CompressionManagerBuilder
 
 # ── Culture Builders ──────────────────────────────────────────────────────────
 from app.plugin.module_agno_manage_v2.builders.culture.base import CultureManagerBuilder
+from app.plugin.module_agno_manage_v2.builders.embedders.azure import AzureEmbedderBuilder
+from app.plugin.module_agno_manage_v2.builders.embedders.cohere import CohereEmbedderBuilder
+from app.plugin.module_agno_manage_v2.builders.embedders.google import GoogleEmbedderBuilder
+from app.plugin.module_agno_manage_v2.builders.embedders.ollama import OllamaEmbedderBuilder
 
-# ── SessionSummary Builders ───────────────────────────────────────────────────
-from app.plugin.module_agno_manage_v2.builders.session_summary.base import SessionSummaryManagerBuilder
-
-# ── Skill Builders ────────────────────────────────────────────────────────────
-from app.plugin.module_agno_manage_v2.builders.skills.base import SkillBuilder
-
-# ── Memory Builders ───────────────────────────────────────────────────────────
-from app.plugin.module_agno_manage_v2.builders.memory.base import MemoryManagerBuilder
-
-# ── Learn Builders ────────────────────────────────────────────────────────────
-from app.plugin.module_agno_manage_v2.builders.learn.base import LearningMachineBuilder
-
-# ── Compress Builders ─────────────────────────────────────────────────────────
-from app.plugin.module_agno_manage_v2.builders.compress.base import CompressionManagerBuilder
+# ── Embedder Builders ────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.embedders.openai import OpenAIEmbedderBuilder
 
 # ── Guardrail Builders ────────────────────────────────────────────────────────
 from app.plugin.module_agno_manage_v2.builders.guardrails.base import (
@@ -91,8 +37,63 @@ from app.plugin.module_agno_manage_v2.builders.guardrails.base import (
     PromptInjectionGuardrailBuilder,
 )
 
+# ── Knowledge Builders ───────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.knowledge.base import KnowledgeBuilder
+
+# ── Learn Builders ────────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.learn.base import LearningMachineBuilder
+
+# ── Memory Builders ───────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.memory.base import MemoryManagerBuilder
+from app.plugin.module_agno_manage_v2.builders.models.anthropic import AnthropicModelBuilder
+from app.plugin.module_agno_manage_v2.builders.models.azure import AzureModelBuilder
+from app.plugin.module_agno_manage_v2.builders.models.cohere import CohereModelBuilder
+from app.plugin.module_agno_manage_v2.builders.models.deepseek import DeepSeekModelBuilder
+from app.plugin.module_agno_manage_v2.builders.models.groq import GroqModelBuilder
+from app.plugin.module_agno_manage_v2.builders.models.mistral import MistralModelBuilder
+from app.plugin.module_agno_manage_v2.builders.models.ollama import OllamaModelBuilder
+from app.plugin.module_agno_manage_v2.builders.models.openai import OpenAIModelBuilder
+from app.plugin.module_agno_manage_v2.builders.models.openai_like import OpenAILikeModelBuilder
+from app.plugin.module_agno_manage_v2.builders.models.together import TogetherModelBuilder
+from app.plugin.module_agno_manage_v2.builders.readers.arxiv import ArxivReaderBuilder
+from app.plugin.module_agno_manage_v2.builders.readers.csv import CsvReaderBuilder
+from app.plugin.module_agno_manage_v2.builders.readers.docx import DocxReaderBuilder
+from app.plugin.module_agno_manage_v2.builders.readers.json_reader import JsonReaderBuilder
+
+# ── Reader Builders ───────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.readers.pdf import PdfReaderBuilder
+from app.plugin.module_agno_manage_v2.builders.readers.text import TextReaderBuilder
+from app.plugin.module_agno_manage_v2.builders.readers.website import WebsiteReaderBuilder
+from app.plugin.module_agno_manage_v2.builders.readers.youtube import YoutubeReaderBuilder
+
 # ── Reasoning Builders ────────────────────────────────────────────────────────
 from app.plugin.module_agno_manage_v2.builders.reasoning.base import ReasoningBuilder
+
+# ── SessionSummary Builders ───────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.session_summary.base import (
+    SessionSummaryManagerBuilder,
+)
+
+# ── Skill Builders ────────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.skills.base import SkillBuilder
+
+# ── Team Builders ────────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.teams.base import TeamBuilder
+
+# ── Toolkit Builders (Catalog-based) ─────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.toolkits.catalog import TOOLKIT_CATALOG
+from app.plugin.module_agno_manage_v2.builders.toolkits.custom import CustomToolkitBuilder
+from app.plugin.module_agno_manage_v2.builders.toolkits.generic import GenericToolkitBuilder
+from app.plugin.module_agno_manage_v2.builders.vectordbs.chroma import ChromaBuilder
+from app.plugin.module_agno_manage_v2.builders.vectordbs.lancedb import LanceDbBuilder
+from app.plugin.module_agno_manage_v2.builders.vectordbs.milvus import MilvusBuilder
+from app.plugin.module_agno_manage_v2.builders.vectordbs.mongodb import MongodbBuilder
+
+# ── VectorDB Builders ────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.vectordbs.pgvector import PgVectorBuilder
+from app.plugin.module_agno_manage_v2.builders.vectordbs.pinecone import PineconeBuilder
+from app.plugin.module_agno_manage_v2.builders.vectordbs.qdrant import QdrantBuilder
+from app.plugin.module_agno_manage_v2.builders.vectordbs.weaviate import WeaviateBuilder
 
 # ── 注册表 ────────────────────────────────────────────────────────────────────
 builder_registry: dict[tuple[str, str], "BaseBuilder"] = {

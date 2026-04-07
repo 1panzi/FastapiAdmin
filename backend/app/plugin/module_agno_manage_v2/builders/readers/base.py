@@ -9,8 +9,8 @@ BaseReaderBuilder — Reader Builder 基类。
 - _build_chunker() 委托给 CHUNKER_REGISTRY 对应的 ChunkerBuilder
 """
 
-from app.plugin.module_agno_manage_v2.core.builder_base import BaseBuilder
 from app.plugin.module_agno_manage_v2.builders.readers.chunk import CHUNKER_REGISTRY
+from app.plugin.module_agno_manage_v2.core.builder_base import BaseBuilder
 
 
 class BaseReaderBuilder(BaseBuilder):

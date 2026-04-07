@@ -75,7 +75,7 @@ class SkillBuilder(BaseBuilder):
             "order": 0,
             "options": [
                 {"value": "inline", "label": "内联编辑（直接填写内容）"},
-                {"value": "path",   "label": "路径加载（上传/指定目录）"},
+                {"value": "path", "label": "路径加载（上传/指定目录）"},
             ],
         },
         # ── inline 模式字段 ────────────────────────────────────────────────────
