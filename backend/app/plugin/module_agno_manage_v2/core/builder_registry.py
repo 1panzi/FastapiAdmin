@@ -39,6 +39,20 @@ from app.plugin.module_agno_manage_v2.builders.readers.website import WebsiteRea
 from app.plugin.module_agno_manage_v2.builders.readers.youtube import YoutubeReaderBuilder
 from app.plugin.module_agno_manage_v2.builders.readers.arxiv import ArxivReaderBuilder
 
+# ── Toolkit Builders ─────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.toolkits.duckduckgo import DuckDuckGoBuilder
+from app.plugin.module_agno_manage_v2.builders.toolkits.python import PythonToolsBuilder
+from app.plugin.module_agno_manage_v2.builders.toolkits.custom import CustomToolkitBuilder
+
+# ── Knowledge Builders ───────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.knowledge.base import KnowledgeBuilder
+
+# ── Agent Builders ───────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.agents.base import AgentBuilder
+
+# ── Team Builders ────────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.teams.base import TeamBuilder
+
 # 注册表：(category, type) -> Builder 实例
 builder_registry: dict[tuple[str, str], "BaseBuilder"] = {
     # models
@@ -67,4 +81,14 @@ builder_registry: dict[tuple[str, str], "BaseBuilder"] = {
     ("reader", "website"):    WebsiteReaderBuilder(),
     ("reader", "youtube"):    YoutubeReaderBuilder(),
     ("reader", "arxiv"):      ArxivReaderBuilder(),
+    # toolkits
+    ("toolkit", "duckduckgo"): DuckDuckGoBuilder(),
+    ("toolkit", "python"):     PythonToolsBuilder(),
+    ("toolkit", "custom"):     CustomToolkitBuilder(),
+    # knowledge
+    ("knowledge", "base"):     KnowledgeBuilder(),
+    # agents
+    ("agent", "base"):         AgentBuilder(),
+    # teams
+    ("team", "base"):          TeamBuilder(),
 }

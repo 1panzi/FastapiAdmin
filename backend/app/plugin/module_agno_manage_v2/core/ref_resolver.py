@@ -14,6 +14,7 @@ RefResolver — 统一处理 ref/inline/override 三种资源引用模式。
 注意：因为 FastapiAdmin 使用 async SQLAlchemy，resolve 方法为 async。
 """
 
+import inspect
 from typing import Any
 
 from sqlalchemy import select
@@ -84,9 +85,11 @@ class RefResolver:
                     f"No builder registered for category={row.category}, type={row.type}"
                 )
 
-            obj = builder.build(config, self)
-            self._cache[cache_key] = obj
-            return obj
+            result = builder.build(config, self)
+            if inspect.iscoroutine(result):
+                result = await result
+            self._cache[cache_key] = result
+            return result
 
         # inline 模式：必须包含 category + type
         value = dict(value)
@@ -104,7 +107,10 @@ class RefResolver:
                 f"No builder registered for category={category}, type={type_}"
             )
 
-        return builder.build(value, self)
+        result = builder.build(value, self)
+        if inspect.iscoroutine(result):
+            result = await result
+        return result
 
     async def resolve_list(self, values: list | None) -> list:
         """
