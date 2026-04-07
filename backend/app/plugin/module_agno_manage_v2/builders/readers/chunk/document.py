@@ -17,7 +17,7 @@ class DocumentChunkerBuilder(BaseChunkerBuilder):
         },
     ]
 
-    def build(self, config: dict, resolver) -> Any:
+    async def build(self, config: dict, resolver) -> Any:
         from agno.knowledge.chunking.document import DocumentChunking
         return DocumentChunking(
             chunk_size=config.get("chunk_size", 5000),

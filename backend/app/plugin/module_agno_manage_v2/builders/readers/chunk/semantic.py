@@ -33,9 +33,9 @@ class SemanticChunkerBuilder(BaseChunkerBuilder):
         },
     ]
 
-    def build(self, config: dict, resolver) -> Any:
+    async def build(self, config: dict, resolver) -> Any:
         from agno.knowledge.chunking.semantic import SemanticChunking
-        embedder = resolver.resolve(config.get("embedder")) if config.get("embedder") else None
+        embedder = await resolver.resolve(config.get("embedder")) if config.get("embedder") else None
         kwargs: dict = {"chunk_size": config.get("chunk_size", 5000)}
         if embedder is not None:
             kwargs["embedder"] = embedder

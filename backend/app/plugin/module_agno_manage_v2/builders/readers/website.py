@@ -36,9 +36,9 @@ class WebsiteReaderBuilder(BaseReaderBuilder):
         },
     ]
 
-    def build(self, config: dict, resolver) -> Any:
+    async def build(self, config: dict, resolver) -> Any:
         from agno.knowledge.reader.website_reader import WebsiteReader
-        chunker = self._build_chunker(config, resolver)
+        chunker = await self._build_chunker(config, resolver)
         kwargs: dict = {
             "chunk": config.get("chunk", True),
             "chunk_size": config.get("chunk_size", 5000),

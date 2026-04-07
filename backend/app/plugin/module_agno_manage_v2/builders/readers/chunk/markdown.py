@@ -17,7 +17,7 @@ class MarkdownChunkerBuilder(BaseChunkerBuilder):
         },
     ]
 
-    def build(self, config: dict, resolver) -> Any:
+    async def build(self, config: dict, resolver) -> Any:
         from agno.knowledge.chunking.markdown import MarkdownChunking
         return MarkdownChunking(
             chunk_size=config.get("chunk_size", 5000),

@@ -19,9 +19,9 @@ class AgenticChunkerBuilder(BaseChunkerBuilder):
         },
     ]
 
-    def build(self, config: dict, resolver) -> Any:
+    async def build(self, config: dict, resolver) -> Any:
         from agno.knowledge.chunking.agentic import AgenticChunking
-        model = resolver.resolve(config.get("model")) if config.get("model") else None
+        model = await resolver.resolve(config.get("model")) if config.get("model") else None
         kwargs: dict = {}
         if model is not None:
             kwargs["model"] = model

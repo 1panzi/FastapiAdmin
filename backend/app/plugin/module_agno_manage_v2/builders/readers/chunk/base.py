@@ -25,7 +25,7 @@ class BaseChunkerBuilder(BaseBuilder):
     extra_fields: list[dict] = []
     field_meta: dict[str, dict] = {}
 
-    def build(self, config: dict, resolver):
+    async def build(self, config: dict, resolver):
         raise NotImplementedError
 
 

@@ -17,7 +17,7 @@ class RowChunkerBuilder(BaseChunkerBuilder):
         },
     ]
 
-    def build(self, config: dict, resolver) -> Any:
+    async def build(self, config: dict, resolver) -> Any:
         from agno.knowledge.chunking.row import RowChunking
         return RowChunking(
             skip_header=config.get("skip_header", False),

@@ -12,9 +12,9 @@ class YoutubeReaderBuilder(BaseReaderBuilder):
     except ImportError:
         agno_class = None
 
-    def build(self, config: dict, resolver) -> Any:
+    async def build(self, config: dict, resolver) -> Any:
         from agno.knowledge.reader.youtube_reader import YouTubeReader
-        chunker = self._build_chunker(config, resolver)
+        chunker = await self._build_chunker(config, resolver)
         kwargs: dict = {
             "chunk": config.get("chunk", True),
             "chunk_size": config.get("chunk_size", 5000),

@@ -66,6 +66,34 @@ from app.plugin.module_agno_manage_v2.builders.agents.base import AgentBuilder
 # ── Team Builders ────────────────────────────────────────────────────────────
 from app.plugin.module_agno_manage_v2.builders.teams.base import TeamBuilder
 
+# ── Culture Builders ──────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.culture.base import CultureManagerBuilder
+
+# ── SessionSummary Builders ───────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.session_summary.base import SessionSummaryManagerBuilder
+
+# ── Skill Builders ────────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.skills.base import SkillBuilder
+
+# ── Memory Builders ───────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.memory.base import MemoryManagerBuilder
+
+# ── Learn Builders ────────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.learn.base import LearningMachineBuilder
+
+# ── Compress Builders ─────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.compress.base import CompressionManagerBuilder
+
+# ── Guardrail Builders ────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.guardrails.base import (
+    OpenAIModerationGuardrailBuilder,
+    PIIDetectionGuardrailBuilder,
+    PromptInjectionGuardrailBuilder,
+)
+
+# ── Reasoning Builders ────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.reasoning.base import ReasoningBuilder
+
 # ── 注册表 ────────────────────────────────────────────────────────────────────
 builder_registry: dict[tuple[str, str], "BaseBuilder"] = {
     # models
@@ -109,6 +137,24 @@ builder_registry: dict[tuple[str, str], "BaseBuilder"] = {
     ("agent", "base"):     AgentBuilder(),
     # teams
     ("team", "base"):      TeamBuilder(),
+    # memory
+    ("memory", "base"):    MemoryManagerBuilder(),
+    # learn
+    ("learn", "base"):     LearningMachineBuilder(),
+    # compress
+    ("compress", "base"):  CompressionManagerBuilder(),
+    # guardrails
+    ("guardrail", "openai_moderation"):  OpenAIModerationGuardrailBuilder(),
+    ("guardrail", "pii_detection"):      PIIDetectionGuardrailBuilder(),
+    ("guardrail", "prompt_injection"):   PromptInjectionGuardrailBuilder(),
+    # reasoning
+    ("reasoning", "base"): ReasoningBuilder(),
+    # culture
+    ("culture", "base"):          CultureManagerBuilder(),
+    # session_summary
+    ("session_summary", "base"):  SessionSummaryManagerBuilder(),
+    # skills
+    ("skill", "base"):            SkillBuilder(),
 }
 
 # toolkits：按 catalog 批量注册 + custom 单独注册

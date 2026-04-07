@@ -96,15 +96,15 @@ class BaseReaderBuilder(BaseBuilder):
 
         return sorted(fields, key=lambda x: x.get("order", 99))
 
-    def _build_chunker(self, config: dict, resolver):
+    async def _build_chunker(self, config: dict, resolver):
         """从 config 中取 chunking_strategy，委托给对应的 ChunkerBuilder 构建。"""
         strategy = config.get("chunking_strategy")
         if not strategy or not config.get("chunk", True):
             return None
         builder = CHUNKER_REGISTRY.get(strategy)
         if builder:
-            return builder.build(config, resolver)
+            return await builder.build(config, resolver)
         return None
 
-    def build(self, config: dict, resolver):
+    async def build(self, config: dict, resolver):
         raise NotImplementedError

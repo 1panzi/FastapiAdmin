@@ -13,6 +13,6 @@ class CodeChunkerBuilder(BaseChunkerBuilder):
         },
     ]
 
-    def build(self, config: dict, resolver) -> Any:
+    async def build(self, config: dict, resolver) -> Any:
         from agno.knowledge.chunking.code import CodeChunking
         return CodeChunking(chunk_size=config.get("chunk_size", 5000))

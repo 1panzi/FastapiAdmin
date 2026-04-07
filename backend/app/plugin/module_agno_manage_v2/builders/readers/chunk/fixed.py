@@ -18,7 +18,7 @@ class FixedSizeChunkerBuilder(BaseChunkerBuilder):
         },
     ]
 
-    def build(self, config: dict, resolver) -> Any:
+    async def build(self, config: dict, resolver) -> Any:
         from agno.knowledge.chunking.fixed import FixedSizeChunking
         return FixedSizeChunking(
             chunk_size=config.get("chunk_size", 5000),
