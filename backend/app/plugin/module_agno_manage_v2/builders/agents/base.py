@@ -166,6 +166,14 @@ class AgentBuilder(BaseBuilder):
             "default": True,
             "order": 72,
         },
+        # ── 存储 ──────────────────────────────────────────────────────────────
+        {
+            "name": "db",
+            "type": "ref_or_inline",
+            "required": False,
+            "order": 90,
+            "source": "db",
+        },
     ]
 
     field_meta = {
@@ -232,6 +240,13 @@ class AgentBuilder(BaseBuilder):
             "group": "文化配置（实验性）",
             "span": 12,
         },
+        # 存储
+        "db": {
+            "label": "会话存储",
+            "group": "存储配置",
+            "span": 24,
+            "tooltip": "持久化 Agent 的会话、记忆等数据；留空则使用内存存储",
+        },
     }
 
     async def build(self, config: dict, resolver) -> Any:
@@ -249,6 +264,7 @@ class AgentBuilder(BaseBuilder):
         guardrails = await resolver.resolve_list(config.get("guardrails", []))
         reasoning_cfg = await resolver.resolve(config.get("reasoning_config"))
         culture_manager = await resolver.resolve(config.get("culture_manager"))
+        db = await resolver.resolve(config.get("db"))
 
         # 多个 Skills 对象合并成一个（共享 loaders）
         merged_skills = None
@@ -334,5 +350,9 @@ class AgentBuilder(BaseBuilder):
             kwargs["enable_agentic_culture"] = config["enable_agentic_culture"]
         if not config.get("add_culture_to_context", True):
             kwargs["add_culture_to_context"] = False
+
+        # 存储
+        if db is not None:
+            kwargs["db"] = db
 
         return Agent(**kwargs)

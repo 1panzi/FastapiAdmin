@@ -89,6 +89,11 @@ from app.plugin.module_agno_manage_v2.builders.vectordbs.lancedb import LanceDbB
 from app.plugin.module_agno_manage_v2.builders.vectordbs.milvus import MilvusBuilder
 from app.plugin.module_agno_manage_v2.builders.vectordbs.mongodb import MongodbBuilder
 
+# ── DB Builders ──────────────────────────────────────────────────────────────
+from app.plugin.module_agno_manage_v2.builders.dbs.sqlite import SqliteDbBuilder
+from app.plugin.module_agno_manage_v2.builders.dbs.postgres import PostgresDbBuilder
+from app.plugin.module_agno_manage_v2.builders.dbs.in_memory import InMemoryDbBuilder
+
 # ── VectorDB Builders ────────────────────────────────────────────────────────
 from app.plugin.module_agno_manage_v2.builders.vectordbs.pgvector import PgVectorBuilder
 from app.plugin.module_agno_manage_v2.builders.vectordbs.pinecone import PineconeBuilder
@@ -134,6 +139,10 @@ builder_registry: dict[tuple[str, str], "BaseBuilder"] = {
     ("reader", "arxiv"):   ArxivReaderBuilder(),
     # knowledge
     ("knowledge", "base"): KnowledgeBuilder(),
+    # db
+    ("db", "sqlite"):    SqliteDbBuilder(),
+    ("db", "postgres"):  PostgresDbBuilder(),
+    ("db", "in_memory"): InMemoryDbBuilder(),
     # agents
     ("agent", "base"):     AgentBuilder(),
     # teams

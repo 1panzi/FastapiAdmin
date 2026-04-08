@@ -140,6 +140,14 @@ class TeamBuilder(BaseBuilder):
             "order": 50,
             "source": "reasoning",
         },
+        # ── 存储 ──────────────────────────────────────────────────────────────
+        {
+            "name": "db",
+            "type": "ref_or_inline",
+            "required": False,
+            "order": 90,
+            "source": "db",
+        },
     ]
 
     field_meta = {
@@ -184,6 +192,13 @@ class TeamBuilder(BaseBuilder):
             "span": 24,
             "tooltip": "配置推理模型及推理步骤参数",
         },
+        # 存储
+        "db": {
+            "label": "会话存储",
+            "group": "存储配置",
+            "span": 24,
+            "tooltip": "持久化 Team 的会话、记忆等数据；留空则使用内存存储",
+        },
     }
 
     async def build(self, config: dict, resolver) -> Any:
@@ -198,6 +213,7 @@ class TeamBuilder(BaseBuilder):
         learning = await resolver.resolve(config.get("learning"))
         compression_manager = await resolver.resolve(config.get("compression_manager"))
         reasoning_cfg = await resolver.resolve(config.get("reasoning_config"))
+        db = await resolver.resolve(config.get("db"))
 
         # 推理参数
         reasoning_model = None
@@ -260,5 +276,9 @@ class TeamBuilder(BaseBuilder):
                 kwargs["reasoning_model"] = reasoning_model
             kwargs["reasoning_min_steps"] = reasoning_min_steps
             kwargs["reasoning_max_steps"] = reasoning_max_steps
+
+        # 存储
+        if db is not None:
+            kwargs["db"] = db
 
         return Team(**kwargs)

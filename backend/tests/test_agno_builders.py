@@ -781,3 +781,61 @@ class TestResolverBehavior:
     async def test_inline_missing_category_raises(self, resolver):
         with pytest.raises((ValueError, KeyError)):
             await resolver.resolve({"type": "openai", "model_id": "gpt-4o"})
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# N. DB Builders
+# ═════════════════════════════════════════════════════════════════════════════
+
+class TestDbBuilders:
+
+    @pytest.mark.asyncio
+    async def test_in_memory_db(self, resolver):
+        """InMemoryDb 无需任何参数。"""
+        from agno.db.in_memory import InMemoryDb
+        result = await resolver.resolve(inline("db", "in_memory"))
+        assert isinstance(result, InMemoryDb)
+
+    @pytest.mark.asyncio
+    async def test_sqlite_db_with_url(self, resolver):
+        """SqliteDb 通过 db_url 构建。"""
+        from agno.db.sqlite.sqlite import SqliteDb
+        result = await resolver.resolve(inline(
+            "db", "sqlite",
+            db_url="sqlite:///./test_agno.db",
+        ))
+        assert isinstance(result, SqliteDb)
+
+    @pytest.mark.asyncio
+    async def test_sqlite_db_with_file(self, resolver):
+        """SqliteDb 通过 db_file 构建。"""
+        from agno.db.sqlite.sqlite import SqliteDb
+        result = await resolver.resolve(inline(
+            "db", "sqlite",
+            db_file="./test_agno.db",
+        ))
+        assert isinstance(result, SqliteDb)
+
+    @pytest.mark.asyncio
+    async def test_sqlite_db_with_table_names(self, resolver):
+        """SqliteDb 支持自定义表名。"""
+        from agno.db.sqlite.sqlite import SqliteDb
+        result = await resolver.resolve(inline(
+            "db", "sqlite",
+            db_url="sqlite:///./test_agno.db",
+            session_table="my_sessions",
+            memory_table="my_memories",
+        ))
+        assert isinstance(result, SqliteDb)
+
+    @pytest.mark.asyncio
+    async def test_postgres_db(self, resolver):
+        """PostgresDb 通过 db_url 构建（不连接，只验证对象创建）。"""
+        from agno.db.postgres.postgres import PostgresDb
+        result = await resolver.resolve(inline(
+            "db", "postgres",
+            db_url="postgresql+psycopg://user:pass@localhost:5432/agno",
+            db_schema="public",
+            create_schema=False,
+        ))
+        assert isinstance(result, PostgresDb)

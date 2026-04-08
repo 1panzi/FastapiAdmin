@@ -151,7 +151,7 @@ def register_routers(app: FastAPI) -> None:
     # 获取动态路由实例
     app.include_router(
         router=get_dynamic_router(),
-        dependencies=[Depends(RateLimiter(times=5, seconds=10))],
+        dependencies=[Depends(RateLimiter(times=50, seconds=10))],
     )
 
 
