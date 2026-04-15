@@ -67,13 +67,13 @@ class RedisCURD:
             log.error(f"获取缓存失败: {e!s}")
             return None
 
-    async def set(self, key: str, value: Any, expire: int | None = None) -> bool:
+    async def set(self, key: str, value: Any, expire: int | None = 86400) -> bool:
         """设置缓存
 
         参数:
         - key (str): 缓存键名
         - value (Any): 缓存值
-        - expire (int | None, optional): 过期时间,单位为秒,默认值为None。
+        - expire (int | None, optional): 过期时间,单位为秒,默认值为86400（24小时）。
 
         返回:
         - bool: 如果设置缓存成功则返回True,否则返回False

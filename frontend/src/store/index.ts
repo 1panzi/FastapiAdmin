@@ -78,7 +78,7 @@ export async function refreshAppCaches(opts: RefreshCacheOptions = {}) {
     tasks.push(userStore.getUserInfo());
   }
   if (refreshConfig) {
-    tasks.push(configStore.getConfig());
+    tasks.push(configStore.getConfig(true));
   }
   if (refreshNotice) {
     tasks.push(noticeStore.getNotice());

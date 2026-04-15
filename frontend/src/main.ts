@@ -26,7 +26,8 @@ app.use(createTerminal());
 const setTitleAndFavicon = async () => {
   try {
     const configStore = useConfigStore();
-    await configStore.getConfig();
+    // 强制从服务器获取最新配置
+    await configStore.getConfig(true);
 
     const webTitle = configStore.configData.sys_web_title?.config_value;
     const webFavicon = configStore.configData.sys_web_favicon?.config_value;
