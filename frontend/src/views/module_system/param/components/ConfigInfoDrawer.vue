@@ -432,7 +432,10 @@ const submitChanges = async () => {
 };
 
 // 取消修改：重置所有修改字段的状态并恢复初始值
-const resetForm = () => {
+const resetForm = async () => {
+  // 强制重新加载配置数据（从服务器获取最新数据）
+  await configStore.getConfig(true);
+
   // 重置动态列表
   initializeLists();
 
@@ -468,9 +471,9 @@ async function handleCloseDialog() {
   drawerVisible.value = false;
 }
 
-function onDrawerClosed() {
+async function onDrawerClosed() {
   // 抽屉关闭动画结束后再执行重置，避免打断动画
-  resetForm();
+  await resetForm();
 }
 
 // 系统配置项
@@ -690,7 +693,7 @@ const handleUploadError = (error: any) => {
 
 onMounted(() => {
   initializeLists();
-  configStore.getConfig();
+  configStore.getConfig(true);
 });
 </script>
 

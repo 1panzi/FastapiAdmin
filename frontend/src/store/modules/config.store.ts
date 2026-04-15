@@ -33,8 +33,8 @@ export const useConfigStore = defineStore("config", {
   }),
 
   actions: {
-    async getConfig() {
-      if (this.isConfigLoaded || this.configLoading) {
+    async getConfig(force = false) {
+      if ((this.isConfigLoaded && !force) || this.configLoading) {
         return;
       }
       this.configLoading = true;
