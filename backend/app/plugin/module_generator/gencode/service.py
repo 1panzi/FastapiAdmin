@@ -1052,16 +1052,21 @@ class GenTableService:
                     # is_nullable：主键列以 DB 为准，其余保留用户设置
                     if not bool(getattr(column, "is_pk", False)) and hasattr(prev_column, "is_nullable"):
                         column.is_nullable = prev_column.is_nullable
+                    
+                    # 转换为 GenTableColumnSchema，排除 super_column 等输出专用字段
+                    column_data = GenTableColumnSchema(**column.model_dump(exclude={"super_column"}))
                     if hasattr(column, "id") and column.id:
                         await GenTableColumnCRUD(auth).update_gen_table_column_crud(
-                            column.id, column
+                            column.id, column_data
                         )
                     else:
-                        await GenTableColumnCRUD(auth).create_gen_table_column_crud(column)
+                        await GenTableColumnCRUD(auth).create_gen_table_column_crud(column_data)
                 else:
                     # 设置table_id以确保新字段能正确关联到表
                     column.table_id = table.id
-                    await GenTableColumnCRUD(auth).create_gen_table_column_crud(column)
+                    # 转换为 GenTableColumnSchema，排除 super_column 等输出专用字段
+                    column_data = GenTableColumnSchema(**column.model_dump(exclude={"super_column"}))
+                    await GenTableColumnCRUD(auth).create_gen_table_column_crud(column_data)
             del_columns = [
                 column
                 for column in table_columns
