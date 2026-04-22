@@ -1,11 +1,11 @@
 __pycache__
-.vscode
+#.vscode
 .idea
 .DS_Store
 .git
 **/__pycache__
 backend/__pycache__
-backend/.vscode
+#backend/.vscode
 backend/.idea
 backend/.DS_Store
 backend/venv
@@ -34,8 +34,8 @@ devops/nginx/frontend/dist
 devops/nginx/ssl
 
 # 本地配置覆盖文件（不提交到版本控制）
-backend/env/.env.dev
-backend/env/.env.prod
+#backend/env/.env.dev
+#backend/env/.env.prod
 frontend/.env.development
 frontend/.env.production
 docker-compose.yaml
